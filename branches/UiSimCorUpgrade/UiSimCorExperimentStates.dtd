@@ -1,0 +1,31 @@
+<!-- DTD created at Fri Feb 22 19:33:30 CST 2008. Please insert an encoding attribute header for converting any DTD  -->
+
+<!-- Excel style time stamp with millisecond resolution -->
+<!ELEMENT Timestamp (#PCDATA)>
+<!-- ASCII Text block which is a container for unformatted data -->
+<!ELEMENT RawData (#PCDATA)>
+<!-- Name of the system sending the message -->
+<!ELEMENT SystemName (#PCDATA)>
+<!-- Container for descriptions passed to the user -->
+<!ELEMENT Description (#PCDATA)>
+<!-- double value with 5 digit resolution -->
+<!ELEMENT  Value (#PCDATA)>
+<!-- Name Data field (Channel) -->
+<!ELEMENT Channel (Value)>
+<!ATTLIST Channel Name CDATA #REQUIRED>
+<!-- Record of data -->
+<!ELEMENT Data (Channel+)>
+<!ELEMENT Message (Timestamp,SystemName, Description?,Data?, RawData?)>
+<!ATTLIST Message Type ( COMMAND | ACKNOWLEDGEMENT | RESPONSE) #REQUIRED>
+<!-- User level step name --> 
+<!ELEMENT StepIdentifier (#PCDATA)>
+<!-- SimCor transaction identifier -->
+<!ELEMENT TransactionId (#PCDATA)>
+<!ELEMENT Step (StepIdentifier,TransactionId)>
+<!ATTLIST Step 
+<!-- So-called Labview protocol -->
+	NtcpCommand (OPEN | CLOSE | SET | GET | PROPOSE | EXECUTE | CANCEL | QUERY) #REQUIRED>
+<!ELEMENT StepStack (Step+)>
+<!ELEMENT SimCorState (StepStack, Message)>
+<!-- Tentative list of workflow commands used for archiving-->
+<!ATTLIST SimCorState Workflow (RUN | STOP | PAUSE | RESUME | LOAD | EDIT | EXIT) #REQUIRED>
