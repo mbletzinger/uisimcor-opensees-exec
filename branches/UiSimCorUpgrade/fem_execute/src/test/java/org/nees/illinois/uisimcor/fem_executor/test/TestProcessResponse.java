@@ -67,7 +67,7 @@ public class TestProcessResponse {
 		String sep = System.getProperty("file.separator");
 		URL u = ClassLoader.getSystemResource("printerTest.pl");
 		command = u.getPath().replaceAll("%20", " ");
-		command = command.replaceAll("/", Matcher.quoteReplacement(sep));
+		command = command.replaceAll("(?<!^)(\\\\|/){2,}", Matcher.quoteReplacement(sep));
 	}
 
 }

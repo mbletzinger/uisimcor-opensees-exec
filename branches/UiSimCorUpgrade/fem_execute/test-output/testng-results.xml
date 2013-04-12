@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testng-results skipped="0" failed="0" total="1" passed="1">
+  <reporter-output>
+  </reporter-output>
+  <suite name="Default suite" duration-ms="22507" started-at="2013-04-12T17:02:28Z" finished-at="2013-04-12T17:02:51Z">
+    <groups>
+    </groups>
+    <test name="Default test" duration-ms="22507" started-at="2013-04-12T17:02:28Z" finished-at="2013-04-12T17:02:51Z">
+      <class name="org.nees.illinois.uisimcor.fem_executor.test.TestProcessResponse">
+        <test-method status="PASS" signature="beforeClass()[pri:0, instance:org.nees.illinois.uisimcor.fem_executor.test.TestProcessResponse@456dfa45]" name="beforeClass" is-config="true" duration-ms="14" started-at="2013-04-12T12:02:28Z" finished-at="2013-04-12T12:02:28Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- beforeClass -->
+        <test-method status="PASS" signature="TestOutput()[pri:0, instance:org.nees.illinois.uisimcor.fem_executor.test.TestProcessResponse@456dfa45]" name="TestOutput" duration-ms="22472" started-at="2013-04-12T12:02:28Z" finished-at="2013-04-12T12:02:51Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TestOutput -->
+      </class> <!-- org.nees.illinois.uisimcor.fem_executor.test.TestProcessResponse -->
+    </test> <!-- Default test -->
+  </suite> <!-- Default suite -->
+</testng-results>
