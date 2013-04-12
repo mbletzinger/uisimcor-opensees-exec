@@ -1,4 +1,4 @@
-package org.nees.illinois.uisimcor.fem_executor;
+package org.nees.illinois.uisimcor.fem_executor.process;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -10,14 +10,40 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
-
+/**
+ * Class to wrap some management threads around the {@link ProcessBuilder ProcessBuilder}
+ * 
+ * @author Michael Bletzinger
+ *
+ */
 public class ProcessManagement {
+	/**
+	 * Line command to execute.
+	 */
 	private final String cmd;
+	/**
+	 * Interval to wait between thread checks.
+	 */
 	private final int waitInMillSecs;
+	/**
+	 * Argument list for the command.
+	 */
 	private final List<String> args = new ArrayList<String>();
+	/**
+	 * Environment variables for the command.
+	 */
 	private final Map<String, String> env = new HashMap<String, String>();
+	/**
+	 * Listener for error messages.
+	 */
 	private ProcessResponse errPr;
+	/**
+	 * Listener for output.
+	 */
 	private ProcessResponse stoutPr;
+	/**
+	 * Logger
+	 */
 	private final Logger log = LoggerFactory.getLogger(ProcessManagement.class);
 
 	public ProcessManagement(String cmd, int waitInMilliSec) {
@@ -56,6 +82,7 @@ public class ProcessManagement {
 			p = pb.start();
 		} catch (IOException e) {
 			log.error(cmd + " failed to start because", e);
+			return;
 		}
 		log.debug("Creating threads");
 		errPr = new ProcessResponse(Level.ERROR, p.getErrorStream(), 100, cmd);
