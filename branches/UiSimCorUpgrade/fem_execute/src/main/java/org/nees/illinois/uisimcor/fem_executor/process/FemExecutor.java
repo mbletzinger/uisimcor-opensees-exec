@@ -6,6 +6,17 @@ package org.nees.illinois.uisimcor.fem_executor.process;
  * @author Michael Bletzinger
  */
 public class FemExecutor {
+	public static void main(String[] args) {
+		String os = System.getProperty("os.name");
+		FemExecutor fem;
+		if(os.contains("Window")) {
+		fem = new FemExecutor("echo", "Is there anybody out there?");
+		} else {
+			fem = new FemExecutor("ls", "-l");	
+		}
+		fem.execute();
+		System.out.print("Output: \"" + fem.getPm().getOutput() + "\"");
+	}
 	/**
 	 * Line command
 	 */
@@ -18,6 +29,7 @@ public class FemExecutor {
 	 * {@link ProcessManagement Wrapper} around command line executor.
 	 */
 	private ProcessManagement pm;
+
 	/**
 	 * Wait interval for checking thread for done.
 	 */
@@ -33,7 +45,6 @@ public class FemExecutor {
 		this.command = command;
 		this.filename = filename;
 	}
-
 	/**
 	 * Create the {@link ProcessManagement ProcessManagement} instance and
 	 * execute it.
@@ -42,17 +53,6 @@ public class FemExecutor {
 		pm = new ProcessManagement(command, waitInMillisecs);
 		pm.addArg(filename);
 		pm.execute();
-	}
-	public static void main(String[] args) {
-		String os = System.getProperty("os.name");
-		FemExecutor fem;
-		if(os.contains("Window")) {
-		fem = new FemExecutor("dir", "/n");
-		} else {
-			fem = new FemExecutor("ls", "-l");	
-		}
-		fem.execute();
-		System.out.print("Output: \"" + fem.getPm().getOutput() + "\"");
 	}
 
 	/**
