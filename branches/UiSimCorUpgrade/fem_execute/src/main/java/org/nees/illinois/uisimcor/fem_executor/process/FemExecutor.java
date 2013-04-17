@@ -26,7 +26,6 @@ public class FemExecutor {
 			fem = new FemExecutor("ls", "-l");
 		}
 		fem.startCmd();
-		System.out.print("Output: \"" + fem.getPm().getOutput() + "\"");
 		while(fem.getPm().isDone() == false) {
 			try {
 				final int waitTime = 500;
@@ -36,6 +35,7 @@ public class FemExecutor {
 				int dumb = 0;
 			}
 		}
+		System.out.print("Output: \"" + fem.getPm().getOutput() + "\"");
 	}
 
 	/**
