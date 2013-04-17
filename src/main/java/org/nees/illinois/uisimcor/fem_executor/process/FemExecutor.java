@@ -1,58 +1,78 @@
 package org.nees.illinois.uisimcor.fem_executor.process;
 
+import java.io.IOException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Class to execute FEM programs
  * 
  * @author Michael Bletzinger
  */
 public class FemExecutor {
-	public static void main(String[] args) {
+	/**
+	 * Test function to see if the executor works in the given OS environment.
+	 * 
+	 * @param args
+	 *            ignored.
+	 */
+	public static void main(final String[] args) {
 		String os = System.getProperty("os.name");
 		FemExecutor fem;
-		if(os.contains("Window")) {
-		fem = new FemExecutor("echo", "Is there anybody out there?");
+		if (os.contains("Window")) {
+			fem = new FemExecutor("echo", "Is there anybody out there?");
 		} else {
-			fem = new FemExecutor("ls", "-l");	
+			fem = new FemExecutor("ls", "-l");
 		}
-		fem.execute();
+		fem.startCmd();
 		System.out.print("Output: \"" + fem.getPm().getOutput() + "\"");
+		while(fem.getPm().isDone() == false) {
+			try {
+				final int waitTime = 500;
+				Thread.sleep(waitTime);
+			} catch (InterruptedException e) {
+				@SuppressWarnings("unused")
+				int dumb = 0;
+			}
+		}
 	}
+
 	/**
 	 * Line command
 	 */
 	private String command;
 	/**
+	 * default wait.
+	 */
+	private final int defaultWait = 2000;
+	/**
 	 * Filename as first argument.
 	 */
 	private String filename;
+	/**
+	 * Logger
+	 **/
+	private final Logger log = LoggerFactory.getLogger(FemExecutor.class);
 	/**
 	 * {@link ProcessManagement Wrapper} around command line executor.
 	 */
 	private ProcessManagement pm;
 
 	/**
-	 * Wait interval for checking thread for done.
+	 * Wait interval for checking thread for done. Default is 2 seconds
 	 */
-	private int waitInMillisecs = 2000;
+	private int waitInMillisecs = defaultWait;
 
 	/**
 	 * @param command
-	 * Line command
+	 *            Line command
 	 * @param filename
-	 * Filename as first argument.
+	 *            Filename as first argument.
 	 */
-	public FemExecutor(String command, String filename) {
+	public FemExecutor(final String command, final String filename) {
 		this.command = command;
 		this.filename = filename;
-	}
-	/**
-	 * Create the {@link ProcessManagement ProcessManagement} instance and
-	 * execute it.
-	 */
-	public void execute() {
-		pm = new ProcessManagement(command, waitInMillisecs);
-		pm.addArg(filename);
-		pm.execute();
 	}
 
 	/**
@@ -87,7 +107,7 @@ public class FemExecutor {
 	 * @param command
 	 *            the command to set
 	 */
-	public final void setCommand(String command) {
+	public final void setCommand(final String command) {
 		this.command = command;
 	}
 
@@ -95,7 +115,7 @@ public class FemExecutor {
 	 * @param filename
 	 *            the filename to set
 	 */
-	public final void setFilename(String filename) {
+	public final void setFilename(final String filename) {
 		this.filename = filename;
 	}
 
@@ -103,7 +123,24 @@ public class FemExecutor {
 	 * @param waitInMillisecs
 	 *            the waitInMillisecs to set
 	 */
-	public final void setWaitInMillisecs(int waitInMillisecs) {
+	public final void setWaitInMillisecs(final int waitInMillisecs) {
 		this.waitInMillisecs = waitInMillisecs;
+	}
+
+	/**
+	 * Create the {@link ProcessManagement ProcessManagement} instance and start
+	 * it.
+	 * @return the {@link ProcessManagement ProcessManagement} instance
+	 */
+	public final ProcessManagement startCmd() {
+		pm = new ProcessManagement(command, waitInMillisecs);
+		pm.addArg(filename);
+		try {
+			pm.startExecute();
+			return pm;
+		} catch (IOException e) {
+			log.debug(command + " falied to start", e);
+		}
+		return null;
 	}
 }
