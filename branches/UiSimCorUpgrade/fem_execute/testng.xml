@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite
+	name="Process Testing"
+	parallel="false">
+	<test name="ProcessTest">
+		<classes>
+			<class
+				name="org.nees.illinois.uisimcor.fem_executor.test.TestProcessResponse" />
+		</classes>
+	</test> <!-- DataTest -->
+</suite> <!-- DataSuite -->
