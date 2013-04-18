@@ -7,6 +7,8 @@
 		<classes>
 			<class
 				name="org.nees.illinois.uisimcor.fem_executor.test.TestProcessResponse" />
+			<class
+				name="org.nees.illinois.uisimcor.fem_executor.test.TestDataFileParsing" />
 		</classes>
 	</test> <!-- DataTest -->
 </suite> <!-- DataSuite -->

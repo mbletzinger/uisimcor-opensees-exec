@@ -6,13 +6,33 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Class which allows easy transitions between various ways to store a matrix.
+ * 
+ * @author Michael Bletzinger
+ */
 public class DoubleMatrix {
-	protected final List<List<Double>> data;
-	protected final int numberOfColumns;
-
+	/**
+	 * Internal representation of data set.
+	 */
+	private final List<List<Double>> data;
+	/**
+	 * Number of columns for each row. Needed because there is no guarantee that
+	 * every List<Double> row will have the same number of elements.
+	 */
+	private final int numberOfColumns;
+	/**
+	 * Logger
+	 */
 	private final Logger log = LoggerFactory.getLogger(DoubleMatrix.class);
 
-	public DoubleMatrix(List<List<Double>> idata) {
+	/**
+	 * Constructor from List<List<Double>>.
+	 * 
+	 * @param idata
+	 *            Input data set.
+	 */
+	public DoubleMatrix(final List<List<Double>> idata) {
 		data = idata;
 		// Because we are paranoid we assume that idata is sparse row-wise.
 		// So we find the longest row and append nulls to the others
@@ -34,7 +54,13 @@ public class DoubleMatrix {
 		}
 	}
 
-	public DoubleMatrix(double[][] idata) {
+	/**
+	 * Constructor from double[][].
+	 * 
+	 * @param idata
+	 *            Input data set.
+	 */
+	public DoubleMatrix(final double[][] idata) {
 		data = new ArrayList<List<Double>>();
 		int row = idata.length;
 		int col = idata[0].length;
@@ -49,9 +75,10 @@ public class DoubleMatrix {
 	}
 
 	/**
-	 * @return the data
+	 * @return the data set in double[][] format. A elements that are null are
+	 *         set to Double.NaN.
 	 */
-	public double[][] getData() {
+	public final double[][] getData() {
 		double[][] result = new double[data.size()][numberOfColumns];
 		int rc = 0;
 		for (List<Double> r : data) {
@@ -69,30 +96,55 @@ public class DoubleMatrix {
 		return result;
 	}
 
-	public boolean isNull(int row, int col) {
+	/**
+	 * Determine if a particular element in the dataset contains a number.
+	 * 
+	 * @param row
+	 *            Element row.
+	 * @param col
+	 *            Element column.
+	 * @return True if the element does not contain a number.
+	 */
+	public final boolean isNull(final int row, final int col) {
 		List<Double> rowL = data.get(row);
 		if (rowL.size() < col) {
 			return true;
 		}
 		return rowL.get(col) == null;
 	}
-
-	public void set(int row, int col, double value) {
+/**
+ * Sets an element.
+ *@param row
+	 *            Element row.
+ *@param col
+	 *            Element column.
+ *@param value
+	 *            Element value.
+ */
+	public final void set(final int row, final int col, final double value) {
 		List<Double> rowL = data.get(row);
 		for (int c = rowL.size(); c < col + 1; c++) {
 			rowL.add(null);
 		}
 		rowL.set(col, new Double(value));
 	}
-
-	public int[] sizes() {
+/**
+ * returns the row and column sizes.
+ *@return
+ *array with the number of rows and then the number of columns.
+ */
+	public final int[] sizes() {
 		int[] result = new int[2];
 		result[0] = data.size();
 		result[1] = numberOfColumns;
 		return result;
 	}
-
-	public List<List<Double>> toList() {
+/**
+ * Returns the data set in List<LIst<Double>> format.
+ *@return
+ *The data set.
+ */
+	public final List<List<Double>> toList() {
 		List<List<Double>> result = new ArrayList<List<Double>>();
 		for (List<Double> r : data) {
 			List<Double> nr = new ArrayList<Double>();
@@ -104,11 +156,10 @@ public class DoubleMatrix {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
-	public String toString() {
+	public final String toString() {
 		String result = "";
 		for (List<Double> r : data) {
 			boolean first = true;
@@ -126,8 +177,16 @@ public class DoubleMatrix {
 		}
 		return result;
 	}
-
-	public double value(int row, int col) {
+/**
+ * Returns the value of an element.  If the element is null the function returns Double.NaN.
+ *@param row
+	 *            Element row.
+ *@param col
+	 *            Element column.
+ *@return
+	 *            Element value.
+ */
+	public final double value(final int row, final int col) {
 		if (data.isEmpty() == false) {
 			List<Double> rowL = data.get(row);
 			if (rowL == null) {
