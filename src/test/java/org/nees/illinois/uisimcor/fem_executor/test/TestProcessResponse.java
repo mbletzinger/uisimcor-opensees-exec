@@ -20,7 +20,7 @@ public class TestProcessResponse {
 
 	@Test
 	public void TestOutput() {
-		String[] cmd = { "perl", command, "2", "9" };
+		String[] cmd = { "perl", command, "dummy0", "2", "9" };
 		ProcessBuilder pb = new ProcessBuilder(cmd);
 		Process p = null;
 		log.debug("Starting process");
@@ -55,9 +55,8 @@ public class TestProcessResponse {
 		stoutPr.setDone(true);
 		log.debug("Output \"" + stoutPr.getOutput() + "\"");
 		log.debug("Error \"" + errPr.getOutput() + "\"");
-		Assert.assertEquals(
-				stoutPr.getOutput(),
-				"Printing out 0\nPrinting out 1\nPrinting out 2\nPrinting out 3\nPrinting out 4\nPrinting out 5\nPrinting out 6\nPrinting out 7\nPrinting out 8\nPrinting out 9\n");
+		Assert.assertTrue(
+				stoutPr.getOutput().contains("Printing out 1\nPrinting out 2\nPrinting out 3\nPrinting out 4\nPrinting out 5\nPrinting out 6\nPrinting out 7\nPrinting out 8\nPrinting out 9\n"));
 		Assert.assertEquals(errPr.getOutput(),
 				"Erroring out 0\nErroring out 3\nErroring out 6\nErroring out 9\n");
 	}
@@ -67,7 +66,8 @@ public class TestProcessResponse {
 		String sep = System.getProperty("file.separator");
 		URL u = ClassLoader.getSystemResource("printerTest.pl");
 		command = u.getPath().replaceAll("%20", " ");
-		command = command.replaceAll("(?<!^)(\\\\|/){2,}", Matcher.quoteReplacement(sep));
+		command = command.replaceAll("(?<!^)(\\\\|/){2,}",
+				Matcher.quoteReplacement(sep));
 	}
 
 }

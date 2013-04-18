@@ -275,9 +275,9 @@ public class ProcessManagement {
 		process = pb.start();
 		log.debug("Creating threads");
 		errPr = new ProcessResponse(Level.ERROR, process.getErrorStream(),
-				listenerWaitInterval, cmd);
+				listenerWaitInterval, (workDir == null ? "" : workDir + "/") + cmd);
 		stoutPr = new ProcessResponse(Level.DEBUG, process.getInputStream(),
-				listenerWaitInterval, cmd);
+				listenerWaitInterval, (workDir == null ? "" : workDir + "/") + cmd);
 		Thread errThrd = new Thread(errPr);
 		Thread stoutThrd = new Thread(stoutPr);
 		log.debug("Starting threads");

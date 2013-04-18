@@ -22,8 +22,8 @@
 		name="org.nees.illinois.uisimcor.fem_executor.test"
 		level="DEBUG" />
 	<logger
-		name="org.nees.illinois.uisimcor.fem_executor.process.process"
-		level="INFO" />
+		name="org.nees.illinois.uisimcor.fem_executor.process"
+		level="DEBUG" />
 	<logger
 		name="org.nees.illinois.uisimcor.fem_executor.process.ProcessResponse"
 		level="DEBUG" />

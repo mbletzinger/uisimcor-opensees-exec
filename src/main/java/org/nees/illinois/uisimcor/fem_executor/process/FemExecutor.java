@@ -231,6 +231,7 @@ public class FemExecutor {
 	public final ProcessManagement startCmd() {
 		pm = new ProcessManagement(command, waitInMillisecs);
 		pm.addArg(filename);
+		pm.setWorkDir(workDir);
 		try {
 			pm.startExecute();
 			current = ExecutionState.Executing;
@@ -276,6 +277,23 @@ public class FemExecutor {
 		if (current.equals(ExecutionState.Finished)) {
 			result = true;
 		}
+		log.debug("Current state is " + current);
 		return result;
+	}
+	/**
+	 * Return the displacements data set.
+	 *@return
+	 *double matrix
+	 */
+	public final double [][] getDisplacements() {
+		return ofptDisp.getData();
+	}
+	/**
+	 * Return the forces data set.
+	 *@return
+	 *double matrix
+	 */
+	public final double [][] getForces() {
+		return ofptForce.getData();
 	}
 }
