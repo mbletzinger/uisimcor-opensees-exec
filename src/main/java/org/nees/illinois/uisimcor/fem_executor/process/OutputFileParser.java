@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
  * @author Michael Bletzinger
  *
  */
-public class DataFiles {
+public class OutputFileParser {
 	/**
 	 * The parsed data set.
 	 */
@@ -29,7 +29,7 @@ public class DataFiles {
 	/**
 	 * Logger
 	 **/
-	private final Logger log = LoggerFactory.getLogger(DataFiles.class);
+	private final Logger log = LoggerFactory.getLogger(OutputFileParser.class);
 	/**
 	 * @return the archive
 	 */
