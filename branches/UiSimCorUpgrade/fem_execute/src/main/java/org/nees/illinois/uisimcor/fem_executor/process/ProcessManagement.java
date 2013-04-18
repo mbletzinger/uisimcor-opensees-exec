@@ -1,5 +1,6 @@
 package org.nees.illinois.uisimcor.fem_executor.process;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,28 +43,36 @@ public class ProcessManagement {
 	 * The value returned by the executed command.
 	 */
 	private int exitValue;
+
 	/**
 	 * Interval for the {@link ProcessResponse ProcessResponse} threads to wait
 	 * before reading content.
 	 */
 	private final int listenerWaitInterval = 100;
+
 	/**
 	 * Logger
 	 */
 	private final Logger log = LoggerFactory.getLogger(ProcessManagement.class);
+
 	/**
 	 * {@link Process Process} associated with the executing command.
 	 */
 	private Process process = null;
+
 	/**
 	 * Listener for output.
 	 */
 	private ProcessResponse stoutPr;
+
 	/**
 	 * Interval to wait between thread checks.
 	 */
 	private final int waitInMillSecs;
-
+	/**
+	 * Working directory for the execution.
+	 */
+	private String workDir = null;
 	/**
 	 * Constructor
 	 * 
@@ -77,7 +86,6 @@ public class ProcessManagement {
 		this.cmd = cmd;
 		this.waitInMillSecs = waitInMilliSec;
 	}
-
 	/**
 	 * Add an argument to the command.
 	 * 
@@ -87,7 +95,6 @@ public class ProcessManagement {
 	public final void addArg(final String arg) {
 		args.add(arg);
 	}
-
 	/**
 	 * Add a variable to the process environment.
 	 * 
@@ -99,7 +106,6 @@ public class ProcessManagement {
 	public final void addEnv(final String name, final String value) {
 		env.put(name, value);
 	}
-
 	/**
 	 * Assemble the command and its arguments.
 	 * 
@@ -115,7 +121,6 @@ public class ProcessManagement {
 		}
 		return result;
 	}
-
 	/**
 	 * Starts the command and does not return until the command has finished
 	 * executing.
@@ -149,10 +154,24 @@ public class ProcessManagement {
 	}
 
 	/**
+	 * @return the args
+	 */
+	public final List<String> getArgs() {
+		return args;
+	}
+
+	/**
 	 * @return the cmd
 	 */
 	public final String getCmd() {
 		return cmd;
+	}
+
+	/**
+	 * @return the env
+	 */
+	public final Map<String, String> getEnv() {
+		return env;
 	}
 
 	/**
@@ -172,6 +191,13 @@ public class ProcessManagement {
 	}
 
 	/**
+	 * @return the listenerWaitInterval
+	 */
+	public final int getListenerWaitInterval() {
+		return listenerWaitInterval;
+	}
+
+	/**
 	 * Get standard output from the command execution.
 	 * 
 	 * @return The current standard output.
@@ -185,6 +211,13 @@ public class ProcessManagement {
 	 */
 	public final int getWaitInMillSecs() {
 		return waitInMillSecs;
+	}
+
+	/**
+	 * @return the workDir
+	 */
+	public final String getWorkDir() {
+		return workDir;
 	}
 
 	/**
@@ -207,6 +240,13 @@ public class ProcessManagement {
 	}
 
 	/**
+	 * @param workDir the workDir to set
+	 */
+	public final void setWorkDir(String workDir) {
+		this.workDir = workDir;
+	}
+
+	/**
 	 * Start the execution of the command.
 	 * 
 	 * @throws IOException
@@ -215,6 +255,20 @@ public class ProcessManagement {
 	public final void startExecute() throws IOException {
 		String[] executeLine = assemble();
 		ProcessBuilder pb = new ProcessBuilder(executeLine);
+		if (workDir != null) {
+			File workDirF = new File(workDir);
+			if (workDirF.exists() == false) {
+				throw new IOException("Directory \"" + workDir
+						+ "\" does not exist");
+			}
+			if (workDirF.isDirectory() == false) {
+				throw new IOException("Directory \"" + workDir
+						+ "\" is not a directory");
+			}
+			log.debug("Setting the working directory to \""
+					+ workDirF.getAbsolutePath() + "\"");
+			pb.directory(workDirF);
+		}
 		pb.environment().putAll(env);
 
 		log.debug("Starting process");
