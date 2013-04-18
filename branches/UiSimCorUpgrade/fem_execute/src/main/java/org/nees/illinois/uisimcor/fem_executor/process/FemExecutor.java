@@ -12,6 +12,34 @@ import org.slf4j.LoggerFactory;
  */
 public class FemExecutor {
 	/**
+	 * Possible execution states
+	 * 
+	 * @author Michael Bletzinger
+	 */
+	public enum ExecutionState {
+		/**
+		 * The command is executing.
+		 */
+		Executing,
+		/**
+		 * The command has finished executing.
+		 */
+		ExecutionFinished,
+		/**
+		 * We are done.
+		 */
+		Finished,
+		/**
+		 * We have not started executing yet.
+		 */
+		NotStarted,
+		/**
+		 * The output files are being parsed.
+		 */
+		ProcessingOutputFiles
+	}
+
+	/**
 	 * Test function to see if the executor works in the given OS environment.
 	 * 
 	 * @param args
@@ -21,12 +49,12 @@ public class FemExecutor {
 		String os = System.getProperty("os.name");
 		FemExecutor fem;
 		if (os.contains("Window")) {
-			fem = new FemExecutor("echo", "Is there anybody out there?");
+			fem = new FemExecutor("echo", "Is there anybody out there?", null);
 		} else {
-			fem = new FemExecutor("ls", "-l");
+			fem = new FemExecutor("ls", "-l", null);
 		}
 		fem.startCmd();
-		while(fem.getPm().isDone() == false) {
+		while (fem.isDone() == false) {
 			try {
 				final int waitTime = 500;
 				Thread.sleep(waitTime);
@@ -42,10 +70,17 @@ public class FemExecutor {
 	 * Line command
 	 */
 	private String command;
+
+	/**
+	 * Current execution state.
+	 */
+	private ExecutionState current = ExecutionState.NotStarted;
+
 	/**
 	 * default wait.
 	 */
 	private final int defaultWait = 2000;
+
 	/**
 	 * Filename as first argument.
 	 */
@@ -58,21 +93,45 @@ public class FemExecutor {
 	 * {@link ProcessManagement Wrapper} around command line executor.
 	 */
 	private ProcessManagement pm;
-
+	/**
+	 * Flag indicating that output files need to be parsed after execution.
+	 */
+	private boolean processOutputFiles = false;
 	/**
 	 * Wait interval for checking thread for done. Default is 2 seconds
 	 */
 	private int waitInMillisecs = defaultWait;
 
 	/**
+	 * Working directory for FEM execution
+	 */
+	private final String workDir;
+	/**
+	 * Output file {@link OutputFileParsingTask parser} for displacements.
+	 */
+	private final OutputFileParsingTask ofptDisp;
+	/**
+	 * Output file {@link OutputFileParsingTask parser} for forces.
+	 */
+	private final OutputFileParsingTask ofptForce;
+
+	/**
 	 * @param command
 	 *            Line command
 	 * @param filename
 	 *            Filename as first argument.
+	 * @param workDir
+	 *            Working directory for execution. Use null if the current JVM
+	 *            directory is fine.
 	 */
-	public FemExecutor(final String command, final String filename) {
+	public FemExecutor(final String command, final String filename,
+			final String workDir) {
+		String sep = System.getProperty("file.separator");
 		this.command = command;
 		this.filename = filename;
+		this.workDir = workDir;
+		ofptDisp = new OutputFileParsingTask(workDir + sep + "tmp_disp.out");
+		ofptForce = new OutputFileParsingTask(workDir + sep + "tmp_forc.out");
 	}
 
 	/**
@@ -80,6 +139,20 @@ public class FemExecutor {
 	 */
 	public final String getCommand() {
 		return command;
+	}
+
+	/**
+	 * @return the current
+	 */
+	public final ExecutionState getCurrent() {
+		return current;
+	}
+
+	/**
+	 * @return the defaultWait
+	 */
+	public final int getDefaultWait() {
+		return defaultWait;
 	}
 
 	/**
@@ -104,6 +177,20 @@ public class FemExecutor {
 	}
 
 	/**
+	 * @return the workDir
+	 */
+	public final String getWorkDir() {
+		return workDir;
+	}
+
+	/**
+	 * @return the processOutputFiles
+	 */
+	public final boolean isProcessOutputFiles() {
+		return processOutputFiles;
+	}
+
+	/**
 	 * @param command
 	 *            the command to set
 	 */
@@ -120,6 +207,14 @@ public class FemExecutor {
 	}
 
 	/**
+	 * @param processOutputFiles
+	 *            the processOutputFiles to set
+	 */
+	public final void setProcessOutputFiles(final boolean processOutputFiles) {
+		this.processOutputFiles = processOutputFiles;
+	}
+
+	/**
 	 * @param waitInMillisecs
 	 *            the waitInMillisecs to set
 	 */
@@ -130,6 +225,7 @@ public class FemExecutor {
 	/**
 	 * Create the {@link ProcessManagement ProcessManagement} instance and start
 	 * it.
+	 * 
 	 * @return the {@link ProcessManagement ProcessManagement} instance
 	 */
 	public final ProcessManagement startCmd() {
@@ -137,10 +233,49 @@ public class FemExecutor {
 		pm.addArg(filename);
 		try {
 			pm.startExecute();
+			current = ExecutionState.Executing;
 			return pm;
 		} catch (IOException e) {
 			log.debug(command + " falied to start", e);
 		}
 		return null;
+	}
+
+	/**
+	 * Execution Polling function. Use this repeatedly inside a polling loop to
+	 * transition the process to new execution states.
+	 * 
+	 * @return True if the command has completed.
+	 */
+	public final boolean isDone() {
+		boolean result = false;
+		if (current.equals(ExecutionState.Executing)) {
+			boolean done = pm.isDone();
+			if (done) {
+				current = ExecutionState.ExecutionFinished;
+			}
+		}
+		if (current.equals(ExecutionState.ExecutionFinished)) {
+			if (processOutputFiles) {
+				Thread thrd1 = new Thread(ofptDisp);
+				Thread thrd2 = new Thread(ofptForce);
+				log.debug("Starting parsing threads");
+				thrd1.start();
+				thrd2.start();
+				current = ExecutionState.ProcessingOutputFiles;
+			} else {
+				current = ExecutionState.Finished;
+			}
+		}
+		if (current.equals(ExecutionState.ProcessingOutputFiles)) {
+			boolean done = ofptDisp.isDone() && ofptForce.isDone();
+			if (done) {
+				current = ExecutionState.Finished;
+			}
+		}
+		if (current.equals(ExecutionState.Finished)) {
+			result = true;
+		}
+		return result;
 	}
 }
