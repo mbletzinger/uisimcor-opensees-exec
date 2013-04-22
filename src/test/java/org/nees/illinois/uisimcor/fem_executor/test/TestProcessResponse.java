@@ -5,6 +5,7 @@ import java.net.URL;
 import java.util.regex.Matcher;
 
 import org.nees.illinois.uisimcor.fem_executor.process.ProcessResponse;
+import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
@@ -63,11 +64,8 @@ public class TestProcessResponse {
 
 	@BeforeClass
 	public void beforeClass() {
-		String sep = System.getProperty("file.separator");
 		URL u = ClassLoader.getSystemResource("printerTest.pl");
-		command = u.getPath().replaceAll("%20", " ");
-		command = command.replaceAll("/", Matcher.quoteReplacement(sep));
-		command = command.replaceAll("\\\\C:", "C:");
+		command = PathUtils.cleanPath(u.getPath());
 	}
 
 }
