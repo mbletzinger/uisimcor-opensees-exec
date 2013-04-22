@@ -6,15 +6,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Class to execute FEM programs
+ * Class to execute an FEM program to statically analyze a substructure at one step.
  * 
  * @author Michael Bletzinger
  */
-public class FemExecutor {
+public class SubstructureExecutor {
 	/**
 	 * Possible execution states
 	 * 
-	 * @author Michael Bletzinger
 	 */
 	public enum ExecutionState {
 		/**
@@ -40,33 +39,6 @@ public class FemExecutor {
 	}
 
 	/**
-	 * Test function to see if the executor works in the given OS environment.
-	 * 
-	 * @param args
-	 *            ignored.
-	 */
-	public static void main(final String[] args) {
-		String os = System.getProperty("os.name");
-		FemExecutor fem;
-		if (os.contains("Window")) {
-			fem = new FemExecutor("echo", "Is there anybody out there?", null);
-		} else {
-			fem = new FemExecutor("ls", "-l", null);
-		}
-		fem.startCmd();
-		while (fem.isDone() == false) {
-			try {
-				final int waitTime = 500;
-				Thread.sleep(waitTime);
-			} catch (InterruptedException e) {
-				@SuppressWarnings("unused")
-				int dumb = 0;
-			}
-		}
-		System.out.print("Output: \"" + fem.getPm().getOutput() + "\"");
-	}
-
-	/**
 	 * Line command
 	 */
 	private String command;
@@ -88,7 +60,7 @@ public class FemExecutor {
 	/**
 	 * Logger
 	 **/
-	private final Logger log = LoggerFactory.getLogger(FemExecutor.class);
+	private final Logger log = LoggerFactory.getLogger(SubstructureExecutor.class);
 	/**
 	 * {@link ProcessManagement Wrapper} around command line executor.
 	 */
@@ -124,7 +96,7 @@ public class FemExecutor {
 	 *            Working directory for execution. Use null if the current JVM
 	 *            directory is fine.
 	 */
-	public FemExecutor(final String command, final String filename,
+	public SubstructureExecutor(final String command, final String filename,
 			final String workDir) {
 		String sep = System.getProperty("file.separator");
 		this.command = command;
