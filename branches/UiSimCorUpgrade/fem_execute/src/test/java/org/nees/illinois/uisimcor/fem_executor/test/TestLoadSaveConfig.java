@@ -6,10 +6,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.nees.illinois.uisimcor.fem_executor.FemExecutorConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.DimensionType;
 import org.nees.illinois.uisimcor.fem_executor.config.DispDof;
 import org.nees.illinois.uisimcor.fem_executor.config.FemConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgram;
+import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.LoadSaveConfig;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.testng.Assert;
@@ -25,7 +27,7 @@ public class TestLoadSaveConfig {
 	/**
 	 * Reference set of configurations.
 	 */
-	private Map<String, FemConfig> configs = new HashMap<String, FemConfig>();
+	private FemExecutorConfig femCfg;
 	/**
 	 * Test saving the reference configuration.
 	 */
@@ -42,8 +44,7 @@ public class TestLoadSaveConfig {
 	public final void testSave() {
 		LoadSaveConfig lscfg = new LoadSaveConfig();
 		lscfg.setConfigFilePath(configFilename);
-		lscfg.getConfigs().clear();
-		lscfg.getConfigs().putAll(configs);
+		lscfg.setFemConfig(femCfg);
 		lscfg.save();
 	}
 
@@ -55,7 +56,7 @@ public class TestLoadSaveConfig {
 		LoadSaveConfig lscfg = new LoadSaveConfig();
 		lscfg.setConfigFilePath(configRefFile);
 		lscfg.load();
-		compareConfigs(lscfg.getConfigs(), configs);
+		compareConfigs(lscfg.getFemConfig(), femCfg);
 	}
 
 	/**
@@ -66,7 +67,7 @@ public class TestLoadSaveConfig {
 		LoadSaveConfig lscfg = new LoadSaveConfig();
 		lscfg.setConfigFilePath(configFilename);
 		lscfg.load();
-		compareConfigs(lscfg.getConfigs(), configs);
+		compareConfigs(lscfg.getFemConfig(), femCfg);
 	}
 
 	/**
@@ -83,6 +84,11 @@ public class TestLoadSaveConfig {
 		final int node1 = 2;
 		final int node2 = 3;
 		final int node3 = 4;
+		femCfg = new FemExecutorConfig("/home/mbletzin/Tmp");
+		FemProgramConfig femProg = new FemProgramConfig(FemProgram.OPENSEES,
+				"/usr/bin/OpenSees",
+				"/Example/MOST/01_Left_OpenSees/StaticAnalysisEnv.tcl");
+		femCfg.getFemProgramParameters().put(FemProgram.OPENSEES, femProg);
 		for (int i = 1; i < noSubstructures + 1; i++) {
 			String address = "MDL-0" + i;
 			DimensionType dim = DimensionType.TwoD;
@@ -116,8 +122,9 @@ public class TestLoadSaveConfig {
 				}
 				cfg.addEffectiveDofs(n, edof);
 			}
-			configs.put(address, cfg);
+			femCfg.getSubstructCfgs().put(address, cfg);
 		}
+
 	}
 
 	/**
@@ -128,11 +135,27 @@ public class TestLoadSaveConfig {
 	 * @param expected
 	 *            Expected values.
 	 */
-	private void compareConfigs(Map<String, FemConfig> actual,
-			Map<String, FemConfig> expected) {
-		for (String n : expected.keySet()) {
-			FemConfig ecfg = expected.get(n);
-			FemConfig acfg = actual.get(n);
+	private void compareConfigs(final FemExecutorConfig actual,
+			final FemExecutorConfig expected) {
+		Assert.assertEquals(actual.getWorkDir(), expected.getWorkDir());
+		List<FemProgram> eprogs = new ArrayList<FemProgram>(expected
+				.getFemProgramParameters().keySet());
+		for (FemProgram p : eprogs) {
+			FemProgramConfig eprogCfg = expected.getFemProgramParameters().get(
+					p);
+			FemProgramConfig aprogCfg = actual.getFemProgramParameters().get(p);
+			Assert.assertNotNull(aprogCfg, "Checking program parameters for "
+					+ p);
+			Assert.assertEquals(aprogCfg.getExecutablePath(),
+					eprogCfg.getExecutablePath(),
+					"Checking program parameters for " + p);
+			Assert.assertEquals(aprogCfg.getStaticAnalysisScriptPath(),
+					eprogCfg.getStaticAnalysisScriptPath(),
+					"Checking program parameters for " + p);
+		}
+		for (String n : expected.getSubstructCfgs().keySet()) {
+			FemConfig ecfg = expected.getSubstructCfgs().get(n);
+			FemConfig acfg = actual.getSubstructCfgs().get(n);
 			Assert.assertNotNull(acfg, "Checking substructure \"" + n + "\"");
 			Assert.assertEquals(acfg.getModelFileName(),
 					ecfg.getModelFileName(), "Checking substructure \"" + n

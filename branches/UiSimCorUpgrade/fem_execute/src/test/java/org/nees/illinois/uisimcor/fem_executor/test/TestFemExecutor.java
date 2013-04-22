@@ -4,8 +4,8 @@ import java.io.File;
 import java.net.URL;
 import java.util.regex.Matcher;
 
-import org.nees.illinois.uisimcor.fem_executor.process.FemExecutor;
-import org.nees.illinois.uisimcor.fem_executor.process.FemExecutor.ExecutionState;
+import org.nees.illinois.uisimcor.fem_executor.FemExecutor;
+import org.nees.illinois.uisimcor.fem_executor.FemExecutor.ExecutionState;
 import org.nees.illinois.uisimcor.fem_executor.process.FileWithContentDelete;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
