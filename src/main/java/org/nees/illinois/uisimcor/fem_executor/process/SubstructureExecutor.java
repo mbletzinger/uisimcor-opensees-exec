@@ -58,7 +58,7 @@ public class SubstructureExecutor {
 	 */
 	private String filename;
 	/**
-	 * Logger
+	 * Logger.
 	 **/
 	private final Logger log = LoggerFactory.getLogger(SubstructureExecutor.class);
 	/**
@@ -75,7 +75,7 @@ public class SubstructureExecutor {
 	private int waitInMillisecs = defaultWait;
 
 	/**
-	 * Working directory for FEM execution
+	 * Working directory for FEM execution.
 	 */
 	private final String workDir;
 	/**
