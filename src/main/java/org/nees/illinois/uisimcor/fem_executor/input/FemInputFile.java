@@ -25,44 +25,48 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Class which customizes the FEM input file for a particular step.
- *
  * @author Michael Bletzinger
  */
 public class FemInputFile {
-	/**
-	 * Map of tokens to substitute in run.tcl template.
-	 */
-	private final Map<String, String> tokenMap = new HashMap<String, String>();
-	/**
-	 * Substructure configuration parameters.
-	 */
-	private final FemSubstructureConfig substructureCfg;
-	/**
-	 * Logger.
-	 **/
-	private final Logger log = LoggerFactory.getLogger(FemInputFile.class);
 	/**
 	 * Format for displacement commands.
 	 */
 	private DecimalFormat format = new DecimalFormat(
 			"###.00000000000000000000E000");
+
+	/**
+	 * Name of the input file.
+	 */
+	private final String inputFileName = "run.tcl";
+
+	/**
+	 * Path to the directory containing the input file.
+	 */
+	private final String workDir;
+	/**
+	 * Logger.
+	 **/
+	private final Logger log = LoggerFactory.getLogger(FemInputFile.class);
+	/**
+	 * Substructure configuration parameters.
+	 */
+	private final FemSubstructureConfig substructureCfg;
 	/**
 	 * run.tcl template string.
 	 */
 	private final String template;
 	/**
-	 * Path to the input file.
+	 * Map of tokens to substitute in run.tcl template.
 	 */
-	private final String inputPath;
+	private final Map<String, String> tokenMap = new HashMap<String, String>();
 
 	/**
 	 * Constructor.
-	 *
 	 * @param progCfg
 	 *            FEM program parameters.
 	 * @param substructureCfg
 	 *            Substructure parameters.
-	 *            @param workDir
+	 * @param workDir
 	 *            Directory containing generated files.
 	 */
 	public FemInputFile(final FemProgramConfig progCfg,
@@ -80,12 +84,22 @@ public class FemInputFile {
 					tokenMap.get(k));
 		}
 		template = rawTemplate;
-		inputPath = PathUtils.append(workDir, "run.tcl");
+		this.workDir = PathUtils.append(workDir, substructureCfg.getAddress());
+		File workDirF = new File(workDir);
+		if(workDirF.exists() && (workDirF.isDirectory() == false)) {
+			log.error("Cannot create working directory \"" + workDir + "\"");
+			return;
+		}
+		try {
+		workDirF.mkdirs();
+		} catch (Exception e) {
+			log.error("Cannot create working directory \"" + workDir + "\" because ",e);
+			return;
+		}
 	}
 
 	/**
 	 * Generate a run.tcl file for the step.
-	 *
 	 * @param step
 	 *            Step number.
 	 * @param displacements
@@ -94,7 +108,8 @@ public class FemInputFile {
 	public final void generate(final int step, final DoubleMatrix displacements) {
 		final String stepK = "StepNumber";
 		final String loadK = "LoadPattern";
-		String content = template.replaceAll("\\$\\{" + stepK + "\\}", "Step" + step);
+		String content = template.replaceAll("\\$\\{" + stepK + "\\}", "Step"
+				+ step);
 		String load = generateLoadPattern(displacements);
 		content = content.replaceAll("\\$\\{" + loadK + "\\}", load);
 		writeInputFile(content);
@@ -102,7 +117,6 @@ public class FemInputFile {
 
 	/**
 	 * Generates the load pattern for a step.
-	 *
 	 * @param displacements
 	 *            Displacements for the step.
 	 * @return Load pattern string.
@@ -113,7 +127,8 @@ public class FemInputFile {
 		for (Integer n : substructureCfg.getNodeSequence()) {
 			for (DispDof d : substructureCfg.getEffectiveDofs(n)) {
 				result += "sp " + n + " " + d.mtlb() + " "
-						+ format.format(displacements.value(row, d.ordinal())) + "\n";
+						+ format.format(displacements.value(row, d.ordinal()))
+						+ "\n";
 			}
 			row++;
 		}
@@ -121,8 +136,21 @@ public class FemInputFile {
 	}
 
 	/**
+	 * @return the inputFileName
+	 */
+	public final String getInputFileName() {
+		return inputFileName;
+	}
+
+	/**
+	 * @return the inputPath
+	 */
+	public final String getWorkDir() {
+		return workDir;
+	}
+
+	/**
 	 * Get a string representation of the run.tcl template file.
-	 *
 	 * @return string representation of the template file.
 	 */
 	private String getTemplate() {
@@ -151,20 +179,20 @@ public class FemInputFile {
 
 	/**
 	 * Write the input file content to a file.
-	 *
 	 * @param content
 	 *            The content.
 	 */
 	private void writeInputFile(final String content) {
-		File inputF = new File(inputPath);
+		String inputFilePath = PathUtils.append(workDir, inputFileName);
+		File inputF = new File(inputFilePath);
 		if (inputF.exists()) {
 			inputF.delete();
 		}
 		PrintWriter os = null;
 		try {
-			os = new PrintWriter(new FileWriter(inputPath));
+			os = new PrintWriter(new FileWriter(inputFilePath));
 		} catch (IOException e) {
-			log.error("Run file \"" + inputPath
+			log.error("Run file \"" + inputFilePath
 					+ "\" cannot be created because ", e);
 			return;
 		}
