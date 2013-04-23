@@ -18,13 +18,12 @@ public class OutputFileParsingTask implements Runnable {
 	private final OutputFileParser parser = new OutputFileParser();
 
 	/**
-	 * File to be parsed;
+	 * File to be parsed.
 	 */
 	private final String textFile;
 
 	/**
-	 * Constructor
-	 * 
+	 * Constructor.
 	 * @param textFile
 	 *            File to parse.
 	 */
@@ -33,8 +32,7 @@ public class OutputFileParsingTask implements Runnable {
 	}
 
 	/**
-	 * Get the data from the parsing task
-	 * 
+	 * Get the data from the parsing task.
 	 * @return Returns the data or null if the task was not completed.
 	 */
 	public final double[][] getData() {
@@ -53,16 +51,16 @@ public class OutputFileParsingTask implements Runnable {
 
 	@Override
 	public final void run() {
-		done = false;
+		setDone(false);
 		parser.parseDataFile(textFile);
-		done = true;
+		setDone(true);
 	}
 
 	/**
 	 * @param done
 	 *            the done to set
 	 */
-	public synchronized final void setDone(boolean done) {
+	public final synchronized void setDone(final boolean done) {
 		this.done = done;
 	}
 }

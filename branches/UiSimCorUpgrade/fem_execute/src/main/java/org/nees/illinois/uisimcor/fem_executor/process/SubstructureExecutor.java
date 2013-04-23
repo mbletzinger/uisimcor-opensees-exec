@@ -2,44 +2,20 @@ package org.nees.illinois.uisimcor.fem_executor.process;
 
 import java.io.IOException;
 
+import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
+import org.nees.illinois.uisimcor.fem_executor.input.FemInputFile;
+import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Class to execute an FEM program to statically analyze a substructure at one step.
- * 
+ * Class to execute an FEM program to statically analyze a substructure at one
+ * step.
  * @author Michael Bletzinger
  */
 public class SubstructureExecutor {
 	/**
-	 * Possible execution states
-	 * 
-	 */
-	public enum ExecutionState {
-		/**
-		 * The command is executing.
-		 */
-		Executing,
-		/**
-		 * The command has finished executing.
-		 */
-		ExecutionFinished,
-		/**
-		 * We are done.
-		 */
-		Finished,
-		/**
-		 * We have not started executing yet.
-		 */
-		NotStarted,
-		/**
-		 * The output files are being parsed.
-		 */
-		ProcessingOutputFiles
-	}
-
-	/**
-	 * Line command
+	 * Line command.
 	 */
 	private String command;
 
@@ -60,7 +36,8 @@ public class SubstructureExecutor {
 	/**
 	 * Logger.
 	 **/
-	private final Logger log = LoggerFactory.getLogger(SubstructureExecutor.class);
+	private final Logger log = LoggerFactory
+			.getLogger(SubstructureExecutor.class);
 	/**
 	 * {@link ProcessManagement Wrapper} around command line executor.
 	 */
@@ -86,24 +63,25 @@ public class SubstructureExecutor {
 	 * Output file {@link OutputFileParsingTask parser} for forces.
 	 */
 	private final OutputFileParsingTask ofptForce;
+	/**
+	 * FEM execution input.
+	 */
+	private final FemInputFile input;
 
 	/**
-	 * @param command
-	 *            Line command
-	 * @param filename
-	 *            Filename as first argument.
-	 * @param workDir
-	 *            Working directory for execution. Use null if the current JVM
-	 *            directory is fine.
+	 * @param progCfg
+	 *            FEM program configuration parameters.
+	 * @param input
+	 *            FEM program input.
 	 */
-	public SubstructureExecutor(final String command, final String filename,
-			final String workDir) {
-		String sep = System.getProperty("file.separator");
-		this.command = command;
-		this.filename = filename;
-		this.workDir = workDir;
-		ofptDisp = new OutputFileParsingTask(workDir + sep + "tmp_disp.out");
-		ofptForce = new OutputFileParsingTask(workDir + sep + "tmp_forc.out");
+	public SubstructureExecutor(final FemProgramConfig progCfg,
+			final FemInputFile input) {
+		this.workDir = input.getWorkDir();
+		this.input = input;
+		this.ofptDisp = new OutputFileParsingTask(PathUtils.append(workDir,
+				"tmp_disp.out"));
+		this.ofptForce = new OutputFileParsingTask(PathUtils.append(workDir,
+				"tmp_forc.out"));
 	}
 
 	/**
@@ -197,10 +175,15 @@ public class SubstructureExecutor {
 	/**
 	 * Create the {@link ProcessManagement ProcessManagement} instance and start
 	 * it.
-	 * 
+	 * @param step
+	 *            Current step.
+	 * @param displacements
+	 *            Current displacement target.
 	 * @return the {@link ProcessManagement ProcessManagement} instance
 	 */
-	public final ProcessManagement startCmd() {
+	public final ProcessManagement start(final int step, final DoubleMatrix displacements) {
+		input.generate(step, displacements); // this may need to go in its own
+												// thread later.
 		pm = new ProcessManagement(command, waitInMillisecs);
 		pm.addArg(filename);
 		pm.setWorkDir(workDir);
@@ -217,7 +200,6 @@ public class SubstructureExecutor {
 	/**
 	 * Execution Polling function. Use this repeatedly inside a polling loop to
 	 * transition the process to new execution states.
-	 * 
 	 * @return True if the command has completed.
 	 */
 	public final boolean isDone() {
@@ -252,20 +234,20 @@ public class SubstructureExecutor {
 		log.debug("Current state is " + current);
 		return result;
 	}
+
 	/**
 	 * Return the displacements data set.
-	 *@return
-	 *double matrix
+	 * @return double matrix
 	 */
-	public final double [][] getDisplacements() {
+	public final double[][] getDisplacements() {
 		return ofptDisp.getData();
 	}
+
 	/**
 	 * Return the forces data set.
-	 *@return
-	 *double matrix
+	 * @return double matrix
 	 */
-	public final double [][] getForces() {
+	public final double[][] getForces() {
 		return ofptForce.getData();
 	}
 }
