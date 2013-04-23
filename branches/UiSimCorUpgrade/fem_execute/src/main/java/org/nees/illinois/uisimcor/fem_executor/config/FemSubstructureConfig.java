@@ -12,7 +12,7 @@ import java.util.Map;
  * 
  * @author Michael Bletzinger
  */
-public class FemConfig {
+public class FemSubstructureConfig {
 	/**
 	 * Address identifying the substructure to UI-SimCor
 	 */
@@ -60,7 +60,7 @@ public class FemConfig {
 	 * @param modelFileName
 	 *            Model file name (include extension).
 	 */
-	public FemConfig(final String address, final DimensionType dimension,
+	public FemSubstructureConfig(final String address, final DimensionType dimension,
 			final FemProgram femProgram, final String modelFileName,
 			final List<Integer> nodeSequence) {
 		this.address = address;

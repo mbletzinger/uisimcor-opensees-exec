@@ -6,7 +6,7 @@ package org.nees.illinois.uisimcor.fem_executor;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.nees.illinois.uisimcor.fem_executor.config.FemConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.FemSubstructureConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgram;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
 
@@ -23,7 +23,7 @@ public class FemExecutorConfig {
 	/**
 	 * Substructure configurations map.
 	 */
-	private final Map<String, FemConfig> substructCfgs = new HashMap<String, FemConfig>();
+	private final Map<String, FemSubstructureConfig> substructCfgs = new HashMap<String, FemSubstructureConfig>();
 	/**
 	 * Directory to store temporary files.
 	 */
@@ -47,7 +47,7 @@ public class FemExecutorConfig {
 	/**
 	 * @return the substructCfgs
 	 */
-	public final Map<String, FemConfig> getSubstructCfgs() {
+	public final Map<String, FemSubstructureConfig> getSubstructCfgs() {
 		return substructCfgs;
 	}
 

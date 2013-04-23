@@ -2,14 +2,12 @@ package org.nees.illinois.uisimcor.fem_executor.test;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.nees.illinois.uisimcor.fem_executor.FemExecutorConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.DimensionType;
 import org.nees.illinois.uisimcor.fem_executor.config.DispDof;
-import org.nees.illinois.uisimcor.fem_executor.config.FemConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.FemSubstructureConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgram;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.LoadSaveConfig;
@@ -110,7 +108,7 @@ public class TestLoadSaveConfig {
 						+ "03_Right_OpenSees";
 			}
 			FemProgram program = FemProgram.OPENSEES;
-			FemConfig cfg = new FemConfig(address, dim, program, modelFilename,
+			FemSubstructureConfig cfg = new FemSubstructureConfig(address, dim, program, modelFilename,
 					nodes);
 			for (Integer n : nodes) {
 				List<DispDof> edof = new ArrayList<DispDof>();
@@ -154,8 +152,8 @@ public class TestLoadSaveConfig {
 					"Checking program parameters for " + p);
 		}
 		for (String n : expected.getSubstructCfgs().keySet()) {
-			FemConfig ecfg = expected.getSubstructCfgs().get(n);
-			FemConfig acfg = actual.getSubstructCfgs().get(n);
+			FemSubstructureConfig ecfg = expected.getSubstructCfgs().get(n);
+			FemSubstructureConfig acfg = actual.getSubstructCfgs().get(n);
 			Assert.assertNotNull(acfg, "Checking substructure \"" + n + "\"");
 			Assert.assertEquals(acfg.getModelFileName(),
 					ecfg.getModelFileName(), "Checking substructure \"" + n

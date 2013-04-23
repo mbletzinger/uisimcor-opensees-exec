@@ -8,10 +8,7 @@ import java.io.InputStream;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 import org.nees.illinois.uisimcor.fem_executor.FemExecutorConfig;
@@ -99,9 +96,9 @@ public class LoadSaveConfig {
 		}
 		String workDir = props.getProperty("work.dir");
 		femConfig = new FemExecutorConfig(workDir);
-		for(FemProgram p : FemProgram.values()) {
+		for (FemProgram p : FemProgram.values()) {
 			FemProgramConfig fProgCfg = loadFemProgram(p);
-			if(fProgCfg == null) {
+			if (fProgCfg == null) {
 				continue;
 			}
 			femConfig.getFemProgramParameters().put(p, fProgCfg);
@@ -109,35 +106,50 @@ public class LoadSaveConfig {
 		String str = props.getProperty("substructures");
 		String[] names = str.split(", ");
 		for (String n : names) {
-			FemConfig cfg = loadSubStructure(n);
+			FemSubstructureConfig cfg = loadSubStructure(n);
 			femConfig.getSubstructCfgs().put(n, cfg);
 		}
 	}
 
-	private void saveFemProgram(FemProgramConfig progCfg) {
+	/**
+	 * Save a set of FEM program parameters.
+	 *
+	 * @param progCfg
+	 *            FEM program parameters set
+	 */
+	private void saveFemProgram(final FemProgramConfig progCfg) {
 		FemProgram ptype = progCfg.getProgram();
 		props.put(ptype + ".executable", progCfg.getExecutablePath());
 		props.put(ptype + ".static.script",
 				progCfg.getStaticAnalysisScriptPath());
 	}
+
+	/**
+	 * Extracting FEM program parameters from the properties file.
+	 *
+	 * @param ptype
+	 *            FEM program type.
+	 * @return FEM program parameters set
+	 */
 	private FemProgramConfig loadFemProgram(FemProgram ptype) {
 		String executable = props.getProperty(ptype + ".executable");
-		if(executable == null) {
+		if (executable == null) {
 			return null;
 		}
 		String staticScript = props.getProperty(ptype + ".static.script");
-		FemProgramConfig result = new FemProgramConfig(ptype, executable, staticScript);
+		FemProgramConfig result = new FemProgramConfig(ptype, executable,
+				staticScript);
 		return result;
 	}
 
 	/**
 	 * Load a configuration for a substructure.
-	 * 
+	 *
 	 * @param name
 	 *            Name of substructure.
 	 * @return Configuration data.
 	 */
-	private FemConfig loadSubStructure(final String name) {
+	private FemSubstructureConfig loadSubStructure(final String name) {
 		String address = name;
 		String str = props.getProperty(name + ".dimension");
 		DimensionType dim = null;
@@ -176,7 +188,8 @@ public class LoadSaveConfig {
 			}
 		}
 		String modelFile = props.getProperty(name + ".model.filename");
-		FemConfig result = new FemConfig(address, dim, fem, modelFile, nodes);
+		FemSubstructureConfig result = new FemSubstructureConfig(address, dim,
+				fem, modelFile, nodes);
 		for (Integer node : nodes) {
 			str = props.getProperty(name + ".effective.dofs." + node);
 			List<DispDof> edofs = null;
@@ -203,7 +216,8 @@ public class LoadSaveConfig {
 	public final void save() {
 		File configFile = new File(configFilePath);
 		props = new Properties();
-		List<String> sorted = new ArrayList<String>(femConfig.getSubstructCfgs().keySet());
+		List<String> sorted = new ArrayList<String>(femConfig
+				.getSubstructCfgs().keySet());
 		Collections.sort(sorted);
 		String str = "";
 		boolean first = true;
@@ -214,7 +228,8 @@ public class LoadSaveConfig {
 		}
 		props.setProperty("work.dir", femConfig.getWorkDir());
 		props.setProperty("substructures", str);
-		for(FemProgramConfig fpCfg : femConfig.getFemProgramParameters().values()) {
+		for (FemProgramConfig fpCfg : femConfig.getFemProgramParameters()
+				.values()) {
 			saveFemProgram(fpCfg);
 		}
 
@@ -235,7 +250,7 @@ public class LoadSaveConfig {
 	 *            Name of substructure.
 	 */
 	private void saveSubStructure(final String name) {
-		FemConfig config = femConfig.getSubstructCfgs().get(name);
+		FemSubstructureConfig config = femConfig.getSubstructCfgs().get(name);
 		props.setProperty(name + ".dimension", config.getDimension().name());
 		props.setProperty(name + ".control.nodes",
 				eoIntegerList.encode(config.getNodeSequence()));

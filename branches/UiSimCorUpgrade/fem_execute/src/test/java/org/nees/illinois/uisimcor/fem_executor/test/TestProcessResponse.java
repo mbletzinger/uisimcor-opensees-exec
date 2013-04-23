@@ -2,7 +2,6 @@ package org.nees.illinois.uisimcor.fem_executor.test;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.regex.Matcher;
 
 import org.nees.illinois.uisimcor.fem_executor.process.ProcessResponse;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
