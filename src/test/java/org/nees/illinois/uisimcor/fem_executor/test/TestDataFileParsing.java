@@ -14,7 +14,6 @@ import org.testng.annotations.Test;
 
 /**
  * Test the parsing of text files.
- * 
  * @author Michael Bletzinger
  */
 public class TestDataFileParsing {
@@ -187,49 +186,50 @@ public class TestDataFileParsing {
 	 */
 	private String forcePath;
 	/**
-	 * Logger
+	 * Logger.
 	 **/
 	private final Logger log = LoggerFactory
 			.getLogger(TestDataFileParsing.class);
 
 	/**
-	 * Convert Internet space codes and replace file separators for Windows systems.
-	 *@param dirty
-	 *Original path.
-	 *@return
-	 *Cleaned up path.
+	 * Convert Internet space codes and replace file separators for Windows
+	 * systems.
+	 * @param dirty
+	 *            Original path.
+	 * @return Cleaned up path.
 	 */
-		private String cleanPath(String dirty) {
-			String sep = System.getProperty("file.separator");
-			String result = dirty.replaceAll("%20", " ");
-			result = result.replaceAll("(?<!^)(\\\\|/){2,}",
-					Matcher.quoteReplacement(sep));
-			return result;
-		}
+	private String cleanPath(final String dirty) {
+		String sep = System.getProperty("file.separator");
+		String result = dirty.replaceAll("%20", " ");
+		result = result.replaceAll("(?<!^)(\\\\|/){2,}",
+				Matcher.quoteReplacement(sep));
+		return result;
+	}
 
 	/**
 	 * Compares two data matrices.
-	 *@param actual
-	 *The actual data.
-	 *@param expected
-	 *The expected data.
+	 * @param actual
+	 *            The actual data.
+	 * @param expected
+	 *            The expected data.
 	 */
-		private void compareData(double[][] actual, double[][] expected) {
-			log.debug("Comparing expected " + Mtx2Str.matrix2String(expected)
-					+ "\nwith actual\n" + Mtx2Str.matrix2String(actual));
-			Assert.assertEquals(actual.length, expected.length);
-			Assert.assertEquals(actual[0].length, expected[0].length);
-			for (int i = 0; i < expected.length; i++) {
-				for (int j = 0; j < expected[0].length; j++) {
-	
-					if (Double.isNaN(expected[i][j])) {
-						Assert.assertTrue(Double.isNaN(actual[i][j]));
-						continue;
-					}
-					Assert.assertEquals(actual[i][j], expected[i][j], 0.001);
+	private void compareData(final double[][] actual, final double[][] expected) {
+		log.debug("Comparing expected " + Mtx2Str.matrix2String(expected)
+				+ "\nwith actual\n" + Mtx2Str.matrix2String(actual));
+		Assert.assertEquals(actual.length, expected.length);
+		Assert.assertEquals(actual[0].length, expected[0].length);
+		for (int i = 0; i < expected.length; i++) {
+			for (int j = 0; j < expected[0].length; j++) {
+
+				if (Double.isNaN(expected[i][j])) {
+					Assert.assertTrue(Double.isNaN(actual[i][j]));
+					continue;
 				}
+				final double increment = 0.001;
+				Assert.assertEquals(actual[i][j], expected[i][j], increment);
 			}
 		}
+	}
 
 	/**
 	 * Finds the two test output files.
@@ -241,45 +241,48 @@ public class TestDataFileParsing {
 		u = ClassLoader.getSystemResource("tmp_forc.out");
 		forcePath = cleanPath(u.getPath());
 	}
-/**
- * Test the parsing of the two output files.
- */
-@Test
-public final void testParsing() {
-	OutputFileParser df = new OutputFileParser();
-	df.parseDataFile(dispPath);
-	DoubleMatrix result = df.getArchive();
-	log.info("Parsed DISP:\n" + result);
-	compareData(result.getData(), expectedDisp);
 
-	df.parseDataFile(forcePath);
-	result = df.getArchive();
-	log.info("Parsed FORCE:\n" + result);
-	compareData(result.getData(), expectedForce);
-}
-/**
- * Test the parsing of the two output files.
- */
-@Test
-public final void testParsingTasks() {
-	OutputFileParsingTask ofpt1 = new OutputFileParsingTask(dispPath);
-	OutputFileParsingTask ofpt2 = new OutputFileParsingTask(forcePath);
-	Thread thrd1 = new Thread(ofpt1);
-	Thread thrd2 = new Thread(ofpt2);
-	log.debug("Starting threads");
-	thrd1.start();
-	thrd2.start();
-	boolean done = false;
-	while (done == false) {
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			log.info("Checking tasks");
-		}
-		done = ofpt1.isDone() && ofpt2.isDone();
+	/**
+	 * Test the parsing of the two output files.
+	 */
+	@Test
+	public final void testParsing() {
+		OutputFileParser df = new OutputFileParser();
+		df.parseDataFile(dispPath);
+		DoubleMatrix result = df.getArchive();
+		log.info("Parsed DISP:\n" + result);
+		compareData(result.getData(), expectedDisp);
+
+		df.parseDataFile(forcePath);
+		result = df.getArchive();
+		log.info("Parsed FORCE:\n" + result);
+		compareData(result.getData(), expectedForce);
 	}
-	compareData(ofpt1.getData(), expectedDisp);
-	compareData(ofpt2.getData(), expectedForce);
-}
+
+	/**
+	 * Test the parsing of the two output files.
+	 */
+	@Test
+	public final void testParsingTasks() {
+		OutputFileParsingTask ofpt1 = new OutputFileParsingTask(dispPath);
+		OutputFileParsingTask ofpt2 = new OutputFileParsingTask(forcePath);
+		Thread thrd1 = new Thread(ofpt1);
+		Thread thrd2 = new Thread(ofpt2);
+		log.debug("Starting threads");
+		thrd1.start();
+		thrd2.start();
+		boolean done = false;
+		while (done == false) {
+			try {
+				final int interval = 2000;
+				Thread.sleep(interval);
+			} catch (InterruptedException e) {
+				log.info("Checking tasks");
+			}
+			done = ofpt1.isDone() && ofpt2.isDone();
+		}
+		compareData(ofpt1.getData(), expectedDisp);
+		compareData(ofpt2.getData(), expectedForce);
+	}
 
 }

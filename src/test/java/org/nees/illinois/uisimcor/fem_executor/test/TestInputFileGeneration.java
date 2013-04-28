@@ -10,7 +10,7 @@ import java.util.List;
 import org.nees.illinois.uisimcor.fem_executor.FemExecutorConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.DimensionType;
 import org.nees.illinois.uisimcor.fem_executor.config.DispDof;
-import org.nees.illinois.uisimcor.fem_executor.config.FemProgram;
+import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.FemSubstructureConfig;
 import org.nees.illinois.uisimcor.fem_executor.input.FemInputFile;
@@ -22,7 +22,6 @@ import org.testng.annotations.Test;
 
 /**
  * Test the FemInputFile class.
- * 
  * @author Michael Bletzinger
  */
 public class TestInputFileGeneration {
@@ -49,8 +48,8 @@ public class TestInputFileGeneration {
 	@Test
 	public final void testGenerate() {
 		FemInputFile fif = new FemInputFile(femCfg.getFemProgramParameters()
-				.get(FemProgram.OPENSEES), femCfg.getSubstructCfgs().get(
-				"MDL-01"), femCfg.getWorkDir());
+				.get(FemProgramType.OPENSEES), femCfg.getSubstructCfgs().get(
+				"MDL-01"), femCfg.getConfigRoot(), "/Config/dir/Root");
 		final int stepNumber = 3;
 		fif.generate(stepNumber, data);
 		compareConfigs(inputFilePath, referenceFile);
@@ -66,22 +65,24 @@ public class TestInputFileGeneration {
 		final int node2 = 3;
 		final int node3 = 4;
 		femCfg = new FemExecutorConfig(System.getProperty("user.dir"));
-		inputFilePath = PathUtils.append(System.getProperty("user.dir"),
-				"run.tcl");
 		URL u = ClassLoader.getSystemResource("reference_run.tcl");
 		referenceFile = PathUtils.cleanPath(u.getPath());
-		FemProgramConfig femProg = new FemProgramConfig(FemProgram.OPENSEES,
-				"/usr/bin/OpenSees",
+		FemProgramConfig femProg = new FemProgramConfig(
+				FemProgramType.OPENSEES, "/usr/bin/OpenSees",
 				"/Example/MOST/01_Left_OpenSees/StaticAnalysisEnv.tcl");
-		femCfg.getFemProgramParameters().put(FemProgram.OPENSEES, femProg);
+		femCfg.getFemProgramParameters().put(FemProgramType.OPENSEES, femProg);
 		String address = "MDL-01";
+		inputFilePath = PathUtils.append(System.getProperty("user.dir"),
+				address);
+		inputFilePath = PathUtils.append(inputFilePath, "run.tcl");
+
 		DimensionType dim = DimensionType.TwoD;
 		List<Integer> nodes = new ArrayList<Integer>();
 		String modelFilename;
 		nodes.add(node1);
 		nodes.add(node2);
 		nodes.add(node3);
-		double[][] dat = {
+		final double[][] dat = {
 				{ 13.0203e-08, Double.NaN, Double.NaN, Double.NaN, Double.NaN,
 						34.00012e-12 },
 				{ 12.00345e-08, Double.NaN, Double.NaN, Double.NaN, Double.NaN,
@@ -91,7 +92,7 @@ public class TestInputFileGeneration {
 		data = new DoubleMatrix(dat);
 		modelFilename = "Examples" + sep + "MOST" + sep + "02_Middle_OpenSees"
 				+ sep + "Middle.tcl";
-		FemProgram program = FemProgram.OPENSEES;
+		FemProgramType program = FemProgramType.OPENSEES;
 		FemSubstructureConfig cfg = new FemSubstructureConfig(address, dim,
 				program, modelFilename, nodes);
 		for (Integer n : nodes) {
@@ -109,7 +110,6 @@ public class TestInputFileGeneration {
 
 	/**
 	 * load a text file into a String.
-	 * 
 	 * @param path
 	 *            Text file path.
 	 * @return String content.
@@ -136,7 +136,6 @@ public class TestInputFileGeneration {
 
 	/**
 	 * Compares two configurations.
-	 * 
 	 * @param actual
 	 *            Loaded configuration.
 	 * @param expected

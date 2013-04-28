@@ -16,7 +16,7 @@ public class FemProgramConfig {
 	/**
 	 * FEM program type.
 	 */
-	private final FemProgram program;
+	private final FemProgramType program;
 	/**
 	 * Path to static analysis script.
 	 */
@@ -30,7 +30,7 @@ public class FemProgramConfig {
 	 * @param staticAnalysisScriptPath
 	 *            Path to static analysis script.
 	 */
-	public FemProgramConfig(final FemProgram program, final String executablePath,
+	public FemProgramConfig(final FemProgramType program, final String executablePath,
 			final String staticAnalysisScriptPath) {
 		this.program = program;
 		this.executablePath = executablePath;
@@ -47,7 +47,7 @@ public class FemProgramConfig {
 	/**
 	 * @return the program
 	 */
-	public final FemProgram getProgram() {
+	public final FemProgramType getProgram() {
 		return program;
 	}
 

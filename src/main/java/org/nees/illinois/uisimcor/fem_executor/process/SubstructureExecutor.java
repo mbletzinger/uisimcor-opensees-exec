@@ -17,7 +17,7 @@ public class SubstructureExecutor {
 	/**
 	 * Line command.
 	 */
-	private String command;
+	private FemProgramConfig command;
 
 	/**
 	 * Current execution state.
@@ -77,17 +77,20 @@ public class SubstructureExecutor {
 	public SubstructureExecutor(final FemProgramConfig progCfg,
 			final FemInputFile input) {
 		this.workDir = input.getWorkDir();
+		this.command = progCfg;
 		this.input = input;
 		this.ofptDisp = new OutputFileParsingTask(PathUtils.append(workDir,
 				"tmp_disp.out"));
 		this.ofptForce = new OutputFileParsingTask(PathUtils.append(workDir,
 				"tmp_forc.out"));
+		this.filename = input.getInputFileName();
+
 	}
 
 	/**
 	 * @return the command
 	 */
-	public final String getCommand() {
+	public final FemProgramConfig getCommand() {
 		return command;
 	}
 
@@ -144,7 +147,7 @@ public class SubstructureExecutor {
 	 * @param command
 	 *            the command to set
 	 */
-	public final void setCommand(final String command) {
+	public final void setCommand(final FemProgramConfig command) {
 		this.command = command;
 	}
 
@@ -181,10 +184,11 @@ public class SubstructureExecutor {
 	 *            Current displacement target.
 	 * @return the {@link ProcessManagement ProcessManagement} instance
 	 */
-	public final ProcessManagement start(final int step, final DoubleMatrix displacements) {
+	public final ProcessManagement start(final int step,
+			final DoubleMatrix displacements) {
 		input.generate(step, displacements); // this may need to go in its own
 												// thread later.
-		pm = new ProcessManagement(command, waitInMillisecs);
+		pm = new ProcessManagement(command.getExecutablePath(), waitInMillisecs);
 		pm.addArg(filename);
 		pm.setWorkDir(workDir);
 		try {
@@ -226,6 +230,30 @@ public class SubstructureExecutor {
 			boolean done = ofptDisp.isDone() && ofptForce.isDone();
 			if (done) {
 				current = ExecutionState.Finished;
+			}
+		}
+		if (current.equals(ExecutionState.Finished)) {
+			result = true;
+		}
+		log.debug("Current state is " + current);
+		return result;
+	}
+
+	/**
+	 * Abort the execution.
+	 * @return True if the abort has completed.
+	 */
+	public final boolean abort() {
+		boolean result = false;
+		if (current.equals(ExecutionState.Executing)) {
+			pm.abort();
+			result = true;
+		}
+		if (current.equals(ExecutionState.ProcessingOutputFiles)) {
+			boolean done = ofptDisp.isDone() && ofptForce.isDone();
+			if (done) {
+				current = ExecutionState.Finished;
+				result = true;
 			}
 		}
 		if (current.equals(ExecutionState.Finished)) {

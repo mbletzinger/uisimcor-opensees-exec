@@ -2,11 +2,18 @@ package org.nees.illinois.uisimcor.fem_executor.test;
 
 import java.io.File;
 import java.net.URL;
-import java.util.regex.Matcher;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 import org.nees.illinois.uisimcor.fem_executor.FemExecutor;
-import org.nees.illinois.uisimcor.fem_executor.FemExecutor.ExecutionState;
+import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
+import org.nees.illinois.uisimcor.fem_executor.config.FemSubstructureConfig;
+import org.nees.illinois.uisimcor.fem_executor.process.DoubleMatrix;
 import org.nees.illinois.uisimcor.fem_executor.process.FileWithContentDelete;
+import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
@@ -14,72 +21,121 @@ import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+/**
+ * Test the operation of the FEM executor.
+ * @author Michael Bletzinger
+ */
 public class TestFemExecutor {
-	private String command;
-	private String[] workDirs;
 	/**
-	 * Logger
+	 * Configuration containing the fake OpenSees.
+	 */
+	private FemProgramConfig femProg;
+	/**
+	 * Directory containing the configuration files for the test.
+	 */
+	private String configDir;
+	/**
+	 * Logger.
 	 **/
 	private final Logger log = LoggerFactory.getLogger(TestFemExecutor.class);
+	/**
+	 * List of test configurations.
+	 */
+	private List<String> configFiles = new ArrayList<String>();
+	/**
+	 * Directory to store tmp files during FEM execution.
+	 */
+	private String workDir;
 
+	/**
+	 * Run all of the test configuration through the FEM executor.
+	 */
 	@Test
-	public void testRunExecutors() {
-		FemExecutor [] exes = { new FemExecutor(command, "dummy1", workDirs[0]),new FemExecutor(command, "dummy2", workDirs[1]) };
-		for (FemExecutor e : exes) {
-			e.setProcessOutputFiles(true);
-			e.startCmd();
-			if(e.getCurrent().equals(ExecutionState.NotStarted)) {
-				Assert.fail();
+	public final void testRunFakeSubstructures() {
+		FemExecutor fexec = new FemExecutor(configDir, workDir);
+		for (String c : configFiles) {
+			fexec.loadConfig(c);
+			fexec.getConfig().getFemProgramParameters()
+					.put(FemProgramType.OPENSEES, femProg);
+			Collection<FemSubstructureConfig> mdlCfgs = fexec.getConfig()
+					.getSubstructCfgs().values();
+			fexec.setup();
+			for (FemSubstructureConfig mCfg : mdlCfgs) {
+				loadExecutor(fexec, mCfg);
 			}
-		}
-		boolean done = false;
-		while(done == false) {
-			log.debug("Checking execution");
-			done = exes[0].isDone() && exes[1].isDone();
-			try {
-				Thread.sleep(400);
-			} catch (InterruptedException e1) {
-				@SuppressWarnings("unused")
-				int nuttin = 0;
+			fexec.execute();
+			int count = 0;
+			final int tiredOfWaiting = 50;
+			while (fexec.isDone() == false) {
+				final int interval = 200;
+				try {
+					Thread.sleep(interval);
+				} catch (InterruptedException e) {
+					log.debug("Sleeping...");
+				}
+				if (count > tiredOfWaiting) {
+					fexec.abort();
+					Assert.fail("Execution has hung for some reason");
+				}
 			}
 		}
 	}
 
+	/**
+	 * Set up a substructure with displacements for execution.
+	 * @param fexec
+	 *            Executor.
+	 * @param subCfg
+	 *            Configuration for the substructure.
+	 */
+	private void loadExecutor(final FemExecutor fexec,
+			final FemSubstructureConfig subCfg) {
+		final Double[] disp = { 0.00023e-4, 0.00004e-5, 0.00023e-4, 0.00004e-5,
+				0.00023e-4, 0.00004e-5 };
+		List<List<Double>> matrix = new ArrayList<List<Double>>();
+		List<Integer> nodes = subCfg.getNodeSequence();
+		for (int r = 0; r < nodes.size(); r++) {
+			matrix.add(Arrays.asList(disp));
+		}
+		DoubleMatrix dm = new DoubleMatrix(matrix);
+		fexec.setDisplacements(subCfg.getAddress(), dm.getData());
+	}
+
+	/**
+	 * Set up test environment.
+	 */
 	@BeforeClass
-	public void beforeClass() {
-		String sep = System.getProperty("file.separator");
-		URL u = ClassLoader.getSystemResource("printerTest.pl");
-		command = u.getPath().replaceAll("%20", " ");
-		command = command.replaceAll("/", Matcher.quoteReplacement(sep));
-		command = command.replaceAll("\\\\C:", "C:");
+	public final void beforeClass() {
+		URL u = ClassLoader.getSystemResource("OpenSeesEmulator.pl");
+		String command = PathUtils.cleanPath(u.getPath());
 		File cmdF = new File(command);
 		cmdF.setExecutable(true);
-		String currentDir = System.getProperty("user.dir");
-		String[] dirs = { currentDir + sep + "workD1",
-				currentDir + sep + "workD2" };
-		workDirs = dirs;
-		for (String d : dirs) {
-			File dir = new File(d);
-			boolean done = dir.mkdirs();
-			if (done == false) {
-				log.error("Could not create dir \"" + d + "\"");
-				return;
-			}
-			log.debug("\"" + d + "\" was created");
+		femProg = new FemProgramConfig(FemProgramType.OPENSEES, command,
+				"/Example/MOST/01_Left_OpenSees/StaticAnalysisEnv.tcl");
+		String[] configFileNames = { "OneSubstructureTestConfig",
+				"TwoSubstructureTestConfig", "ThreeSubstructureTestConfig" };
+		for (String f : configFileNames) {
+			configFiles.add(f + ".properties");
 		}
+		u = ClassLoader.getSystemResource("ReferenceConfig.properties");
+		String cf = PathUtils.cleanPath(u.getPath());
+		configDir = PathUtils.parent(cf);
+		configDir = PathUtils.append(configDir, "config");
+		workDir = PathUtils.append(System.getProperty("user.dir"), "fem_execute");
 	}
 
+	/**
+	 * Remove the files generated from the test.
+	 */
 	@AfterTest
 	public void afterTest() {
-		for (String d : workDirs) {
-			FileWithContentDelete dir = new FileWithContentDelete(d);
-			boolean done = dir.delete();
-			if (done == false) {
-				log.error("Could not remove dir \"" + d + "\"");
-				return;
-			}
-			log.debug("\"" + d + "\" was removed");
-		}
+		 FileWithContentDelete dir = new FileWithContentDelete(workDir);
+		 boolean done = dir.delete();
+		 if (done == false) {
+		 log.error("Could not remove dir \"" + workDir + "\"");
+		 return;
+		 }
+		 log.debug("\"" + workDir + "\" was removed");
 	}
 
 }

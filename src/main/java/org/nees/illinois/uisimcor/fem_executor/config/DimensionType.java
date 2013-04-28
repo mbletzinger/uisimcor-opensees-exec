@@ -1,22 +1,20 @@
 package org.nees.illinois.uisimcor.fem_executor.config;
 
 /**
- * Enumeration specifying the dimensional space of the model
- * 
+ * Enumeration specifying the dimensional space of the model.
  * @author Michael Bletzinger
  */
 public enum DimensionType {
 	/**
-	 * 3D
+	 * 3D.
 	 */
 	ThreeD,
 	/**
-	 * 2D
+	 * 2D.
 	 */
 	TwoD;
 	/**
 	 * Returns the MATLAB 1-based index.
-	 * 
 	 * @return Index + 1
 	 */
 	public int mtlb() {

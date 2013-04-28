@@ -1,5 +1,6 @@
 package org.nees.illinois.uisimcor.fem_executor.utils;
 
+import java.io.File;
 import java.util.regex.Matcher;
 
 /**
@@ -31,5 +32,9 @@ public class PathUtils {
 		String sep = System.getProperty("file.separator");
 		String result = path + sep + file;
 		return cleanPath(result);
+	}
+	public static String parent(String path) {
+		File pathF = new File(path);
+		return pathF.getParent();
 	}
 }

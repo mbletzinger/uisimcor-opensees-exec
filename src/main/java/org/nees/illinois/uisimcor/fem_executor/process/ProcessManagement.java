@@ -15,7 +15,6 @@ import ch.qos.logback.classic.Level;
 /**
  * Class to wrap some management threads around the {@link ProcessBuilder
  * ProcessBuilder} and {@link Process Process}.
- * 
  * @author Michael Bletzinger
  */
 public class ProcessManagement {
@@ -51,7 +50,7 @@ public class ProcessManagement {
 	private final int listenerWaitInterval = 100;
 
 	/**
-	 * Logger
+	 * Logger.
 	 */
 	private final Logger log = LoggerFactory.getLogger(ProcessManagement.class);
 
@@ -73,9 +72,9 @@ public class ProcessManagement {
 	 * Working directory for the execution.
 	 */
 	private String workDir = null;
+
 	/**
-	 * Constructor
-	 * 
+	 * Constructor.
 	 * @param cmd
 	 *            Line command to execute.
 	 * @param waitInMilliSec
@@ -86,18 +85,18 @@ public class ProcessManagement {
 		this.cmd = cmd;
 		this.waitInMillSecs = waitInMilliSec;
 	}
+
 	/**
 	 * Add an argument to the command.
-	 * 
 	 * @param arg
 	 *            Argument string.
 	 */
 	public final void addArg(final String arg) {
 		args.add(arg);
 	}
+
 	/**
 	 * Add a variable to the process environment.
-	 * 
 	 * @param name
 	 *            Name of the variable.
 	 * @param value
@@ -106,9 +105,9 @@ public class ProcessManagement {
 	public final void addEnv(final String name, final String value) {
 		env.put(name, value);
 	}
+
 	/**
 	 * Assemble the command and its arguments.
-	 * 
 	 * @return The full command string.
 	 */
 	private String[] assemble() {
@@ -121,6 +120,7 @@ public class ProcessManagement {
 		}
 		return result;
 	}
+
 	/**
 	 * Starts the command and does not return until the command has finished
 	 * executing.
@@ -147,6 +147,7 @@ public class ProcessManagement {
 		try {
 			Thread.sleep(waitInMillSecs);
 		} catch (InterruptedException e) {
+			log.debug("Sleeping...");
 		}
 		log.debug("Ending threads");
 		errPr.setDone(true);
@@ -176,7 +177,6 @@ public class ProcessManagement {
 
 	/**
 	 * Get the error from the command execution.
-	 * 
 	 * @return The current error.
 	 */
 	public final String getError() {
@@ -199,7 +199,6 @@ public class ProcessManagement {
 
 	/**
 	 * Get standard output from the command execution.
-	 * 
 	 * @return The current standard output.
 	 */
 	public final String getOutput() {
@@ -222,7 +221,6 @@ public class ProcessManagement {
 
 	/**
 	 * Check to see if the command has finished executing.
-	 * 
 	 * @return True if the command has finished.
 	 */
 	public final boolean isDone() {
@@ -240,15 +238,15 @@ public class ProcessManagement {
 	}
 
 	/**
-	 * @param workDir the workDir to set
+	 * @param workDir
+	 *            the workDir to set
 	 */
-	public final void setWorkDir(String workDir) {
+	public final void setWorkDir(final String workDir) {
 		this.workDir = workDir;
 	}
 
 	/**
 	 * Start the execution of the command.
-	 * 
 	 * @throws IOException
 	 *             if the command fails to start.
 	 */
@@ -275,14 +273,26 @@ public class ProcessManagement {
 		process = pb.start();
 		log.debug("Creating threads");
 		errPr = new ProcessResponse(Level.ERROR, process.getErrorStream(),
-				listenerWaitInterval, (workDir == null ? "" : workDir + "/") + cmd);
+				listenerWaitInterval, (workDir == null ? "" : workDir + "/")
+						+ cmd);
 		stoutPr = new ProcessResponse(Level.DEBUG, process.getInputStream(),
-				listenerWaitInterval, (workDir == null ? "" : workDir + "/") + cmd);
+				listenerWaitInterval, (workDir == null ? "" : workDir + "/")
+						+ cmd);
 		Thread errThrd = new Thread(errPr);
 		Thread stoutThrd = new Thread(stoutPr);
 		log.debug("Starting threads");
 		errThrd.start();
 		stoutThrd.start();
 
+	}
+	/**
+	 * Stop execution immediately.
+	 */
+	public final void abort() {
+		log.debug("Aborting");
+		process.destroy();
+		log.debug("Ending threads");
+		errPr.setDone(true);
+		stoutPr.setDone(true);
 	}
 }
