@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.nees.illinois.uisimcor.fem_executor.config.FemSubstructureConfig;
-import org.nees.illinois.uisimcor.fem_executor.config.FemProgram;
+import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
 
 /**
@@ -19,7 +19,7 @@ public class FemExecutorConfig {
 	/**
 	 * Map of FEM program parameters
 	 */
-	private final Map<FemProgram, FemProgramConfig> femProgramParameters = new HashMap<FemProgram, FemProgramConfig>();
+	private final Map<FemProgramType, FemProgramConfig> femProgramParameters = new HashMap<FemProgramType, FemProgramConfig>();
 	/**
 	 * Substructure configurations map.
 	 */
@@ -27,20 +27,20 @@ public class FemExecutorConfig {
 	/**
 	 * Directory to store temporary files.
 	 */
-	private final String workDir;
+	private final String configRoot;
 
 	/**
-	 * @param workDir
+	 * @param configRoot
 	 *            Directory to store temporary files.
 	 */
-	public FemExecutorConfig(final String workDir) {
-		this.workDir = workDir;
+	public FemExecutorConfig(final String configRoot) {
+		this.configRoot = configRoot;
 	}
 
 	/**
 	 * @return the femProgramPaths
 	 */
-	public final Map<FemProgram, FemProgramConfig> getFemProgramParameters() {
+	public final Map<FemProgramType, FemProgramConfig> getFemProgramParameters() {
 		return femProgramParameters;
 	}
 
@@ -54,8 +54,8 @@ public class FemExecutorConfig {
 	/**
 	 * @return the workDir
 	 */
-	public final String getWorkDir() {
-		return workDir;
+	public final String getConfigRoot() {
+		return configRoot;
 	}
 
 }

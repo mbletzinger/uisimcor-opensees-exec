@@ -23,7 +23,10 @@
 		level="DEBUG" />
 	<logger
 		name="org.nees.illinois.uisimcor.fem_executor.process"
-		level="DEBUG" />
+		level="INFO" />
+	<logger
+		name="org.nees.illinois.uisimcor.fem_executor.process.DoubleMatrix"
+		level="INFO" />
 	<logger
 		name="org.nees.illinois.uisimcor.fem_executor.process.ProcessResponse"
 		level="DEBUG" />

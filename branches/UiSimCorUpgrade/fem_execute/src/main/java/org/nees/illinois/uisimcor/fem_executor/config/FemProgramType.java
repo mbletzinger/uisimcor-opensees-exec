@@ -4,7 +4,7 @@ package org.nees.illinois.uisimcor.fem_executor.config;
  * @author Michael Bletzinger
  *
  */
-public enum FemProgram {
+public enum FemProgramType {
 	/**
 	 * Commercial FEM application. http://www.3ds.com/products/simulia/portfolio/abaqus/overview/
 	 */

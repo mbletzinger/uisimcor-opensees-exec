@@ -12,13 +12,13 @@ import java.util.List;
 import java.util.Properties;
 
 import org.nees.illinois.uisimcor.fem_executor.FemExecutorConfig;
+import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Class to load and save FEM Executor configuration files stored as Java
  * Properties.
- * 
  * @author Michael Bletzinger
  */
 public class LoadSaveConfig {
@@ -75,9 +75,12 @@ public class LoadSaveConfig {
 
 	/**
 	 * Load a configuration.
+	 * @param workDir
+	 *            Directory used for the temporary files when calculating
+	 *            substructure models.
 	 */
-	public final void load() {
-		File configFile = new File(configFilePath);
+	public final void load(final String workDir) {
+		File configFile = new File(PathUtils.append(workDir,configFilePath));
 		if (configFile.canRead() == false) {
 			log.error("Unable to read from \"" + configFilePath + "\"");
 			return;
@@ -94,9 +97,8 @@ public class LoadSaveConfig {
 					e);
 			return;
 		}
-		String workDir = props.getProperty("work.dir");
 		femConfig = new FemExecutorConfig(workDir);
-		for (FemProgram p : FemProgram.values()) {
+		for (FemProgramType p : FemProgramType.values()) {
 			FemProgramConfig fProgCfg = loadFemProgram(p);
 			if (fProgCfg == null) {
 				continue;
@@ -113,12 +115,11 @@ public class LoadSaveConfig {
 
 	/**
 	 * Save a set of FEM program parameters.
-	 *
 	 * @param progCfg
 	 *            FEM program parameters set
 	 */
 	private void saveFemProgram(final FemProgramConfig progCfg) {
-		FemProgram ptype = progCfg.getProgram();
+		FemProgramType ptype = progCfg.getProgram();
 		props.put(ptype + ".executable", progCfg.getExecutablePath());
 		props.put(ptype + ".static.script",
 				progCfg.getStaticAnalysisScriptPath());
@@ -126,12 +127,11 @@ public class LoadSaveConfig {
 
 	/**
 	 * Extracting FEM program parameters from the properties file.
-	 *
 	 * @param ptype
 	 *            FEM program type.
 	 * @return FEM program parameters set
 	 */
-	private FemProgramConfig loadFemProgram(FemProgram ptype) {
+	private FemProgramConfig loadFemProgram(FemProgramType ptype) {
 		String executable = props.getProperty(ptype + ".executable");
 		if (executable == null) {
 			return null;
@@ -144,7 +144,6 @@ public class LoadSaveConfig {
 
 	/**
 	 * Load a configuration for a substructure.
-	 *
 	 * @param name
 	 *            Name of substructure.
 	 * @return Configuration data.
@@ -176,12 +175,12 @@ public class LoadSaveConfig {
 			}
 		}
 		str = props.getProperty(name + ".fem.program");
-		FemProgram fem = null;
+		FemProgramType fem = null;
 		if (str == null) {
 			log.error("FEM program name not found for " + name);
 		} else {
 			try {
-				fem = FemProgram.valueOf(str);
+				fem = FemProgramType.valueOf(str);
 			} catch (Exception e) {
 				log.error("FEM program \"" + str + "\" not recognized for "
 						+ name);
@@ -226,7 +225,6 @@ public class LoadSaveConfig {
 			str += (first ? "" : ", ") + name;
 			first = false;
 		}
-		props.setProperty("work.dir", femConfig.getWorkDir());
 		props.setProperty("substructures", str);
 		for (FemProgramConfig fpCfg : femConfig.getFemProgramParameters()
 				.values()) {
@@ -245,7 +243,6 @@ public class LoadSaveConfig {
 
 	/**
 	 * Save a configuration for a substructure.
-	 * 
 	 * @param name
 	 *            Name of substructure.
 	 */

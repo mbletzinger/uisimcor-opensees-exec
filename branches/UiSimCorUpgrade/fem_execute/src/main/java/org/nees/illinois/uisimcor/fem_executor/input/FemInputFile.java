@@ -40,10 +40,6 @@ public class FemInputFile {
 	private final String inputFileName = "run.tcl";
 
 	/**
-	 * Path to the directory containing the input file.
-	 */
-	private final String workDir;
-	/**
 	 * Logger.
 	 **/
 	private final Logger log = LoggerFactory.getLogger(FemInputFile.class);
@@ -59,6 +55,10 @@ public class FemInputFile {
 	 * Map of tokens to substitute in run.tcl template.
 	 */
 	private final Map<String, String> tokenMap = new HashMap<String, String>();
+	/**
+	 * Path to the directory containing the input file.
+	 */
+	private final String workDir;
 
 	/**
 	 * Constructor.
@@ -68,13 +68,19 @@ public class FemInputFile {
 	 *            Substructure parameters.
 	 * @param workDir
 	 *            Directory containing generated files.
+	 * @param configDir
+	 *            Root of directory containing the model configuration files.
 	 */
 	public FemInputFile(final FemProgramConfig progCfg,
-			final FemSubstructureConfig substructureCfg, final String workDir) {
+			final FemSubstructureConfig substructureCfg, final String workDir,
+			final String configDir) {
 		this.substructureCfg = substructureCfg;
-		tokenMap.put("ModelFile", substructureCfg.getModelFileName());
-		tokenMap.put("StaticAnalysisFile",
-				progCfg.getStaticAnalysisScriptPath());
+		tokenMap.put("ModelFile",
+				PathUtils.append(configDir, substructureCfg.getModelFileName()));
+		tokenMap.put(
+				"StaticAnalysisFile",
+				PathUtils.append(configDir,
+						progCfg.getStaticAnalysisScriptPath()));
 		String rDofs = (substructureCfg.getDimension() == DimensionType.TwoD ? "1 2 3"
 				: "1 2 3 4 5 6");
 		tokenMap.put("ResponseDofs", rDofs);
@@ -85,15 +91,24 @@ public class FemInputFile {
 		}
 		template = rawTemplate;
 		this.workDir = PathUtils.append(workDir, substructureCfg.getAddress());
+		createWorkDir();
+	}
+
+	/**
+	 * Creates the working directory for the substructure.
+	 */
+	private void createWorkDir() {
 		File workDirF = new File(workDir);
-		if(workDirF.exists() && (workDirF.isDirectory() == false)) {
+		if (workDirF.exists() && (workDirF.isDirectory() == false)) {
 			log.error("Cannot create working directory \"" + workDir + "\"");
 			return;
 		}
 		try {
-		workDirF.mkdirs();
+			workDirF.mkdirs();
+			log.debug("\"" + workDir + "\" was created");
 		} catch (Exception e) {
-			log.error("Cannot create working directory \"" + workDir + "\" because ",e);
+			log.error("Cannot create working directory \"" + workDir
+					+ "\" because ", e);
 			return;
 		}
 	}
@@ -143,13 +158,6 @@ public class FemInputFile {
 	}
 
 	/**
-	 * @return the inputPath
-	 */
-	public final String getWorkDir() {
-		return workDir;
-	}
-
-	/**
 	 * Get a string representation of the run.tcl template file.
 	 * @return string representation of the template file.
 	 */
@@ -175,6 +183,13 @@ public class FemInputFile {
 			System.exit(1);
 		}
 		return result;
+	}
+
+	/**
+	 * @return the working directory
+	 */
+	public final String getWorkDir() {
+		return workDir;
 	}
 
 	/**

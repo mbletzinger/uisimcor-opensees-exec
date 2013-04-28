@@ -8,7 +8,7 @@ import org.nees.illinois.uisimcor.fem_executor.FemExecutorConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.DimensionType;
 import org.nees.illinois.uisimcor.fem_executor.config.DispDof;
 import org.nees.illinois.uisimcor.fem_executor.config.FemSubstructureConfig;
-import org.nees.illinois.uisimcor.fem_executor.config.FemProgram;
+import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.LoadSaveConfig;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
@@ -18,7 +18,6 @@ import org.testng.annotations.Test;
 
 /**
  * Test the LoadSaveConfig class.
- * 
  * @author Michael Bletzinger
  */
 public class TestLoadSaveConfig {
@@ -34,10 +33,15 @@ public class TestLoadSaveConfig {
 	 * Existing file that contains the reference configuration.
 	 */
 	private String configRefFile;
+	/**
+	 * Directory for storing temporary files.
+	 */
+	private String workDir;
 
 	/**
 	 * Test saving a configuration. Just looking for no exceptions.
 	 */
+
 	@Test
 	public final void testSave() {
 		LoadSaveConfig lscfg = new LoadSaveConfig();
@@ -53,7 +57,7 @@ public class TestLoadSaveConfig {
 	public final void testLoad() {
 		LoadSaveConfig lscfg = new LoadSaveConfig();
 		lscfg.setConfigFilePath(configRefFile);
-		lscfg.load();
+		lscfg.load(workDir);
 		compareConfigs(lscfg.getFemConfig(), femCfg);
 	}
 
@@ -64,7 +68,7 @@ public class TestLoadSaveConfig {
 	public final void testLoadingSaved() {
 		LoadSaveConfig lscfg = new LoadSaveConfig();
 		lscfg.setConfigFilePath(configFilename);
-		lscfg.load();
+		lscfg.load(workDir);
 		compareConfigs(lscfg.getFemConfig(), femCfg);
 	}
 
@@ -74,8 +78,8 @@ public class TestLoadSaveConfig {
 	@BeforeTest
 	public final void beforeTest() {
 		String sep = System.getProperty("file.separator");
-		configFilename = System.getProperty("user.dir") + sep
-				+ "TestConfig.properties";
+		workDir = System.getProperty("user.dir");
+		configFilename = PathUtils.append(workDir, "TestConfig.properties");
 		URL u = ClassLoader.getSystemResource("ReferenceConfig.properties");
 		configRefFile = PathUtils.cleanPath(u.getPath());
 		final int noSubstructures = 3;
@@ -83,10 +87,10 @@ public class TestLoadSaveConfig {
 		final int node2 = 3;
 		final int node3 = 4;
 		femCfg = new FemExecutorConfig("/home/mbletzin/Tmp");
-		FemProgramConfig femProg = new FemProgramConfig(FemProgram.OPENSEES,
-				"/usr/bin/OpenSees",
+		FemProgramConfig femProg = new FemProgramConfig(
+				FemProgramType.OPENSEES, "/usr/bin/OpenSees",
 				"/Example/MOST/01_Left_OpenSees/StaticAnalysisEnv.tcl");
-		femCfg.getFemProgramParameters().put(FemProgram.OPENSEES, femProg);
+		femCfg.getFemProgramParameters().put(FemProgramType.OPENSEES, femProg);
 		for (int i = 1; i < noSubstructures + 1; i++) {
 			String address = "MDL-0" + i;
 			DimensionType dim = DimensionType.TwoD;
@@ -107,9 +111,9 @@ public class TestLoadSaveConfig {
 				modelFilename = "Examples" + sep + "MOST" + sep
 						+ "03_Right_OpenSees";
 			}
-			FemProgram program = FemProgram.OPENSEES;
-			FemSubstructureConfig cfg = new FemSubstructureConfig(address, dim, program, modelFilename,
-					nodes);
+			FemProgramType program = FemProgramType.OPENSEES;
+			FemSubstructureConfig cfg = new FemSubstructureConfig(address, dim,
+					program, modelFilename, nodes);
 			for (Integer n : nodes) {
 				List<DispDof> edof = new ArrayList<DispDof>();
 				if (n == node1) {
@@ -127,7 +131,6 @@ public class TestLoadSaveConfig {
 
 	/**
 	 * Compares two configurations.
-	 * 
 	 * @param actual
 	 *            Loaded configuration.
 	 * @param expected
@@ -135,10 +138,10 @@ public class TestLoadSaveConfig {
 	 */
 	private void compareConfigs(final FemExecutorConfig actual,
 			final FemExecutorConfig expected) {
-		Assert.assertEquals(actual.getWorkDir(), expected.getWorkDir());
-		List<FemProgram> eprogs = new ArrayList<FemProgram>(expected
+		Assert.assertEquals(actual.getConfigRoot(), workDir);
+		List<FemProgramType> eprogs = new ArrayList<FemProgramType>(expected
 				.getFemProgramParameters().keySet());
-		for (FemProgram p : eprogs) {
+		for (FemProgramType p : eprogs) {
 			FemProgramConfig eprogCfg = expected.getFemProgramParameters().get(
 					p);
 			FemProgramConfig aprogCfg = actual.getFemProgramParameters().get(p);

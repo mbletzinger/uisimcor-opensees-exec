@@ -9,12 +9,11 @@ import java.util.Map;
 
 /**
  * Class defining the parameters used to execute FEM programs.
- * 
  * @author Michael Bletzinger
  */
 public class FemSubstructureConfig {
 	/**
-	 * Address identifying the substructure to UI-SimCor
+	 * Address identifying the substructure to UI-SimCor.
 	 */
 	private final String address;
 
@@ -35,15 +34,14 @@ public class FemSubstructureConfig {
 	 * generic console-in console-out application. Vector has not been
 	 * implemented yet.
 	 */
-	private final FemProgram femProgram;
+	private final FemProgramType femProgram;
 	/**
 	 * Model file name (include extension).
 	 */
 	private final String modelFileName;
 
 	/**
-	 * Constructor
-	 * 
+	 * Constructor.
 	 * @param address
 	 *            Address identifying the substructure to UI-SimCor
 	 * @param dimension
@@ -60,9 +58,9 @@ public class FemSubstructureConfig {
 	 * @param modelFileName
 	 *            Model file name (include extension).
 	 */
-	public FemSubstructureConfig(final String address, final DimensionType dimension,
-			final FemProgram femProgram, final String modelFileName,
-			final List<Integer> nodeSequence) {
+	public FemSubstructureConfig(final String address,
+			final DimensionType dimension, final FemProgramType femProgram,
+			final String modelFileName, final List<Integer> nodeSequence) {
 		this.address = address;
 		this.dimension = dimension;
 		this.femProgram = femProgram;
@@ -78,7 +76,6 @@ public class FemSubstructureConfig {
 
 	/**
 	 * Set a list of effective DOFs for a node.
-	 * 
 	 * @param node
 	 *            Node.
 	 * @param dofs
@@ -111,7 +108,6 @@ public class FemSubstructureConfig {
 
 	/**
 	 * Get the list of effective DOFs for a node.
-	 * 
 	 * @param node
 	 *            Node
 	 * @return List of DOFs.
@@ -123,7 +119,7 @@ public class FemSubstructureConfig {
 	/**
 	 * @return the femProgram
 	 */
-	public final FemProgram getFemProgram() {
+	public final FemProgramType getFemProgram() {
 		return femProgram;
 	}
 

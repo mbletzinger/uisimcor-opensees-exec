@@ -1,5 +1,5 @@
-source Examples/MOST/02_Middle_OpenSees/Middle.tcl
-source /Example/MOST/01_Left_OpenSees/StaticAnalysisEnv.tcl
+source /Config/dir/Root/Examples/MOST/02_Middle_OpenSees/Middle.tcl
+source /Config/dir/Root/Example/MOST/01_Left_OpenSees/StaticAnalysisEnv.tcl
 recorder Node -file tmp_disp.out -node -dof 1 2 3 disp
 recorder Node -file tmp_forc.out -node -dof 1 2 3 reaction
 pattern Plain Step3	Constant {
