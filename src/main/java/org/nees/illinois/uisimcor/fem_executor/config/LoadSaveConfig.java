@@ -82,7 +82,7 @@ public class LoadSaveConfig {
 	public final void load(final String workDir) {
 		File configFile = new File(PathUtils.append(workDir,configFilePath));
 		if (configFile.canRead() == false) {
-			log.error("Unable to read from \"" + configFilePath + "\"");
+			log.error("Unable to read from \"" + configFile.getAbsolutePath() + "\"");
 			return;
 		}
 		props = new Properties();
@@ -93,7 +93,7 @@ public class LoadSaveConfig {
 			props.load(configI);
 		} catch (Exception e) {
 			log.error(
-					"Unable to read from \"" + configFilePath + "\" because ",
+					"Unable to read from \"" + configFile.getAbsolutePath() + "\" because ",
 					e);
 			return;
 		}

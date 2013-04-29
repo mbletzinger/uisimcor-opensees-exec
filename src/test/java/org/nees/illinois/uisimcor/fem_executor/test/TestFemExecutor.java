@@ -25,6 +25,7 @@ import org.testng.annotations.Test;
  * Test the operation of the FEM executor.
  * @author Michael Bletzinger
  */
+@Test(groups = { "execute" })
 public class TestFemExecutor {
 	/**
 	 * Configuration containing the fake OpenSees.

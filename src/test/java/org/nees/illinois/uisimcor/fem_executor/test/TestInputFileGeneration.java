@@ -24,6 +24,7 @@ import org.testng.annotations.Test;
  * Test the FemInputFile class.
  * @author Michael Bletzinger
  */
+@Test(groups = { "input" })
 public class TestInputFileGeneration {
 	/**
 	 * Reference set of configurations.

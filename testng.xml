@@ -4,11 +4,33 @@
 	name="Process Testing"
 	parallel="false">
 	<test name="ProcessTest">
+		<groups>
+			<dependencies>
+				<group
+					name="execute"
+					depends-on="data.*" />
+				<group
+					name="data"
+					depends-on="input.*" />
+				<group
+					name="response"
+					depends-on="loadSave.*" />
+				<group
+					name="input"
+					depends-on="response.*" />
+			</dependencies>
+		</groups>
 		<classes>
 			<class
 				name="org.nees.illinois.uisimcor.fem_executor.test.TestProcessResponse" />
 			<class
 				name="org.nees.illinois.uisimcor.fem_executor.test.TestDataFileParsing" />
+			<class
+				name="org.nees.illinois.uisimcor.fem_executor.test.TestLoadSaveConfig" />
+			<class
+				name="org.nees.illinois.uisimcor.fem_executor.test.TestInputFileGeneration" />
+			<class name="org.nees.illinois.uisimcor.fem_executor.test.TestFemExecutor" />
 		</classes>
 	</test> <!-- DataTest -->
 </suite> <!-- DataSuite -->
+
