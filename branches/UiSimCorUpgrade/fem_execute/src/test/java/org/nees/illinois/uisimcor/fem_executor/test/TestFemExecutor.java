@@ -78,6 +78,26 @@ public class TestFemExecutor {
 					Assert.fail("Execution has hung for some reason");
 				}
 			}
+			Collection<String> mdls = fexec.getConfig().getSubstructCfgs()
+					.keySet();
+			for (String m : mdls) {
+				double[][] vals = fexec.getDisplacements(m);
+				int nnodes = fexec.getConfig().getSubstructCfgs().get(m)
+						.getNumberOfNodes();
+				final int numberOfDofs = 3; // Configurations are 2D.
+				nnodes = (nnodes * numberOfDofs) + 1;
+				DoubleMatrix disp = new DoubleMatrix(vals);
+				int[] sz = disp.sizes();
+				log.debug("Displacements for " + m + " are " + disp);
+				Assert.assertEquals(sz[0], 1);
+				Assert.assertEquals(sz[1], nnodes);
+				vals = fexec.getForces(m);
+				DoubleMatrix forces = new DoubleMatrix(vals);
+				sz = forces.sizes();
+				log.debug("Forces for " + m + " are " + forces);
+				Assert.assertEquals(sz[0], 1);
+				Assert.assertEquals(sz[1], nnodes);
+			}
 		}
 	}
 
@@ -121,7 +141,8 @@ public class TestFemExecutor {
 		String cf = PathUtils.cleanPath(u.getPath());
 		configDir = PathUtils.parent(cf);
 		configDir = PathUtils.append(configDir, "config");
-		workDir = PathUtils.append(System.getProperty("user.dir"), "fem_execute");
+		workDir = PathUtils.append(System.getProperty("user.dir"),
+				"fem_execute");
 	}
 
 	/**
@@ -129,13 +150,13 @@ public class TestFemExecutor {
 	 */
 	@AfterTest
 	public void afterTest() {
-		 FileWithContentDelete dir = new FileWithContentDelete(workDir);
-		 boolean done = dir.delete();
-		 if (done == false) {
-		 log.error("Could not remove dir \"" + workDir + "\"");
-		 return;
-		 }
-		 log.debug("\"" + workDir + "\" was removed");
+		FileWithContentDelete dir = new FileWithContentDelete(workDir);
+		boolean done = dir.delete();
+		if (done == false) {
+			log.error("Could not remove dir \"" + workDir + "\"");
+			return;
+		}
+		log.debug("\"" + workDir + "\" was removed");
 	}
 
 }

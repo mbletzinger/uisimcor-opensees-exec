@@ -41,6 +41,12 @@ public class FemSubstructureConfig {
 	private final String modelFileName;
 
 	/**
+	 * Control node numbers. Note: The sequence of nodes should be consistent
+	 * with Nodes in SimCor.
+	 */
+	private final List<Integer> nodeSequence;
+
+	/**
 	 * Constructor.
 	 * @param address
 	 *            Address identifying the substructure to UI-SimCor
@@ -67,12 +73,6 @@ public class FemSubstructureConfig {
 		this.modelFileName = modelFileName;
 		this.nodeSequence = nodeSequence;
 	}
-
-	/**
-	 * Control node numbers. Note: The sequence of nodes should be consistent
-	 * with Nodes in SimCor.
-	 */
-	private final List<Integer> nodeSequence;
 
 	/**
 	 * Set a list of effective DOFs for a node.
@@ -137,4 +137,21 @@ public class FemSubstructureConfig {
 		return nodeSequence;
 	}
 
+	/**
+	 * @return Total number of nodes.
+	 */
+	public int getNumberOfNodes() {
+		return nodeSequence.size();
+	}
+
+	/**
+	 * @return Total number of effective DOFs
+	 */
+	public int getTotalDofs() {
+		int result = 0;
+		for (Integer n : nodeSequence) {
+			result += effectiveDofs.get(n).size();
+		}
+		return result;
+	}
 }
