@@ -26,7 +26,7 @@ public class OutputFileParser {
 	private boolean empty = true;
 
 	/**
-	 * Logger
+	 * Logger.
 	 **/
 	private final Logger log = LoggerFactory.getLogger(OutputFileParser.class);
 	/**

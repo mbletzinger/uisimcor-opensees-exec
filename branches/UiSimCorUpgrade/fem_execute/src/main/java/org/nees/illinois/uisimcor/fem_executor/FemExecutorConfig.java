@@ -12,12 +12,11 @@ import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
 
 /**
  * Configuration for the executor.
- * 
  * @author Michael Bletzinger
  */
 public class FemExecutorConfig {
 	/**
-	 * Map of FEM program parameters
+	 * Map of FEM program parameters.
 	 */
 	private final Map<FemProgramType, FemProgramConfig> femProgramParameters = new HashMap<FemProgramType, FemProgramConfig>();
 	/**

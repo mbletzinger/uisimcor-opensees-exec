@@ -2,11 +2,10 @@ package org.nees.illinois.uisimcor.fem_executor.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 /**
  * Class to turn strings into integers.
- * 
  * @author Michael Bletzinger
- *
  */
 public class IntegerDecoder extends ParseElement<Integer> {
 	/**

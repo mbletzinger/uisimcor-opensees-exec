@@ -140,14 +140,14 @@ public class FemSubstructureConfig {
 	/**
 	 * @return Total number of nodes.
 	 */
-	public int getNumberOfNodes() {
+	public final int getNumberOfNodes() {
 		return nodeSequence.size();
 	}
 
 	/**
 	 * @return Total number of effective DOFs
 	 */
-	public int getTotalDofs() {
+	public final int getTotalDofs() {
 		int result = 0;
 		for (Integer n : nodeSequence) {
 			result += effectiveDofs.get(n).size();

@@ -1,6 +1,6 @@
 package org.nees.illinois.uisimcor.fem_executor.config;
 /**
- * Container to parse datatypes
+ * Container to parse datatypes.
  * @author Michael Bletzinger
  *
  * @param <T>
