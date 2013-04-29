@@ -149,7 +149,7 @@ public class TestFemExecutor {
 	 * Remove the files generated from the test.
 	 */
 	@AfterTest
-	public void afterTest() {
+	public final void afterTest() {
 		FileWithContentDelete dir = new FileWithContentDelete(workDir);
 		boolean done = dir.delete();
 		if (done == false) {

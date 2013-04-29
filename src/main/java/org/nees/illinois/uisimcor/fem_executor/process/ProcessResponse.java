@@ -12,7 +12,6 @@ import ch.qos.logback.classic.Level;
 
 /**
  * Listener thread to listen to output from a Process execution.
- * 
  * @author Michael Bletzinger
  */
 public class ProcessResponse implements Runnable {
@@ -25,7 +24,7 @@ public class ProcessResponse implements Runnable {
 	 */
 	private final Level level;
 	/**
-	 * Logger
+	 * Logger.
 	 */
 	private final Logger log = LoggerFactory.getLogger(ProcessResponse.class);
 	/**
@@ -46,8 +45,7 @@ public class ProcessResponse implements Runnable {
 	private final InputStream strm;
 
 	/**
-	 * Constructor
-	 * 
+	 * Constructor.
 	 * @param level
 	 *            Debugging level that is used to print output.
 	 * @param strm
@@ -123,7 +121,6 @@ public class ProcessResponse implements Runnable {
 
 	/**
 	 * Writes line to the log specified by the logging level.
-	 * 
 	 * @param line
 	 *            Content to write.
 	 */

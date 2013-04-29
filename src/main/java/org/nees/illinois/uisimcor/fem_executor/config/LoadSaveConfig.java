@@ -33,12 +33,12 @@ public class LoadSaveConfig {
 	 * @param femConfig
 	 *            the femConfig to set
 	 */
-	public final void setFemConfig(FemExecutorConfig femConfig) {
+	public final void setFemConfig(final FemExecutorConfig femConfig) {
 		this.femConfig = femConfig;
 	}
 
 	/**
-	 * FEM Executor Configuration
+	 * FEM Executor Configuration.
 	 */
 	private FemExecutorConfig femConfig;
 	/**
@@ -131,7 +131,7 @@ public class LoadSaveConfig {
 	 *            FEM program type.
 	 * @return FEM program parameters set
 	 */
-	private FemProgramConfig loadFemProgram(FemProgramType ptype) {
+	private FemProgramConfig loadFemProgram(final FemProgramType ptype) {
 		String executable = props.getProperty(ptype + ".executable");
 		if (executable == null) {
 			return null;

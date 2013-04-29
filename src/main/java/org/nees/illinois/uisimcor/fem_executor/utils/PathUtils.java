@@ -4,15 +4,19 @@ import java.io.File;
 import java.util.regex.Matcher;
 
 /**
- * Utilities to clean file pathnames.
- * 
+ * Utilities to manage file pathnames.
  * @author Michael Bletzinger
  */
-public class PathUtils {
+public final class PathUtils {
+	/**
+	 * Prevent the creation of PathUtil objects.
+	 */
+	private PathUtils() {
+	}
+
 	/**
 	 * Transforms Internet style path into a path understood by the local file
 	 * system.
-	 * 
 	 * @param raw
 	 *            Internet version.
 	 * @return local version.
@@ -28,12 +32,29 @@ public class PathUtils {
 		return result;
 	}
 
-	public static String append(String path, String file) {
+	/**
+	 * Appends the file to the end of the path using the appropriate file
+	 * separator. Also calls the cleanPath() function to remove extra file
+	 * separators.
+	 * @param path
+	 *            Name of path.
+	 * @param file
+	 *            Name of file.
+	 * @return Full appended path.
+	 */
+	public static String append(final String path, final String file) {
 		String sep = System.getProperty("file.separator");
 		String result = path + sep + file;
 		return cleanPath(result);
 	}
-	public static String parent(String path) {
+
+	/**
+	 * Returns the path minus the last file or folder name.
+	 * @param path
+	 *            Path name.
+	 * @return Path name minus last folder or file name.
+	 */
+	public static String parent(final String path) {
 		File pathF = new File(path);
 		return pathF.getParent();
 	}

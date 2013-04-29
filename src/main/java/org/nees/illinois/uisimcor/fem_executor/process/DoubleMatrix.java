@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Class which allows easy transitions between various ways to store a matrix.
- * 
  * @author Michael Bletzinger
  */
 public class DoubleMatrix {
@@ -22,13 +21,12 @@ public class DoubleMatrix {
 	 */
 	private final int numberOfColumns;
 	/**
-	 * Logger
+	 * Logger.
 	 */
 	private final Logger log = LoggerFactory.getLogger(DoubleMatrix.class);
 
 	/**
 	 * Constructor from List<List<Double>>.
-	 * 
 	 * @param idata
 	 *            Input data set.
 	 */
@@ -56,7 +54,6 @@ public class DoubleMatrix {
 
 	/**
 	 * Constructor from double[][].
-	 * 
 	 * @param idata
 	 *            Input data set.
 	 */
@@ -98,7 +95,6 @@ public class DoubleMatrix {
 
 	/**
 	 * Determine if a particular element in the dataset contains a number.
-	 * 
 	 * @param row
 	 *            Element row.
 	 * @param col
@@ -112,15 +108,16 @@ public class DoubleMatrix {
 		}
 		return rowL.get(col) == null;
 	}
-/**
- * Sets an element.
- *@param row
+
+	/**
+	 * Sets an element.
+	 * @param row
 	 *            Element row.
- *@param col
+	 * @param col
 	 *            Element column.
- *@param value
+	 * @param value
 	 *            Element value.
- */
+	 */
 	public final void set(final int row, final int col, final double value) {
 		List<Double> rowL = data.get(row);
 		for (int c = rowL.size(); c < col + 1; c++) {
@@ -128,22 +125,22 @@ public class DoubleMatrix {
 		}
 		rowL.set(col, new Double(value));
 	}
-/**
- * returns the row and column sizes.
- *@return
- *array with the number of rows and then the number of columns.
- */
+
+	/**
+	 * returns the row and column sizes.
+	 * @return array with the number of rows and then the number of columns.
+	 */
 	public final int[] sizes() {
 		int[] result = new int[2];
 		result[0] = data.size();
 		result[1] = numberOfColumns;
 		return result;
 	}
-/**
- * Returns the data set in List<LIst<Double>> format.
- *@return
- *The data set.
- */
+
+	/**
+	 * Returns the data set in List<LIst<Double>> format.
+	 * @return The data set.
+	 */
 	public final List<List<Double>> toList() {
 		List<List<Double>> result = new ArrayList<List<Double>>();
 		for (List<Double> r : data) {
@@ -177,15 +174,16 @@ public class DoubleMatrix {
 		}
 		return result;
 	}
-/**
- * Returns the value of an element.  If the element is null the function returns Double.NaN.
- *@param row
+
+	/**
+	 * Returns the value of an element. If the element is null the function
+	 * returns Double.NaN.
+	 * @param row
 	 *            Element row.
- *@param col
+	 * @param col
 	 *            Element column.
- *@return
-	 *            Element value.
- */
+	 * @return Element value.
+	 */
 	public final double value(final int row, final int col) {
 		if (data.isEmpty() == false) {
 			List<Double> rowL = data.get(row);
