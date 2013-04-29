@@ -12,7 +12,7 @@ import org.nees.illinois.uisimcor.fem_executor.config.DimensionType;
 import org.nees.illinois.uisimcor.fem_executor.config.DispDof;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
-import org.nees.illinois.uisimcor.fem_executor.config.FemSubstructureConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
 import org.nees.illinois.uisimcor.fem_executor.input.FemInputFile;
 import org.nees.illinois.uisimcor.fem_executor.process.DoubleMatrix;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
@@ -93,7 +93,7 @@ public class TestInputFileGeneration {
 		modelFilename = "Examples" + sep + "MOST" + sep + "02_Middle_OpenSees"
 				+ sep + "Middle.tcl";
 		FemProgramType program = FemProgramType.OPENSEES;
-		FemSubstructureConfig cfg = new FemSubstructureConfig(address, dim,
+		SubstructureConfig cfg = new SubstructureConfig(address, dim,
 				program, modelFilename, nodes);
 		for (Integer n : nodes) {
 			List<DispDof> edof = new ArrayList<DispDof>();

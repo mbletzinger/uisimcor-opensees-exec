@@ -11,7 +11,7 @@ import java.util.Map;
  * Class defining the parameters used to execute FEM programs.
  * @author Michael Bletzinger
  */
-public class FemSubstructureConfig {
+public class SubstructureConfig {
 	/**
 	 * Address identifying the substructure to UI-SimCor.
 	 */
@@ -64,7 +64,7 @@ public class FemSubstructureConfig {
 	 * @param modelFileName
 	 *            Model file name (include extension).
 	 */
-	public FemSubstructureConfig(final String address,
+	public SubstructureConfig(final String address,
 			final DimensionType dimension, final FemProgramType femProgram,
 			final String modelFileName, final List<Integer> nodeSequence) {
 		this.address = address;

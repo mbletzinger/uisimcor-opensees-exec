@@ -17,7 +17,7 @@ import java.util.Map;
 import org.nees.illinois.uisimcor.fem_executor.config.DimensionType;
 import org.nees.illinois.uisimcor.fem_executor.config.DispDof;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
-import org.nees.illinois.uisimcor.fem_executor.config.FemSubstructureConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
 import org.nees.illinois.uisimcor.fem_executor.process.DoubleMatrix;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
@@ -46,7 +46,7 @@ public class FemInputFile {
 	/**
 	 * Substructure configuration parameters.
 	 */
-	private final FemSubstructureConfig substructureCfg;
+	private final SubstructureConfig substructureCfg;
 	/**
 	 * run.tcl template string.
 	 */
@@ -72,7 +72,7 @@ public class FemInputFile {
 	 *            Root of directory containing the model configuration files.
 	 */
 	public FemInputFile(final FemProgramConfig progCfg,
-			final FemSubstructureConfig substructureCfg, final String workDir,
+			final SubstructureConfig substructureCfg, final String workDir,
 			final String configDir) {
 		this.substructureCfg = substructureCfg;
 		tokenMap.put("ModelFile",

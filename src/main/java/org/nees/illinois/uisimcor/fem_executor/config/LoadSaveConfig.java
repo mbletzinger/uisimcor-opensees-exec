@@ -108,7 +108,7 @@ public class LoadSaveConfig {
 		String str = props.getProperty("substructures");
 		String[] names = str.split(", ");
 		for (String n : names) {
-			FemSubstructureConfig cfg = loadSubStructure(n);
+			SubstructureConfig cfg = loadSubStructure(n);
 			femConfig.getSubstructCfgs().put(n, cfg);
 		}
 	}
@@ -148,7 +148,7 @@ public class LoadSaveConfig {
 	 *            Name of substructure.
 	 * @return Configuration data.
 	 */
-	private FemSubstructureConfig loadSubStructure(final String name) {
+	private SubstructureConfig loadSubStructure(final String name) {
 		String address = name;
 		String str = props.getProperty(name + ".dimension");
 		DimensionType dim = null;
@@ -187,7 +187,7 @@ public class LoadSaveConfig {
 			}
 		}
 		String modelFile = props.getProperty(name + ".model.filename");
-		FemSubstructureConfig result = new FemSubstructureConfig(address, dim,
+		SubstructureConfig result = new SubstructureConfig(address, dim,
 				fem, modelFile, nodes);
 		for (Integer node : nodes) {
 			str = props.getProperty(name + ".effective.dofs." + node);
@@ -247,7 +247,7 @@ public class LoadSaveConfig {
 	 *            Name of substructure.
 	 */
 	private void saveSubStructure(final String name) {
-		FemSubstructureConfig config = femConfig.getSubstructCfgs().get(name);
+		SubstructureConfig config = femConfig.getSubstructCfgs().get(name);
 		props.setProperty(name + ".dimension", config.getDimension().name());
 		props.setProperty(name + ".control.nodes",
 				eoIntegerList.encode(config.getNodeSequence()));
