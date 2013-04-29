@@ -200,7 +200,7 @@ public class FemExecutor {
 	 * includes all 6 displacements DOFs regardless of which of them are
 	 * effective. The executor uses the effective DOFs configuration parameter
 	 * to select which values to use from the matrix. ( See the function
-	 * <em>addEffectiveDofs</em> {@link FemSubstructureConfig here}).
+	 * <em>addEffectiveDofs</em> {@link SubstructureConfig here}).
 	 * @param address
 	 *            Substructure id.
 	 * @param displacements

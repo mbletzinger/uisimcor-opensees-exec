@@ -10,7 +10,7 @@ import java.util.List;
 import org.nees.illinois.uisimcor.fem_executor.FemExecutor;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
-import org.nees.illinois.uisimcor.fem_executor.config.FemSubstructureConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
 import org.nees.illinois.uisimcor.fem_executor.process.DoubleMatrix;
 import org.nees.illinois.uisimcor.fem_executor.process.FileWithContentDelete;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
@@ -57,10 +57,10 @@ public class TestFemExecutor {
 			fexec.loadConfig(c);
 			fexec.getConfig().getFemProgramParameters()
 					.put(FemProgramType.OPENSEES, femProg);
-			Collection<FemSubstructureConfig> mdlCfgs = fexec.getConfig()
+			Collection<SubstructureConfig> mdlCfgs = fexec.getConfig()
 					.getSubstructCfgs().values();
 			fexec.setup();
-			for (FemSubstructureConfig mCfg : mdlCfgs) {
+			for (SubstructureConfig mCfg : mdlCfgs) {
 				loadExecutor(fexec, mCfg);
 			}
 			fexec.execute();
@@ -109,7 +109,7 @@ public class TestFemExecutor {
 	 *            Configuration for the substructure.
 	 */
 	private void loadExecutor(final FemExecutor fexec,
-			final FemSubstructureConfig subCfg) {
+			final SubstructureConfig subCfg) {
 		final Double[] disp = { 0.00023e-4, 0.00004e-5, 0.00023e-4, 0.00004e-5,
 				0.00023e-4, 0.00004e-5 };
 		List<List<Double>> matrix = new ArrayList<List<Double>>();
