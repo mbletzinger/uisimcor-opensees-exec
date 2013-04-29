@@ -16,6 +16,7 @@ import org.testng.annotations.Test;
  * Test the parsing of text files.
  * @author Michael Bletzinger
  */
+@Test(groups = { "data" })
 public class TestDataFileParsing {
 	/**
 	 * Full path of a test text file.
