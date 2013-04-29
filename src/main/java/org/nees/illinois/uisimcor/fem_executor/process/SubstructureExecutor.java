@@ -45,7 +45,7 @@ public class SubstructureExecutor {
 	/**
 	 * Flag indicating that output files need to be parsed after execution.
 	 */
-	private boolean processOutputFiles = false;
+	private boolean processOutputFiles = true;
 	/**
 	 * Wait interval for checking thread for done. Default is 2 seconds
 	 */
