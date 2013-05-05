@@ -9,7 +9,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
@@ -84,7 +83,8 @@ public class FemInputFile {
 		String rDofs = (substructureCfg.getDimension() == DimensionType.TwoD ? "1 2 3"
 				: "1 2 3 4 5 6");
 		tokenMap.put("ResponseDofs", rDofs);
-		String rawTemplate = getTemplate();
+		String rawTemplate = setTemplate(PathUtils.append(configDir,
+				"run_template.tcl"));
 		for (String k : tokenMap.keySet()) {
 			rawTemplate = rawTemplate.replaceAll("\\$\\{" + k + "\\}",
 					tokenMap.get(k));
@@ -159,11 +159,11 @@ public class FemInputFile {
 
 	/**
 	 * Get a string representation of the run.tcl template file.
+	 * @param file
+	 *            Path to template file.
 	 * @return string representation of the template file.
 	 */
-	private String getTemplate() {
-		URL u = ClassLoader.getSystemResource("run_template.tcl");
-		String file = PathUtils.cleanPath(u.getPath());
+	private String setTemplate(final String file) {
 		File tfile = new File(file);
 		if (tfile.canRead() == false) {
 			log.error("Template file \"" + file + "\" cannot be read");

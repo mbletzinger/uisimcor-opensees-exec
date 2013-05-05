@@ -42,6 +42,10 @@ public class TestInputFileGeneration {
 	 * Displacement data.
 	 */
 	private DoubleMatrix data;
+	/**
+	 * Directory containing the configuration files for the test.
+	 */
+	private String configDir;
 
 	/**
 	 * Test saving a configuration. Just looking for no exceptions.
@@ -50,7 +54,7 @@ public class TestInputFileGeneration {
 	public final void testGenerate() {
 		FemInputFile fif = new FemInputFile(femCfg.getFemProgramParameters()
 				.get(FemProgramType.OPENSEES), femCfg.getSubstructCfgs().get(
-				"MDL-01"), femCfg.getConfigRoot(), "/Config/dir/Root");
+				"MDL-01"), femCfg.getConfigRoot(), configDir);
 		final int stepNumber = 3;
 		fif.generate(stepNumber, data);
 		compareConfigs(inputFilePath, referenceFile);
@@ -65,9 +69,12 @@ public class TestInputFileGeneration {
 		final int node1 = 2;
 		final int node2 = 3;
 		final int node3 = 4;
-		femCfg = new FemExecutorConfig(System.getProperty("user.dir"));
 		URL u = ClassLoader.getSystemResource("reference_run.tcl");
 		referenceFile = PathUtils.cleanPath(u.getPath());
+		u = ClassLoader.getSystemResource("config/run_template.tcl");
+		String cf = PathUtils.cleanPath(u.getPath());
+		configDir = PathUtils.parent(cf);
+		femCfg = new FemExecutorConfig(configDir);
 		FemProgramConfig femProg = new FemProgramConfig(
 				FemProgramType.OPENSEES, "/usr/bin/OpenSees",
 				"/Example/MOST/01_Left_OpenSees/StaticAnalysisEnv.tcl");
