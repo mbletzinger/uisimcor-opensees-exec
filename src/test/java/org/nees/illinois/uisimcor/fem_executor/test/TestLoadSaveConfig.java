@@ -86,7 +86,7 @@ public class TestLoadSaveConfig {
 		String sep = System.getProperty("file.separator");
 		workDir = System.getProperty("user.dir");
 		configFilename = "TestConfig.properties";
-		URL u = ClassLoader.getSystemResource("ReferenceConfig.properties");
+		URL u = ClassLoader.getSystemResource("config/ReferenceConfig.properties");
 		String path = PathUtils.cleanPath(u.getPath());
 		File pathF = new File(path);
 		configRefFile = pathF.getName();

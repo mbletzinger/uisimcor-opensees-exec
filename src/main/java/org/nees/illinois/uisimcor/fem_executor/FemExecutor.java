@@ -3,12 +3,19 @@ package org.nees.illinois.uisimcor.fem_executor;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.config.LoadSaveConfig;
 import org.nees.illinois.uisimcor.fem_executor.input.FemInputFile;
 import org.nees.illinois.uisimcor.fem_executor.process.DoubleMatrix;
 import org.nees.illinois.uisimcor.fem_executor.process.SubstructureExecutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.joran.JoranConfigurator;
+import ch.qos.logback.core.joran.spi.JoranException;
+import ch.qos.logback.core.util.StatusPrinter;
 
 /**
  * Class to execute FEM programs.
@@ -41,6 +48,10 @@ public class FemExecutor {
 	// }
 	// System.out.print("Output: \"" + fem.getPm().getOutput() + "\"");
 	// }
+	/**
+	 * Logger.
+	 **/
+	private final Logger log = LoggerFactory.getLogger(FemExecutor.class);
 	/**
 	 * Instance containing all of the configuration parameters.
 	 */
@@ -85,13 +96,12 @@ public class FemExecutor {
 	/**
 	 * Load the input file parameters into each executor.
 	 */
-	public void setup() {
+	public final void setup() {
 		FemProgramConfig progCfg = config.getFemProgramParameters().get(
 				FemProgramType.OPENSEES);
 		for (String fsc : config.getSubstructCfgs().keySet()) {
 			FemInputFile input = new FemInputFile(progCfg, config
-					.getSubstructCfgs().get(fsc), workDir,
-					configRootDir);
+					.getSubstructCfgs().get(fsc), workDir, configRootDir);
 			SubstructureExecutor exe = new SubstructureExecutor(progCfg, input);
 			executors.put(fsc, exe);
 		}
@@ -219,5 +229,37 @@ public class FemExecutor {
 	 */
 	public final void setStep(final int step) {
 		this.step = step;
+	}
+
+	/**
+	 * I'm alive function for debugging.
+	 * @return Config Directory
+	 */
+	public final String ping() {
+		log.debug("I'm here \"" + workDir + "\"");
+		return configRootDir;
+	}
+
+	/**
+	 * Reloads the logback.xml file for logging.
+	 * @param logfile
+	 *            Path to logback configuration file.
+	 */
+	public static void configureLog(final String logfile) {
+		LoggerContext context = (LoggerContext) LoggerFactory
+				.getILoggerFactory();
+
+		try {
+			JoranConfigurator configurator = new JoranConfigurator();
+			configurator.setContext(context);
+			// Call context.reset() to clear any previous configuration, e.g.
+			// default
+			// configuration. For multi-step configuration, omit calling
+			// context.reset().
+			context.reset();
+			configurator.doConfigure(logfile);
+		} catch (JoranException je) {
+			StatusPrinter.printInCaseOfErrorsOrWarnings(context);
+		}
 	}
 }

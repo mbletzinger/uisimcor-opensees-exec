@@ -138,10 +138,9 @@ public class TestFemExecutor {
 		for (String f : configFileNames) {
 			configFiles.add(f + ".properties");
 		}
-		u = ClassLoader.getSystemResource("ReferenceConfig.properties");
+		u = ClassLoader.getSystemResource("config/ReferenceConfig.properties");
 		String cf = PathUtils.cleanPath(u.getPath());
 		configDir = PathUtils.parent(cf);
-		configDir = PathUtils.append(configDir, "config");
 		workDir = PathUtils.append(System.getProperty("user.dir"),
 				"fem_execute");
 	}
