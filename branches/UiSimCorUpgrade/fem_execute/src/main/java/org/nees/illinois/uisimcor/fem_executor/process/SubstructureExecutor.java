@@ -188,7 +188,8 @@ public class SubstructureExecutor {
 			final DoubleMatrix displacements) {
 		input.generate(step, displacements); // this may need to go in its own
 												// thread later.
-		pm = new ProcessManagement(command.getExecutablePath(), waitInMillisecs);
+		pm = new ProcessManagement(command.getExecutablePath(), input
+				.getSubstructureCfg().getAddress(), waitInMillisecs);
 		pm.addArg(filename);
 		pm.setWorkDir(workDir);
 		try {

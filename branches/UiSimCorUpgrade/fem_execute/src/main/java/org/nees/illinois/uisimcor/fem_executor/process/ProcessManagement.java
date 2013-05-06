@@ -72,18 +72,26 @@ public class ProcessManagement {
 	 * Working directory for the execution.
 	 */
 	private String workDir = null;
+	/**
+	 * Name used for log messages.
+	 */
+	private final String processName;
 
 	/**
 	 * Constructor.
 	 * @param cmd
 	 *            Line command to execute.
+	 * @param processName
+	 *            TODO
 	 * @param waitInMilliSec
 	 *            Argument list for the command.
 	 */
-	public ProcessManagement(final String cmd, final int waitInMilliSec) {
+	public ProcessManagement(final String cmd, final String processName,
+			final int waitInMilliSec) {
 		super();
 		this.cmd = cmd;
 		this.waitInMillSecs = waitInMilliSec;
+		this.processName = processName;
 	}
 
 	/**
@@ -273,11 +281,9 @@ public class ProcessManagement {
 		process = pb.start();
 		log.debug("Creating threads");
 		errPr = new ProcessResponse(Level.ERROR, process.getErrorStream(),
-				listenerWaitInterval, (workDir == null ? "" : workDir + "/")
-						+ cmd);
+				listenerWaitInterval, processName);
 		stoutPr = new ProcessResponse(Level.DEBUG, process.getInputStream(),
-				listenerWaitInterval, (workDir == null ? "" : workDir + "/")
-						+ cmd);
+				listenerWaitInterval, processName);
 		Thread errThrd = new Thread(errPr);
 		Thread stoutThrd = new Thread(stoutPr);
 		log.debug("Starting threads");
@@ -285,6 +291,7 @@ public class ProcessManagement {
 		stoutThrd.start();
 
 	}
+
 	/**
 	 * Stop execution immediately.
 	 */

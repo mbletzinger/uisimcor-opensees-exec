@@ -42,14 +42,17 @@ public class FemInputFile {
 	 * Logger.
 	 **/
 	private final Logger log = LoggerFactory.getLogger(FemInputFile.class);
+
 	/**
 	 * Substructure configuration parameters.
 	 */
 	private final SubstructureConfig substructureCfg;
+
 	/**
 	 * run.tcl template string.
 	 */
 	private final String template;
+
 	/**
 	 * Map of tokens to substitute in run.tcl template.
 	 */
@@ -58,7 +61,6 @@ public class FemInputFile {
 	 * Path to the directory containing the input file.
 	 */
 	private final String workDir;
-
 	/**
 	 * Constructor.
 	 * @param progCfg
@@ -93,7 +95,6 @@ public class FemInputFile {
 		this.workDir = PathUtils.append(workDir, substructureCfg.getAddress());
 		createWorkDir();
 	}
-
 	/**
 	 * Creates the working directory for the substructure.
 	 */
@@ -112,7 +113,6 @@ public class FemInputFile {
 			return;
 		}
 	}
-
 	/**
 	 * Generate a run.tcl file for the step.
 	 * @param step
@@ -151,10 +151,49 @@ public class FemInputFile {
 	}
 
 	/**
+	 * @return the format
+	 */
+	public final DecimalFormat getFormat() {
+		return format;
+	}
+
+	/**
 	 * @return the inputFileName
 	 */
 	public final String getInputFileName() {
 		return inputFileName;
+	}
+
+	/**
+	 * @return the substructureCfg
+	 */
+	public final SubstructureConfig getSubstructureCfg() {
+		return substructureCfg;
+	}
+
+	/**
+	 * Return a token value.
+	 * @param name
+	 *            Name of token.
+	 * @return Token value.
+	 */
+	public final String getToken(final String name) {
+		return tokenMap.get(name);
+	}
+
+	/**
+	 * @return the working directory
+	 */
+	public final String getWorkDir() {
+		return workDir;
+	}
+
+	/**
+	 * @param format
+	 *            the format to set
+	 */
+	public final void setFormat(final DecimalFormat format) {
+		this.format = format;
 	}
 
 	/**
@@ -183,13 +222,6 @@ public class FemInputFile {
 			System.exit(1);
 		}
 		return result;
-	}
-
-	/**
-	 * @return the working directory
-	 */
-	public final String getWorkDir() {
-		return workDir;
 	}
 
 	/**
