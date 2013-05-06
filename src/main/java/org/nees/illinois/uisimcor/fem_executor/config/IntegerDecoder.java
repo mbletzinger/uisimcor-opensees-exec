@@ -24,5 +24,4 @@ public class IntegerDecoder extends ParseElement<Integer> {
 		}
 		return result;
 	}
-
 }

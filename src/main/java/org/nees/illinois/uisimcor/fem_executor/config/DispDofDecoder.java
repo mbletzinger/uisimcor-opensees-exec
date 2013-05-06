@@ -13,12 +13,13 @@ public class DispDofDecoder extends ParseElement<DispDof> {
  **/
 private final Logger log = LoggerFactory.getLogger(DispDofDecoder.class);
 	@Override
-	public final DispDof parse(final String str) {
+	public final DispDof parse(final String raw) {
+		String str = raw.toUpperCase();
 		DispDof result = null;
 		try {
 			result = DispDof.valueOf(str);
 		} catch (Exception e) {
-			log.error("\"" + str + "\" is not a Displacement DOF" );
+			log.error("\"" + raw + "\" is not a Displacement DOF" );
 			return null;
 		}
 		return result;

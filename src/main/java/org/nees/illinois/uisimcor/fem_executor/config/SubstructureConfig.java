@@ -29,23 +29,27 @@ public class SubstructureConfig {
 	 * consistent with sequence of DOFs in UI-SimCor.
 	 */
 	private final Map<Integer, List<DispDof>> effectiveDofs = new HashMap<Integer, List<DispDof>>();
+
 	/**
 	 * 1 for Zeus-NL, 2 for OpenSees, 3 for Abaqus, 4 for Vector, and 9 for
 	 * generic console-in console-out application. Vector has not been
 	 * implemented yet.
 	 */
 	private final FemProgramType femProgram;
+
 	/**
 	 * Model file name (include extension).
 	 */
 	private final String modelFileName;
-
 	/**
 	 * Control node numbers. Note: The sequence of nodes should be consistent
 	 * with Nodes in SimCor.
 	 */
 	private final List<Integer> nodeSequence;
-
+	/**
+	 * List of files to be copied into the work directory.
+	 */
+	private final List<String> workFiles;
 	/**
 	 * Constructor.
 	 * @param address
@@ -58,20 +62,22 @@ public class SubstructureConfig {
 	 *            1 for Zeus-NL, 2 for OpenSees, 3 for Abaqus, 4 for Vector, and
 	 *            9 for generic console-in console-out application. Vector has
 	 *            not been implemented yet.
+	 * @param modelFileName
+	 *            Model file name (include extension).
 	 * @param nodeSequence
 	 *            Control node numbers. Note: The sequence of nodes should be
 	 *            consistent with Nodes in SimCor.
-	 * @param modelFileName
-	 *            Model file name (include extension).
+	 * @param workFiles TODO
 	 */
 	public SubstructureConfig(final String address,
 			final DimensionType dimension, final FemProgramType femProgram,
-			final String modelFileName, final List<Integer> nodeSequence) {
+			final String modelFileName, final List<Integer> nodeSequence, final List<String> workFiles) {
 		this.address = address;
 		this.dimension = dimension;
 		this.femProgram = femProgram;
 		this.modelFileName = modelFileName;
 		this.nodeSequence = nodeSequence;
+		this.workFiles = workFiles;
 	}
 
 	/**
@@ -153,5 +159,21 @@ public class SubstructureConfig {
 			result += effectiveDofs.get(n).size();
 		}
 		return result;
+	}
+
+	/**
+	 * @return the workFiles
+	 */
+	public final List<String> getWorkFiles() {
+		return workFiles;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public final String toString() {
+		return "SubstructureConfig [address=\"" + address + "\", effectiveDofs="
+				+ effectiveDofs + ", nodeSequence=" + nodeSequence + "]";
 	}
 }

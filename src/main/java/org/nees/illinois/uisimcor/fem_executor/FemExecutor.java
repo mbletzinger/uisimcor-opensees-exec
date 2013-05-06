@@ -1,11 +1,14 @@
 package org.nees.illinois.uisimcor.fem_executor;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.config.LoadSaveConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
 import org.nees.illinois.uisimcor.fem_executor.input.FemInputFile;
 import org.nees.illinois.uisimcor.fem_executor.process.DoubleMatrix;
 import org.nees.illinois.uisimcor.fem_executor.process.SubstructureExecutor;
@@ -70,7 +73,7 @@ public class FemExecutor {
 	/**
 	 * Map of displacement targets for each substructure.
 	 */
-	private final Map<String, DoubleMatrix> displacementsMap = new HashMap<String, DoubleMatrix>();
+	private final Map<String, List<Double>> displacementsMap = new HashMap<String, List<Double>>();
 
 	/**
 	 * Map of substructure FEM executors.
@@ -114,7 +117,7 @@ public class FemExecutor {
 
 		for (String mdl : executors.keySet()) {
 			SubstructureExecutor exe = executors.get(mdl);
-			exe.start(step, displacementsMap.get(mdl));
+			exe.start(step, list2Double(displacementsMap.get(mdl)));
 		}
 	}
 
@@ -218,8 +221,9 @@ public class FemExecutor {
 	 *            nodes) x 6.
 	 */
 	public final void setDisplacements(final String address,
-			final double[][] displacements) {
-		DoubleMatrix data = new DoubleMatrix(displacements);
+			final double[] displacements) {
+		List<Double> data = double2List(displacements);
+		log.debug("Set disp for \"" + address + "\" to " + data);
 		displacementsMap.put(address, data);
 	}
 
@@ -261,5 +265,33 @@ public class FemExecutor {
 		} catch (JoranException je) {
 			StatusPrinter.printInCaseOfErrorsOrWarnings(context);
 		}
+	}
+	/**
+	 * Converts array into list.
+	 *@param array double array
+	 *@return
+	 *Double List
+	 */
+	private List<Double> double2List(final double [] array) {
+		List<Double> result = new ArrayList<Double>();
+		for(double n : array) {
+			result.add(new Double(n));
+		}
+		return result;
+	}
+	/**
+	 * Converts list into array.
+	 *@param list List
+	 *@return
+	 *array
+	 */
+	private double[] list2Double(final List<Double> list) {
+		double [] result = new double[list.size()];
+		int c = 0;
+		for(double n : list) {
+			result[c] = n;
+			c++;
+		}
+		return result;
 	}
 }

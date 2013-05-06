@@ -95,34 +95,35 @@ public class TestLoadSaveConfig {
 		final int node1 = 2;
 		final int node2 = 3;
 		final int node3 = 4;
+		final String workfile1 = "Wsection.tcl";
+		final String workfile2 = "acc475C.dat";
 		femCfg = new FemExecutorConfig("/home/mbletzin/Tmp");
 		FemProgramConfig femProg = new FemProgramConfig(
-				FemProgramType.OPENSEES, "/usr/bin/OpenSees",
-				"/Example/MOST/01_Left_OpenSees/StaticAnalysisEnv.tcl");
+				FemProgramType.OPENSEES, "/usr/bin/OpenSees","StaticAnalysisEnv.tcl");
 		femCfg.getFemProgramParameters().put(FemProgramType.OPENSEES, femProg);
 		for (int i = 1; i < noSubstructures + 1; i++) {
 			String address = "MDL-0" + i;
 			DimensionType dim = DimensionType.TwoD;
 			List<Integer> nodes = new ArrayList<Integer>();
+			List<String> wfiles = new ArrayList<String>();
+			wfiles.add(workfile1);
+			wfiles.add(workfile2);
 			String modelFilename;
 			if (i == 1) {
 				nodes.add(node1);
-				modelFilename = "Examples" + sep + "MOST" + sep
-						+ "01_Left_OpenSees";
+				modelFilename = "LeftCol.tcl";
 			} else if (i == 2) {
 				nodes.add(node1);
 				nodes.add(node2);
 				nodes.add(node3);
-				modelFilename = "Examples" + sep + "MOST" + sep
-						+ "02_Middle_OpenSees";
+				modelFilename = "Middle.tcl";
 			} else {
 				nodes.add(node2);
-				modelFilename = "Examples" + sep + "MOST" + sep
-						+ "03_Right_OpenSees";
+				modelFilename = "RightCol.tcl";
 			}
 			FemProgramType program = FemProgramType.OPENSEES;
 			SubstructureConfig cfg = new SubstructureConfig(address, dim,
-					program, modelFilename, nodes);
+					program, modelFilename, nodes, wfiles);
 			for (Integer n : nodes) {
 				List<DispDof> edof = new ArrayList<DispDof>();
 				if (n == node1) {
