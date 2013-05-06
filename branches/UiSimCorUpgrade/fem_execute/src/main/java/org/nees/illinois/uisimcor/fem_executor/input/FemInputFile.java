@@ -13,11 +13,11 @@ import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.nees.illinois.uisimcor.fem_executor.config.DimensionType;
 import org.nees.illinois.uisimcor.fem_executor.config.DispDof;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
-import org.nees.illinois.uisimcor.fem_executor.process.DoubleMatrix;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +62,19 @@ public class FemInputFile {
 	 */
 	private final String workDir;
 	/**
+	 * Path to the directory containing the configuration files.
+	 */
+	private final String configDir;
+	/**
+	 * token name.
+	 */
+	private final String modelFileToken = "ModelFile";
+	/**
+	 * token name.
+	 */
+	private final String staticAnalysisFileToken = "StaticAnalysisFile";
+
+	/**
 	 * Constructor.
 	 * @param progCfg
 	 *            FEM program parameters.
@@ -76,12 +89,9 @@ public class FemInputFile {
 			final SubstructureConfig substructureCfg, final String workDir,
 			final String configDir) {
 		this.substructureCfg = substructureCfg;
-		tokenMap.put("ModelFile",
-				PathUtils.append(configDir, substructureCfg.getModelFileName()));
-		tokenMap.put(
-				"StaticAnalysisFile",
-				PathUtils.append(configDir,
-						progCfg.getStaticAnalysisScriptPath()));
+		tokenMap.put(modelFileToken, substructureCfg.getModelFileName());
+		tokenMap.put(staticAnalysisFileToken,
+				progCfg.getStaticAnalysisScriptPath());
 		String rDofs = (substructureCfg.getDimension() == DimensionType.TwoD ? "1 2 3"
 				: "1 2 3 4 5 6");
 		tokenMap.put("ResponseDofs", rDofs);
@@ -93,8 +103,10 @@ public class FemInputFile {
 		}
 		template = rawTemplate;
 		this.workDir = PathUtils.append(workDir, substructureCfg.getAddress());
+		this.configDir = configDir;
 		createWorkDir();
 	}
+
 	/**
 	 * Creates the working directory for the substructure.
 	 */
@@ -112,7 +124,31 @@ public class FemInputFile {
 					+ "\" because ", e);
 			return;
 		}
+
+		String[] tokens = { modelFileToken, staticAnalysisFileToken };
+		for (String t : tokens) {
+			String f = tokenMap.get(t);
+			try {
+				PathUtils.cp(f, configDir, workDir);
+			} catch (IOException e) {
+				log.error(
+						"Cannot copy file \"" + PathUtils.append(configDir, f)
+								+ " \" to \"" + workDir + "\" because ", e);
+				return;
+			}
+		}
+		for (String f : substructureCfg.getWorkFiles()) {
+			try {
+				PathUtils.cp(f, configDir, workDir);
+			} catch (IOException e) {
+				log.error(
+						"Cannot copy file \"" + PathUtils.append(configDir, f)
+								+ " \" to \"" + workDir + "\" because ", e);
+				return;
+			}
+		}
 	}
+
 	/**
 	 * Generate a run.tcl file for the step.
 	 * @param step
@@ -120,7 +156,7 @@ public class FemInputFile {
 	 * @param displacements
 	 *            Matrix of displacements at the effective DOFs.
 	 */
-	public final void generate(final int step, final DoubleMatrix displacements) {
+	public final void generate(final int step, final double[] displacements) {
 		final String stepK = "StepNumber";
 		final String loadK = "LoadPattern";
 		String content = template.replaceAll("\\$\\{" + stepK + "\\}", "Step"
@@ -136,16 +172,17 @@ public class FemInputFile {
 	 *            Displacements for the step.
 	 * @return Load pattern string.
 	 */
-	private String generateLoadPattern(final DoubleMatrix displacements) {
+	private String generateLoadPattern(final double[] displacements) {
 		String result = "";
-		int row = 0;
+		int cnt = 0;
+		log.debug("Encoding Substructure " + substructureCfg + " with "
+				+ displacements);
 		for (Integer n : substructureCfg.getNodeSequence()) {
 			for (DispDof d : substructureCfg.getEffectiveDofs(n)) {
 				result += "sp " + n + " " + d.mtlb() + " "
-						+ format.format(displacements.value(row, d.ordinal()))
-						+ "\n";
+						+ format.format(displacements[cnt]) + "\n";
+				cnt++;
 			}
-			row++;
 		}
 		return result;
 	}

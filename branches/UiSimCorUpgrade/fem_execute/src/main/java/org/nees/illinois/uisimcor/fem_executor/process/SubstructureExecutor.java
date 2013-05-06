@@ -185,7 +185,7 @@ public class SubstructureExecutor {
 	 * @return the {@link ProcessManagement ProcessManagement} instance
 	 */
 	public final ProcessManagement start(final int step,
-			final DoubleMatrix displacements) {
+			final double[] displacements) {
 		input.generate(step, displacements); // this may need to go in its own
 												// thread later.
 		pm = new ProcessManagement(command.getExecutablePath(), input

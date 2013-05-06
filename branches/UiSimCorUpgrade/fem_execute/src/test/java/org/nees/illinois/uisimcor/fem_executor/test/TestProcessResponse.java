@@ -8,6 +8,7 @@ import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -88,6 +89,12 @@ public class TestProcessResponse {
 	public final void beforeClass() {
 		URL u = ClassLoader.getSystemResource("printerTest.pl");
 		command = PathUtils.cleanPath(u.getPath());
+	}
+	@AfterClass
+	public final void cleanup() {
+		String dir = System.getProperty("user.dir");
+		PathUtils.rm(dir, "tmp_disp.out");
+		PathUtils.rm(dir, "tmp_forc.out");
 	}
 
 }

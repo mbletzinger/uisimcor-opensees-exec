@@ -56,6 +56,7 @@ public class TestFemExecutor {
 		FemExecutor fexec = new FemExecutor(configDir, workDir);
 		for (String c : configFiles) {
 			fexec.loadConfig(c);
+			// Replace OpenSees with fake script
 			fexec.getConfig().getFemProgramParameters()
 					.put(FemProgramType.OPENSEES, femProg);
 			Collection<SubstructureConfig> mdlCfgs = fexec.getConfig()
@@ -111,15 +112,9 @@ public class TestFemExecutor {
 	 */
 	private void loadExecutor(final FemExecutor fexec,
 			final SubstructureConfig subCfg) {
-		final Double[] disp = { 0.00023e-4, 0.00004e-5, 0.00023e-4, 0.00004e-5,
+		final double[] disp = { 0.00023e-4, 0.00004e-5, 0.00023e-4, 0.00004e-5,
 				0.00023e-4, 0.00004e-5 };
-		List<List<Double>> matrix = new ArrayList<List<Double>>();
-		List<Integer> nodes = subCfg.getNodeSequence();
-		for (int r = 0; r < nodes.size(); r++) {
-			matrix.add(Arrays.asList(disp));
-		}
-		DoubleMatrix dm = new DoubleMatrix(matrix);
-		fexec.setDisplacements(subCfg.getAddress(), dm.getData());
+		fexec.setDisplacements(subCfg.getAddress(), disp);
 	}
 
 	/**
@@ -132,7 +127,7 @@ public class TestFemExecutor {
 		File cmdF = new File(command);
 		cmdF.setExecutable(true);
 		femProg = new FemProgramConfig(FemProgramType.OPENSEES, command,
-				"/Example/MOST/01_Left_OpenSees/StaticAnalysisEnv.tcl");
+				"StaticAnalysisEnv.tcl");
 		String[] configFileNames = { "OneSubstructureTestConfig",
 				"TwoSubstructureTestConfig", "ThreeSubstructureTestConfig" };
 		for (String f : configFileNames) {

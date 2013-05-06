@@ -20,6 +20,7 @@ public class EncodeDecodeList<T, P extends ParseElement<T>> {
 	 * Logger.
 	 **/
 	private final Logger log = LoggerFactory.getLogger(EncodeDecodeList.class);
+
 	/**
 	 * Parser to convert string to datatype T.
 	 */
@@ -73,7 +74,7 @@ public class EncodeDecodeList<T, P extends ParseElement<T>> {
 					+ "\" is not a valid list");
 		}
 		for (String t : tokens) {
-			String token = t.toUpperCase();
+			String token = t;
 			T ddof;
 			try {
 				ddof = parser.parse(token);
@@ -85,4 +86,5 @@ public class EncodeDecodeList<T, P extends ParseElement<T>> {
 		}
 		return result;
 	}
+
 }

@@ -58,6 +58,11 @@ public class LoadSaveConfig {
 	private final EncodeDecodeList<Integer, IntegerDecoder> eoIntegerList = new EncodeDecodeList<Integer, IntegerDecoder>(
 			new IntegerDecoder());
 	/**
+	 * Encoder/Decoder for String lists.
+	 */
+	private final EncodeDecodeList<String, StringDecoder> eoStringList = new EncodeDecodeList<String, StringDecoder>(
+			new StringDecoder());
+	/**
 	 * Logger.
 	 **/
 	private final Logger log = LoggerFactory.getLogger(LoadSaveConfig.class);
@@ -80,9 +85,10 @@ public class LoadSaveConfig {
 	 *            substructure models.
 	 */
 	public final void load(final String workDir) {
-		File configFile = new File(PathUtils.append(workDir,configFilePath));
+		File configFile = new File(PathUtils.append(workDir, configFilePath));
 		if (configFile.canRead() == false) {
-			log.error("Unable to read from \"" + configFile.getAbsolutePath() + "\"");
+			log.error("Unable to read from \"" + configFile.getAbsolutePath()
+					+ "\"");
 			return;
 		}
 		props = new Properties();
@@ -92,9 +98,8 @@ public class LoadSaveConfig {
 			configI = new FileInputStream(configFile);
 			props.load(configI);
 		} catch (Exception e) {
-			log.error(
-					"Unable to read from \"" + configFile.getAbsolutePath() + "\" because ",
-					e);
+			log.error("Unable to read from \"" + configFile.getAbsolutePath()
+					+ "\" because ", e);
 			return;
 		}
 		femConfig = new FemExecutorConfig(workDir);
@@ -187,8 +192,20 @@ public class LoadSaveConfig {
 			}
 		}
 		String modelFile = props.getProperty(name + ".model.filename");
-		SubstructureConfig result = new SubstructureConfig(address, dim,
-				fem, modelFile, nodes);
+		str = props.getProperty(name + ".work.files");
+		List<String> wfiles = null;
+		if (str == null) {
+			log.error("Work files not found for " + name);
+		} else {
+			try {
+				wfiles = eoStringList.parse(str);
+			} catch (Exception e) {
+				log.error("Work files list \"" + str
+						+ "\" not recognized for " + name, e);
+			}
+		}
+		SubstructureConfig result = new SubstructureConfig(address, dim, fem,
+				modelFile, nodes, wfiles);
 		for (Integer node : nodes) {
 			str = props.getProperty(name + ".effective.dofs." + node);
 			List<DispDof> edofs = null;
@@ -259,10 +276,11 @@ public class LoadSaveConfig {
 			}
 			props.setProperty(name + ".effective.dofs." + node,
 					eoDispDofList.encode(config.getEffectiveDofs(node)));
-			node++;
 		}
 		props.setProperty(name + ".fem.program", config.getFemProgram().name());
 		props.setProperty(name + ".model.filename", config.getModelFileName());
+		props.setProperty(name + ".work.files",
+				eoStringList.encode(config.getWorkFiles()));
 	}
 
 	/**
