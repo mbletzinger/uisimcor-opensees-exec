@@ -98,7 +98,7 @@ public class ProcessResponse implements Runnable {
 					output += cbuf + "\n";
 				}
 			} catch (IOException e) {
-				log.debug("Stream for \"" + processName + "\" has closed");
+				log.debug("Stream for \"" + processName + "\" has closed because ",e);
 				setDone(true);
 			}
 			try {
@@ -108,6 +108,11 @@ public class ProcessResponse implements Runnable {
 				int dumb = 0;
 				// Nobody cares.
 			}
+		}
+		try {
+			reader.close();
+		} catch (IOException e) {
+			log.debug("Could not close stream for \"" + processName + "\" because ",e);
 		}
 	}
 

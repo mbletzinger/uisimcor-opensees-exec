@@ -82,7 +82,13 @@ public final class PathUtils {
 		File src = new File(append(srcDir, file));
 		FileUtils.copyFile(src, dest);
 	}
-
+/**
+ * Remove file.
+ *@param dir
+ *Folder containing file.
+ *@param file
+ *File name.
+ */
 	public static void rm(final String dir, final String file) {
 		File fileF = new File(append(dir, file));
 		fileF.delete();

@@ -50,6 +50,7 @@ public class SubstructureConfig {
 	 * List of files to be copied into the work directory.
 	 */
 	private final List<String> workFiles;
+
 	/**
 	 * Constructor.
 	 * @param address
@@ -67,11 +68,13 @@ public class SubstructureConfig {
 	 * @param nodeSequence
 	 *            Control node numbers. Note: The sequence of nodes should be
 	 *            consistent with Nodes in SimCor.
-	 * @param workFiles TODO
+	 * @param workFiles
+	 *            TODO
 	 */
 	public SubstructureConfig(final String address,
 			final DimensionType dimension, final FemProgramType femProgram,
-			final String modelFileName, final List<Integer> nodeSequence, final List<String> workFiles) {
+			final String modelFileName, final List<Integer> nodeSequence,
+			final List<String> workFiles) {
 		this.address = address;
 		this.dimension = dimension;
 		this.femProgram = femProgram;
@@ -168,12 +171,13 @@ public class SubstructureConfig {
 		return workFiles;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public final String toString() {
-		return "SubstructureConfig [address=\"" + address + "\", effectiveDofs="
-				+ effectiveDofs + ", nodeSequence=" + nodeSequence + "]";
+		return "SubstructureConfig \"" + address + "\", nodes=" + nodeSequence
+				+ ", dofs=" + effectiveDofs + "]";
 	}
 }

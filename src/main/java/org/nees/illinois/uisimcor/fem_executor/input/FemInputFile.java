@@ -13,7 +13,6 @@ import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.io.FileUtils;
 import org.nees.illinois.uisimcor.fem_executor.config.DimensionType;
 import org.nees.illinois.uisimcor.fem_executor.config.DispDof;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
@@ -27,6 +26,11 @@ import org.slf4j.LoggerFactory;
  * @author Michael Bletzinger
  */
 public class FemInputFile {
+	/**
+	 * Path to the directory containing the configuration files.
+	 */
+	private final String configDir;
+
 	/**
 	 * Format for displacement commands.
 	 */
@@ -44,15 +48,22 @@ public class FemInputFile {
 	private final Logger log = LoggerFactory.getLogger(FemInputFile.class);
 
 	/**
+	 * token name.
+	 */
+	private final String modelFileToken = "ModelFile";
+
+	/**
+	 * token name.
+	 */
+	private final String staticAnalysisFileToken = "StaticAnalysisFile";
+	/**
 	 * Substructure configuration parameters.
 	 */
 	private final SubstructureConfig substructureCfg;
-
 	/**
 	 * run.tcl template string.
 	 */
 	private final String template;
-
 	/**
 	 * Map of tokens to substitute in run.tcl template.
 	 */
@@ -61,18 +72,6 @@ public class FemInputFile {
 	 * Path to the directory containing the input file.
 	 */
 	private final String workDir;
-	/**
-	 * Path to the directory containing the configuration files.
-	 */
-	private final String configDir;
-	/**
-	 * token name.
-	 */
-	private final String modelFileToken = "ModelFile";
-	/**
-	 * token name.
-	 */
-	private final String staticAnalysisFileToken = "StaticAnalysisFile";
 
 	/**
 	 * Constructor.
@@ -150,6 +149,23 @@ public class FemInputFile {
 	}
 
 	/**
+	 * Converts double array to a string for logger messages.
+	 * @param array
+	 *            array to convert.
+	 * @return resulting string.
+	 */
+	private String doubleArray2String(final double[] array) {
+		String result = "[";
+		boolean first = true;
+		for (double n : array) {
+			result += (first ? "" : ",") + n;
+			first = false;
+		}
+		result += "]";
+		return result;
+	}
+
+	/**
 	 * Generate a run.tcl file for the step.
 	 * @param step
 	 *            Step number.
@@ -159,8 +175,9 @@ public class FemInputFile {
 	public final void generate(final int step, final double[] displacements) {
 		final String stepK = "StepNumber";
 		final String loadK = "LoadPattern";
-		String content = template.replaceAll("\\$\\{" + stepK + "\\}", "Step"
-				+ step);
+		final int openSeesUpperBound = 99000;
+		String content = template.replaceAll("\\$\\{" + stepK + "\\}",
+				Integer.toString(openSeesUpperBound + step));
 		String load = generateLoadPattern(displacements);
 		content = content.replaceAll("\\$\\{" + loadK + "\\}", load);
 		writeInputFile(content);
@@ -176,7 +193,7 @@ public class FemInputFile {
 		String result = "";
 		int cnt = 0;
 		log.debug("Encoding Substructure " + substructureCfg + " with "
-				+ displacements);
+				+ doubleArray2String(displacements));
 		for (Integer n : substructureCfg.getNodeSequence()) {
 			for (DispDof d : substructureCfg.getEffectiveDofs(n)) {
 				result += "sp " + n + " " + d.mtlb() + " "
