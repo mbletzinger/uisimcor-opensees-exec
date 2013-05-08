@@ -47,6 +47,7 @@ public class OutputFileParser {
 	 *Name of the text file
 	 */
 	public final void parseDataFile(final String strFile) {
+		log.debug("Parsing file \"" + strFile + "\"");
 		BufferedReader br = null;
 		List<List<Double>> matrix = new ArrayList<List<Double>>();
 		try {
@@ -59,14 +60,21 @@ public class OutputFileParser {
 		try {
 			int rowN = 1;
 			while ((strLine = br.readLine()) != null) {
+				log.debug("Parsing line \"" + strLine + "\"");
 				String[] tokens = strLine.split("\\s+");
 				List<Double> row = tokens2Double(tokens, strFile, rowN);
+				if(row.isEmpty()) {
+					log.error("No values for line " + rowN + " in file " + strFile + " line \"" + strLine + "\"");
+					br.close();
+					return;
+				}
 				matrix.add(row);
 				rowN++;
 			}
 			empty = false;
 			archive = new DoubleMatrix(matrix);
 			log.debug("Archive Row Text: " + archive);
+			br.close();
 		} catch (IOException e) {
 			log.error("File \"" + strFile + "\" cannot be parsed because ", e);
 		}

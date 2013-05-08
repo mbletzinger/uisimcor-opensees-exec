@@ -14,6 +14,7 @@ import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
 import org.nees.illinois.uisimcor.fem_executor.process.DoubleMatrix;
 import org.nees.illinois.uisimcor.fem_executor.process.FileWithContentDelete;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
+import org.nees.illinois.uisimcor.fem_executor.utils.WindowsPerlBatchCreator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
@@ -122,22 +123,27 @@ public class TestFemExecutor {
 	 */
 	@BeforeClass
 	public final void beforeClass() {
-		URL u = ClassLoader.getSystemResource("OpenSeesEmulator.pl");
+		URL u = ClassLoader.getSystemResource("config/ReferenceConfig.properties");
+		String cf = PathUtils.cleanPath(u.getPath());
+		configDir = PathUtils.parent(cf);
+		workDir = PathUtils.append(System.getProperty("user.dir"),
+				"fem_execute");
+		u = ClassLoader.getSystemResource("OpenSeesEmulator.pl");
 		String command = PathUtils.cleanPath(u.getPath());
 		File cmdF = new File(command);
 		cmdF.setExecutable(true);
 		femProg = new FemProgramConfig(FemProgramType.OPENSEES, command,
 				"StaticAnalysisEnv.tcl");
+		if(WindowsPerlBatchCreator.isWindows()) {
+			WindowsPerlBatchCreator wpbc = new WindowsPerlBatchCreator(workDir, femProg);
+			femProg = wpbc.getBatchConfig();
+		}
+
 		String[] configFileNames = { "OneSubstructureTestConfig",
 				"TwoSubstructureTestConfig", "ThreeSubstructureTestConfig" };
 		for (String f : configFileNames) {
 			configFiles.add(f + ".properties");
 		}
-		u = ClassLoader.getSystemResource("config/ReferenceConfig.properties");
-		String cf = PathUtils.cleanPath(u.getPath());
-		configDir = PathUtils.parent(cf);
-		workDir = PathUtils.append(System.getProperty("user.dir"),
-				"fem_execute");
 	}
 
 	/**

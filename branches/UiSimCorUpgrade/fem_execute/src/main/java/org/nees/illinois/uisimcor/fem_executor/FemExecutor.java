@@ -11,6 +11,7 @@ import org.nees.illinois.uisimcor.fem_executor.config.LoadSaveConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
 import org.nees.illinois.uisimcor.fem_executor.input.FemInputFile;
 import org.nees.illinois.uisimcor.fem_executor.process.DoubleMatrix;
+import org.nees.illinois.uisimcor.fem_executor.process.ProcessManagement;
 import org.nees.illinois.uisimcor.fem_executor.process.SubstructureExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,7 +118,11 @@ public class FemExecutor {
 
 		for (String mdl : executors.keySet()) {
 			SubstructureExecutor exe = executors.get(mdl);
-			exe.start(step, list2Double(displacementsMap.get(mdl)));
+			ProcessManagement pm = exe.start(step, list2Double(displacementsMap.get(mdl)));
+			if (pm == null) {
+				log.error("Aborting due to failed process start.");
+				abort();
+			}
 		}
 	}
 

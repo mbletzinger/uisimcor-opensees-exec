@@ -89,7 +89,7 @@ public class ProcessManagement {
 	public ProcessManagement(final String cmd, final String processName,
 			final int waitInMilliSec) {
 		super();
-		this.cmd = cmd;
+		this.cmd = checkWindowsCommand(cmd);
 		this.waitInMillSecs = waitInMilliSec;
 		this.processName = processName;
 	}
@@ -310,5 +310,20 @@ public class ProcessManagement {
 		errThrd.start();
 		stoutThrd.start();
 
+	}
+
+	/**
+	 * Wraps a command in quotes to protect spaces if the OS is Windows.
+	 * @param cmdIn
+	 *            Original command.
+	 * @return Wrapped command.
+	 */
+	private String checkWindowsCommand(final String cmdIn) {
+		String os = System.getProperty("os.name").toLowerCase();
+		if (os.contains("win") == false) {
+			return cmdIn;
+		}
+		String result = "\"" + cmdIn + "\"";
+		return result;
 	}
 }
