@@ -60,10 +60,14 @@ public class ProcessManagement {
 	private Process process = null;
 
 	/**
+	 * Name used for log messages.
+	 */
+	private final String processName;
+
+	/**
 	 * Listener for output.
 	 */
 	private ProcessResponse stoutPr;
-
 	/**
 	 * Interval to wait between thread checks.
 	 */
@@ -72,10 +76,6 @@ public class ProcessManagement {
 	 * Working directory for the execution.
 	 */
 	private String workDir = null;
-	/**
-	 * Name used for log messages.
-	 */
-	private final String processName;
 
 	/**
 	 * Constructor.
@@ -92,6 +92,17 @@ public class ProcessManagement {
 		this.cmd = cmd;
 		this.waitInMillSecs = waitInMilliSec;
 		this.processName = processName;
+	}
+
+	/**
+	 * Stop execution immediately.
+	 */
+	public final void abort() {
+		log.debug("Aborting");
+		process.destroy();
+		log.debug("Ending threads");
+		errPr.setDone(true);
+		stoutPr.setDone(true);
 	}
 
 	/**
@@ -140,10 +151,16 @@ public class ProcessManagement {
 			log.error(cmd + " failed to start because", e);
 			return;
 		}
-		try {
-			process.waitFor();
-		} catch (InterruptedException e) {
-			log.debug("I was Interrupted");
+
+		boolean done = false;
+		while (done == false) {
+			try {
+				process.waitFor();
+				done = true;
+				finish();
+			} catch (InterruptedException e) {
+				log.debug("I was Interrupted");
+			}
 		}
 	}
 
@@ -151,6 +168,8 @@ public class ProcessManagement {
 	 * Cleanup after the command has finished executing.
 	 */
 	public final void finish() {
+		process.destroy();
+
 		log.debug("Waiting for threads");
 		try {
 			Thread.sleep(waitInMillSecs);
@@ -242,6 +261,7 @@ public class ProcessManagement {
 			log.debug("Command \"" + cmd + "\" is still executing");
 			return false;
 		}
+		finish();
 		return true;
 	}
 
@@ -290,16 +310,5 @@ public class ProcessManagement {
 		errThrd.start();
 		stoutThrd.start();
 
-	}
-
-	/**
-	 * Stop execution immediately.
-	 */
-	public final void abort() {
-		log.debug("Aborting");
-		process.destroy();
-		log.debug("Ending threads");
-		errPr.setDone(true);
-		stoutPr.setDone(true);
 	}
 }
