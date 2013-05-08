@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
  */
 public class SubstructureExecutor {
 	/**
-	 * Line command.
+	 * Program configuration to run.
 	 */
 	private FemProgramConfig command;
 
@@ -197,7 +197,7 @@ public class SubstructureExecutor {
 			current = ExecutionState.Executing;
 			return pm;
 		} catch (IOException e) {
-			log.debug(command + " falied to start", e);
+			log.debug(pm.getCmd() + " failed to start", e);
 		}
 		return null;
 	}
@@ -233,7 +233,9 @@ public class SubstructureExecutor {
 				current = ExecutionState.Finished;
 			}
 		}
-		if (current.equals(ExecutionState.Finished)) {
+
+		if (current.equals(ExecutionState.Finished)
+				|| current.equals(ExecutionState.NotStarted)) {
 			result = true;
 		}
 		log.debug("Current state is " + current);
