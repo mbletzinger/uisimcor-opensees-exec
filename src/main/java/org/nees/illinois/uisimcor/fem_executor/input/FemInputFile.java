@@ -17,6 +17,7 @@ import org.nees.illinois.uisimcor.fem_executor.config.DimensionType;
 import org.nees.illinois.uisimcor.fem_executor.config.DispDof;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
+import org.nees.illinois.uisimcor.fem_executor.utils.IllegalParameterException;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -178,7 +179,13 @@ public class FemInputFile {
 		final int openSeesUpperBound = 99000;
 		String content = template.replaceAll("\\$\\{" + stepK + "\\}",
 				Integer.toString(openSeesUpperBound + step));
-		String load = generateLoadPattern(displacements);
+		String load;
+		try {
+			load = generateLoadPattern(displacements);
+		} catch (IllegalParameterException e) {
+			log.error("Could not create displacement command for " + substructureCfg.getAddress() + " because ", e);
+			return;
+		}
 		content = content.replaceAll("\\$\\{" + loadK + "\\}", load);
 		writeInputFile(content);
 	}
@@ -188,15 +195,16 @@ public class FemInputFile {
 	 * @param displacements
 	 *            Displacements for the step.
 	 * @return Load pattern string.
+	 * @throws IllegalParameterException For improper effective DOFs.
 	 */
-	private String generateLoadPattern(final double[] displacements) {
+	private String generateLoadPattern(final double[] displacements) throws IllegalParameterException {
 		String result = "";
 		int cnt = 0;
 		log.debug("Encoding Substructure " + substructureCfg + " with "
 				+ doubleArray2String(displacements));
 		for (Integer n : substructureCfg.getNodeSequence()) {
 			for (DispDof d : substructureCfg.getEffectiveDofs(n)) {
-				result += "sp " + n + " " + d.mtlb() + " "
+				result += "sp " + n + " " + d.mtlb(substructureCfg.getDimension()) + " "
 						+ format.format(displacements[cnt]) + "\n";
 				cnt++;
 			}
