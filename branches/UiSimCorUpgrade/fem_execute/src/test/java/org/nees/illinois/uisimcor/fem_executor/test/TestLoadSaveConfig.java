@@ -83,7 +83,6 @@ public class TestLoadSaveConfig {
 	 */
 	@BeforeTest
 	public final void beforeTest() {
-		String sep = System.getProperty("file.separator");
 		workDir = System.getProperty("user.dir");
 		configFilename = "TestConfig.properties";
 		URL u = ClassLoader.getSystemResource("config/ReferenceConfig.properties");
