@@ -90,6 +90,11 @@ public class TestProcessResponse {
 		URL u = ClassLoader.getSystemResource("printerTest.pl");
 		command = PathUtils.cleanPath(u.getPath());
 	}
+
+	/**
+	 * Remove test files.
+	 */
+
 	@AfterClass
 	public final void cleanup() {
 		String dir = System.getProperty("user.dir");

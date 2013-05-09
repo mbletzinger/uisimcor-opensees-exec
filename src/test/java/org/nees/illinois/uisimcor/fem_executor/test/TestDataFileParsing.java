@@ -6,6 +6,7 @@ import java.util.regex.Matcher;
 import org.nees.illinois.uisimcor.fem_executor.process.DoubleMatrix;
 import org.nees.illinois.uisimcor.fem_executor.process.OutputFileParser;
 import org.nees.illinois.uisimcor.fem_executor.process.OutputFileParsingTask;
+import org.nees.illinois.uisimcor.fem_executor.utils.Mtx2Str;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
