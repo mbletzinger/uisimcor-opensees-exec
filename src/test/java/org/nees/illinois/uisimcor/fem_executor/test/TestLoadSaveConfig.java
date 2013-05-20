@@ -98,7 +98,7 @@ public class TestLoadSaveConfig {
 		final String workfile2 = "acc475C.dat";
 		femCfg = new FemExecutorConfig("/home/mbletzin/Tmp");
 		FemProgramConfig femProg = new FemProgramConfig(
-				FemProgramType.OPENSEES, "/usr/bin/OpenSees","StaticAnalysisEnv.tcl");
+				FemProgramType.OPENSEES, "C:/Tcl/bin/OpenSees","StaticAnalysisEnv.tcl");
 		femCfg.getFemProgramParameters().put(FemProgramType.OPENSEES, femProg);
 		for (int i = 1; i < noSubstructures + 1; i++) {
 			String address = "MDL-0" + i;
