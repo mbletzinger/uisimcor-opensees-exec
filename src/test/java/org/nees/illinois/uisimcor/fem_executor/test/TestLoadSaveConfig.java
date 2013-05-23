@@ -3,16 +3,21 @@ package org.nees.illinois.uisimcor.fem_executor.test;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.nees.illinois.uisimcor.fem_executor.FemExecutorConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.DimensionType;
 import org.nees.illinois.uisimcor.fem_executor.config.DispDof;
-import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
-import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.config.LoadSaveConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
+import org.nees.illinois.uisimcor.fem_executor.utils.Mtx2Str;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -43,10 +48,18 @@ public class TestLoadSaveConfig {
 	 * Directory for storing temporary files.
 	 */
 	private String workDir;
+	
+	private Map<String, String> expectedMasks = new HashMap<String, String>();
 
 	/**
 	 * Test saving a configuration. Just looking for no exceptions.
 	 */
+
+	/**
+	 * Logger.
+	 **/
+	private final Logger log = LoggerFactory
+			.getLogger(TestLoadSaveConfig.class);
 
 	@Test
 	public final void testSave() {
@@ -65,6 +78,13 @@ public class TestLoadSaveConfig {
 		lscfg.setConfigFilePath(configRefFile);
 		lscfg.load(configRefFolder);
 		compareConfigs(lscfg.getFemConfig(), femCfg);
+		FemExecutorConfig fec = lscfg.getFemConfig();
+		for (SubstructureConfig scfg : fec.getSubstructCfgs().values()) {
+			String actual =Mtx2Str.matrix2String(scfg.getDofMaskMatrix()); 
+			log.debug("Mask for substructure " + scfg.getAddress() + " is "
+					+ actual);
+			Assert.assertEquals(actual, expectedMasks.get(scfg.getAddress()));
+		}
 	}
 
 	/**
@@ -85,7 +105,8 @@ public class TestLoadSaveConfig {
 	public final void beforeTest() {
 		workDir = System.getProperty("user.dir");
 		configFilename = "TestConfig.properties";
-		URL u = ClassLoader.getSystemResource("config/ReferenceConfig.properties");
+		URL u = ClassLoader
+				.getSystemResource("config/ReferenceConfig.properties");
 		String path = PathUtils.cleanPath(u.getPath());
 		File pathF = new File(path);
 		configRefFile = pathF.getName();
@@ -98,7 +119,8 @@ public class TestLoadSaveConfig {
 		final String workfile2 = "acc475C.dat";
 		femCfg = new FemExecutorConfig("/home/mbletzin/Tmp");
 		FemProgramConfig femProg = new FemProgramConfig(
-				FemProgramType.OPENSEES, "C:/Tcl/bin/OpenSees","StaticAnalysisEnv.tcl");
+				FemProgramType.OPENSEES, "C:/Tcl/bin/OpenSees",
+				"StaticAnalysisEnv.tcl");
 		femCfg.getFemProgramParameters().put(FemProgramType.OPENSEES, femProg);
 		for (int i = 1; i < noSubstructures + 1; i++) {
 			String address = "MDL-0" + i;
@@ -135,6 +157,9 @@ public class TestLoadSaveConfig {
 			}
 			femCfg.getSubstructCfgs().put(address, cfg);
 		}
+		expectedMasks.put("MDL-01", "\n[1, 0, 0, 0, 0, 1, 0]");
+		expectedMasks.put("MDL-02", "\n[1, 0, 0, 0, 0, 1, 0]\n[1, 0, 0, 0, 0, 0, 0]\n[1, 0, 0, 0, 0, 0, 0]");
+		expectedMasks.put("MDL-03", "\n[1, 0, 0, 0, 0, 0, 0]");
 
 	}
 
@@ -147,7 +172,7 @@ public class TestLoadSaveConfig {
 	 */
 	private void compareConfigs(final FemExecutorConfig actual,
 			final FemExecutorConfig expected) {
-//		Assert.assertEquals(actual.getConfigRoot(), workDir);
+		// Assert.assertEquals(actual.getConfigRoot(), workDir);
 		List<FemProgramType> eprogs = new ArrayList<FemProgramType>(expected
 				.getFemProgramParameters().keySet());
 		for (FemProgramType p : eprogs) {

@@ -1,7 +1,7 @@
 source Middle.tcl
 source StaticAnalysisEnv.tcl
-recorder Node -file tmp_disp.out -node -dof 1 2 3 disp
-recorder Node -file tmp_forc.out -node -dof 1 2 3 reaction
+recorder Node -file tmp_disp.out -node 2 3 4 -dof 1 2 3 disp
+recorder Node -file tmp_forc.out -node 2 3 4 -dof 1 2 3 reaction
 pattern Plain 99003	Constant {
 sp 2 1 130.20300000000000000E-009
 sp 2 3 34.000120000000000000E-012
