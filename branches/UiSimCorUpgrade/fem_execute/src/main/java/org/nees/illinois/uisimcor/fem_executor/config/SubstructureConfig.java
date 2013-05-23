@@ -126,6 +126,37 @@ public class SubstructureConfig {
 	}
 
 	/**
+	 * Create an integer vector with six elements with nonzero element for every
+	 * effective DOF.
+	 * @param node
+	 *            Node for the mask.
+	 * @return Mask.
+	 */
+	public final int[] getEffectiveDofMask(final int node) {
+		List<DispDof> dofL = effectiveDofs.get(node);
+		int[] result = { 0, 0, 0, 0, 0, 0, 0 };
+		for (DispDof d : dofL) {
+			result[d.ordinal()] = 1;
+		}
+		return result;
+	}
+
+	/**
+	 * Create a matrix of effective DOF masks where the rows are the nodes and
+	 * the columns are the six displacement DOFs.
+	 * @return
+	 * The matrix.
+	 */
+	public final int[][] getDofMaskMatrix() {
+		final int dof3DSize = 6;
+		int[][] result = new int[getNumberOfNodes()][dof3DSize];
+		for (int i = 0; i < getNumberOfNodes(); i++) {
+			result[i] = getEffectiveDofMask(getNodeSequence().get(i));
+		}
+		return result;
+	}
+
+	/**
 	 * @return the femProgram
 	 */
 	public final FemProgramType getFemProgram() {

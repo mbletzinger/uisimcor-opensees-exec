@@ -58,6 +58,11 @@ public class FemInputFile {
 	 */
 	private final String staticAnalysisFileToken = "StaticAnalysisFile";
 	/**
+	 * token name.
+	 */
+	private final String nodeListToken = "NodeList";
+
+	/**
 	 * Substructure configuration parameters.
 	 */
 	private final SubstructureConfig substructureCfg;
@@ -95,6 +100,13 @@ public class FemInputFile {
 		String rDofs = (substructureCfg.getDimension() == DimensionType.TwoD ? "1 2 3"
 				: "1 2 3 4 5 6");
 		tokenMap.put("ResponseDofs", rDofs);
+		String nodes = "";
+		boolean first = true;
+		for (Integer n : substructureCfg.getNodeSequence()) {
+			nodes += (first ? "" : " ") + n;
+			first = false;
+		}
+		tokenMap.put(nodeListToken, nodes);
 		String rawTemplate = setTemplate(PathUtils.append(configDir,
 				"run_template.tcl"));
 		for (String k : tokenMap.keySet()) {
@@ -183,7 +195,8 @@ public class FemInputFile {
 		try {
 			load = generateLoadPattern(displacements);
 		} catch (IllegalParameterException e) {
-			log.error("Could not create displacement command for " + substructureCfg.getAddress() + " because ", e);
+			log.error("Could not create displacement command for "
+					+ substructureCfg.getAddress() + " because ", e);
 			return;
 		}
 		content = content.replaceAll("\\$\\{" + loadK + "\\}", load);
@@ -195,16 +208,19 @@ public class FemInputFile {
 	 * @param displacements
 	 *            Displacements for the step.
 	 * @return Load pattern string.
-	 * @throws IllegalParameterException For improper effective DOFs.
+	 * @throws IllegalParameterException
+	 *             For improper effective DOFs.
 	 */
-	private String generateLoadPattern(final double[] displacements) throws IllegalParameterException {
+	private String generateLoadPattern(final double[] displacements)
+			throws IllegalParameterException {
 		String result = "";
 		int cnt = 0;
 		log.debug("Encoding Substructure " + substructureCfg + " with "
 				+ doubleArray2String(displacements));
 		for (Integer n : substructureCfg.getNodeSequence()) {
 			for (DispDof d : substructureCfg.getEffectiveDofs(n)) {
-				result += "sp " + n + " " + d.mtlb(substructureCfg.getDimension()) + " "
+				result += "sp " + n + " "
+						+ d.mtlb(substructureCfg.getDimension()) + " "
 						+ format.format(displacements[cnt]) + "\n";
 				cnt++;
 			}

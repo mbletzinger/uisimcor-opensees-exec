@@ -32,7 +32,7 @@ public final class Mtx2Str {
 	 *            Integer array.
 	 * @return String.
 	 */
-	public static String iArray2String(final int[] array) {
+	public static String array2String(final int[] array) {
 		String result = "[";
 		for (int i = 0; i < array.length; i++) {
 			result += (i == 0 ? "" : ", ") + array[i];
@@ -48,6 +48,20 @@ public final class Mtx2Str {
 	 * @return String.
 	 */
 	public static String matrix2String(final double[][] matrix) {
+		String result = "\n";
+		for (int i = 0; i < matrix.length; i++) {
+			result += (i == 0 ? "" : "\n") + array2String(matrix[i]);
+		}
+		return result;
+	}
+
+	/**
+	 * Converts integer matrix to string.
+	 * @param matrix
+	 *            Integer matrix.
+	 * @return String.
+	 */
+	public static String matrix2String(final int[][] matrix) {
 		String result = "\n";
 		for (int i = 0; i < matrix.length; i++) {
 			result += (i == 0 ? "" : "\n") + array2String(matrix[i]);
