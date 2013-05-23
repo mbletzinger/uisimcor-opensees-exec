@@ -80,7 +80,7 @@ public class TestLoadSaveConfig {
 		compareConfigs(lscfg.getFemConfig(), femCfg);
 		FemExecutorConfig fec = lscfg.getFemConfig();
 		for (SubstructureConfig scfg : fec.getSubstructCfgs().values()) {
-			String actual =Mtx2Str.matrix2String(scfg.getDofMaskMatrix()); 
+			String actual =Mtx2Str.matrix2String(scfg.getDofMaskMatrix());
 			log.debug("Mask for substructure " + scfg.getAddress() + " is "
 					+ actual);
 			Assert.assertEquals(actual, expectedMasks.get(scfg.getAddress()));
