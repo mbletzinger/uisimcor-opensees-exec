@@ -48,12 +48,10 @@ public class TestLoadSaveConfig {
 	 * Directory for storing temporary files.
 	 */
 	private String workDir;
-	
-	private Map<String, String> expectedMasks = new HashMap<String, String>();
-
 	/**
-	 * Test saving a configuration. Just looking for no exceptions.
+	 * Masks that are expected to be generated from the configuration.
 	 */
+	private Map<String, String> expectedMasks = new HashMap<String, String>();
 
 	/**
 	 * Logger.
@@ -61,6 +59,9 @@ public class TestLoadSaveConfig {
 	private final Logger log = LoggerFactory
 			.getLogger(TestLoadSaveConfig.class);
 
+	/**
+	 * Test saving a configuration. Just looking for no exceptions.
+	 */
 	@Test
 	public final void testSave() {
 		LoadSaveConfig lscfg = new LoadSaveConfig();
@@ -80,7 +81,7 @@ public class TestLoadSaveConfig {
 		compareConfigs(lscfg.getFemConfig(), femCfg);
 		FemExecutorConfig fec = lscfg.getFemConfig();
 		for (SubstructureConfig scfg : fec.getSubstructCfgs().values()) {
-			String actual =Mtx2Str.matrix2String(scfg.getDofMaskMatrix());
+			String actual = Mtx2Str.matrix2String(scfg.getDofMaskMatrix());
 			log.debug("Mask for substructure " + scfg.getAddress() + " is "
 					+ actual);
 			Assert.assertEquals(actual, expectedMasks.get(scfg.getAddress()));
@@ -112,11 +113,6 @@ public class TestLoadSaveConfig {
 		configRefFile = pathF.getName();
 		configRefFolder = pathF.getParent();
 		final int noSubstructures = 3;
-		final int node1 = 2;
-		final int node2 = 3;
-		final int node3 = 4;
-		final String workfile1 = "Wsection.tcl";
-		final String workfile2 = "acc475C.dat";
 		femCfg = new FemExecutorConfig("/home/mbletzin/Tmp");
 		FemProgramConfig femProg = new FemProgramConfig(
 				FemProgramType.OPENSEES, "C:/Tcl/bin/OpenSees",
@@ -124,42 +120,14 @@ public class TestLoadSaveConfig {
 		femCfg.getFemProgramParameters().put(FemProgramType.OPENSEES, femProg);
 		for (int i = 1; i < noSubstructures + 1; i++) {
 			String address = "MDL-0" + i;
-			DimensionType dim = DimensionType.TwoD;
-			List<Integer> nodes = new ArrayList<Integer>();
-			List<String> wfiles = new ArrayList<String>();
-			wfiles.add(workfile1);
-			wfiles.add(workfile2);
-			String modelFilename;
-			if (i == 1) {
-				nodes.add(node1);
-				modelFilename = "LeftCol.tcl";
-			} else if (i == 2) {
-				nodes.add(node1);
-				nodes.add(node2);
-				nodes.add(node3);
-				modelFilename = "Middle.tcl";
-			} else {
-				nodes.add(node2);
-				modelFilename = "RightCol.tcl";
-			}
-			FemProgramType program = FemProgramType.OPENSEES;
-			SubstructureConfig cfg = new SubstructureConfig(address, dim,
-					program, modelFilename, nodes, wfiles);
-			for (Integer n : nodes) {
-				List<DispDof> edof = new ArrayList<DispDof>();
-				if (n == node1) {
-					edof.add(DispDof.DX);
-					edof.add(DispDof.RZ);
-				} else {
-					edof.add(DispDof.DX);
-				}
-				cfg.addEffectiveDofs(n, edof);
-			}
-			femCfg.getSubstructCfgs().put(address, cfg);
+			CreateRefSubstructureConfig cfgR = new CreateRefSubstructureConfig(address);
+			femCfg.getSubstructCfgs().put(address, cfgR.getConfig());
 		}
-		expectedMasks.put("MDL-01", "\n[1, 0, 0, 0, 0, 1, 0]");
-		expectedMasks.put("MDL-02", "\n[1, 0, 0, 0, 0, 1, 0]\n[1, 0, 0, 0, 0, 0, 0]\n[1, 0, 0, 0, 0, 0, 0]");
-		expectedMasks.put("MDL-03", "\n[1, 0, 0, 0, 0, 0, 0]");
+		expectedMasks.put("MDL-01", "\n[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0]");
+		expectedMasks
+				.put("MDL-02",
+						"\n[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0]\n[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]\n[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]");
+		expectedMasks.put("MDL-03", "\n[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]");
 
 	}
 

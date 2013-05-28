@@ -3,7 +3,10 @@ package org.nees.illinois.uisimcor.fem_executor.process;
 import java.io.IOException;
 
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
 import org.nees.illinois.uisimcor.fem_executor.input.FemInputFile;
+import org.nees.illinois.uisimcor.fem_executor.output.DataPad;
+import org.nees.illinois.uisimcor.fem_executor.output.OutputFileParsingTask;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,15 +70,20 @@ public class SubstructureExecutor {
 	 * FEM execution input.
 	 */
 	private final FemInputFile input;
+	/**
+	 * Reformat the output for UI-SimCor
+	 */
+	private final DataPad pad;
 
 	/**
 	 * @param progCfg
 	 *            FEM program configuration parameters.
 	 * @param input
 	 *            FEM program input.
+	 * @param scfg TODO
 	 */
 	public SubstructureExecutor(final FemProgramConfig progCfg,
-			final FemInputFile input) {
+			final FemInputFile input, SubstructureConfig scfg) {
 		this.workDir = input.getWorkDir();
 		this.command = progCfg;
 		this.input = input;
@@ -84,6 +92,7 @@ public class SubstructureExecutor {
 		this.ofptForce = new OutputFileParsingTask(PathUtils.append(workDir,
 				"tmp_forc.out"));
 		this.filename = input.getInputFileName();
+		this.pad = new DataPad(scfg);
 
 	}
 
@@ -271,7 +280,8 @@ public class SubstructureExecutor {
 	 * @return double matrix
 	 */
 	public final double[][] getDisplacements() {
-		return ofptDisp.getData();
+		DoubleMatrix dm  = pad.pad(ofptDisp.getData());
+		return dm.getData();
 	}
 
 	/**
@@ -279,6 +289,7 @@ public class SubstructureExecutor {
 	 * @return double matrix
 	 */
 	public final double[][] getForces() {
-		return ofptForce.getData();
+		DoubleMatrix dm  = pad.pad(ofptForce.getData());
+		return dm.getData();
 	}
 }

@@ -1,7 +1,10 @@
 /**
  *
  */
-package org.nees.illinois.uisimcor.fem_executor.process;
+package org.nees.illinois.uisimcor.fem_executor.output;
+
+import java.util.List;
+
 
 /**
  * @author Michael Bletzinger
@@ -15,7 +18,7 @@ public class OutputFileParsingTask implements Runnable {
 	/**
 	 * The parser.
 	 */
-	private final OutputFileParser parser = new OutputFileParser();
+	private final OutputFileParser parser;
 
 	/**
 	 * File to be parsed.
@@ -29,17 +32,18 @@ public class OutputFileParsingTask implements Runnable {
 	 */
 	public OutputFileParsingTask(final String textFile) {
 		this.textFile = textFile;
+		this.parser = new OutputFileParser();
 	}
 
 	/**
 	 * Get the data from the parsing task.
 	 * @return Returns the data or null if the task was not completed.
 	 */
-	public final double[][] getData() {
+	public final List<Double> getData() {
 		if (parser.isEmpty()) {
 			return null;
 		}
-		return parser.getArchive().getData();
+		return parser.getArchive();
 	}
 
 	/**
