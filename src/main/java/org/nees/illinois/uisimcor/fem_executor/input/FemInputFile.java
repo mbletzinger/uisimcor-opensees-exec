@@ -15,6 +15,7 @@ import java.util.Map;
 
 import org.nees.illinois.uisimcor.fem_executor.config.DimensionType;
 import org.nees.illinois.uisimcor.fem_executor.config.DispDof;
+import org.nees.illinois.uisimcor.fem_executor.config.DofIndexMagic;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
 import org.nees.illinois.uisimcor.fem_executor.utils.IllegalParameterException;
@@ -215,12 +216,13 @@ public class FemInputFile {
 			throws IllegalParameterException {
 		String result = "";
 		int cnt = 0;
+		DofIndexMagic magic = new DofIndexMagic(substructureCfg.getDimension(), true, false);
 		log.debug("Encoding Substructure " + substructureCfg + " with "
 				+ doubleArray2String(displacements));
 		for (Integer n : substructureCfg.getNodeSequence()) {
 			for (DispDof d : substructureCfg.getEffectiveDofs(n)) {
 				result += "sp " + n + " "
-						+ d.mtlb(substructureCfg.getDimension()) + " "
+						+ magic.index(d) + " "
 						+ format.format(displacements[cnt]) + "\n";
 				cnt++;
 			}

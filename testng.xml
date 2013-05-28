@@ -16,6 +16,9 @@
 					name="response"
 					depends-on="loadSave.*" />
 				<group
+					name="loadSave"
+					depends-on="dofindexmagic.*" />
+				<group
 					name="input"
 					depends-on="response.*" />
 			</dependencies>
@@ -30,6 +33,7 @@
 			<class
 				name="org.nees.illinois.uisimcor.fem_executor.test.TestInputFileGeneration" />
 			<class name="org.nees.illinois.uisimcor.fem_executor.test.TestFemExecutor" />
+			<class name="org.nees.illinois.uisimcor.fem_executor.test.TestDofIndexMagic" />
 		</classes>
 	</test> <!-- DataTest -->
 </suite> <!-- DataSuite -->
