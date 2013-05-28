@@ -132,9 +132,9 @@ public class SubstructureConfig {
 	 *            Node for the mask.
 	 * @return Mask.
 	 */
-	public final int[] getEffectiveDofMask(final int node) {
+	public final double[] getEffectiveDofMask(final int node) {
 		List<DispDof> dofL = effectiveDofs.get(node);
-		int[] result = { 0, 0, 0, 0, 0, 0, 0 };
+		double[] result = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 		for (DispDof d : dofL) {
 			result[d.ordinal()] = 1;
 		}
@@ -147,9 +147,9 @@ public class SubstructureConfig {
 	 * @return
 	 * The matrix.
 	 */
-	public final int[][] getDofMaskMatrix() {
+	public final double[][] getDofMaskMatrix() {
 		final int dof3DSize = 6;
-		int[][] result = new int[getNumberOfNodes()][dof3DSize];
+		double[][] result = new double[getNumberOfNodes()][dof3DSize];
 		for (int i = 0; i < getNumberOfNodes(); i++) {
 			result[i] = getEffectiveDofMask(getNodeSequence().get(i));
 		}

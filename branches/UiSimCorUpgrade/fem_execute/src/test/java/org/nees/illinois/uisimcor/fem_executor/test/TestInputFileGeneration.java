@@ -77,11 +77,7 @@ public class TestInputFileGeneration {
 	 */
 	@BeforeTest
 	public final void beforeTest() {
-		final int node1 = 2;
-		final int node2 = 3;
-		final int node3 = 4;
-		final String workfile1 = "Wsection.tcl";
-		final String workfile2 = "acc475C.dat";
+		CreateRefSubstructureConfig cfgC = new CreateRefSubstructureConfig(mdl);
 		URL u = ClassLoader.getSystemResource("reference_run.tcl");
 		referenceFile = PathUtils.cleanPath(u.getPath());
 		u = ClassLoader.getSystemResource("config/run_template.tcl");
@@ -97,33 +93,10 @@ public class TestInputFileGeneration {
 				address);
 		inputFilePath = PathUtils.append(inputFilePath, "run.tcl");
 
-		DimensionType dim = DimensionType.TwoD;
-		List<Integer> nodes = new ArrayList<Integer>();
-		String modelFilename;
-		nodes.add(node1);
-		nodes.add(node2);
-		nodes.add(node3);
-		List<String> workFiles = new ArrayList<String>();
-		workFiles.add(workfile1);
-		workFiles.add(workfile2);
 		final double[] dat = { 13.0203e-08, 34.00012e-12, 12.00345e-08,
 				15.011e-08 };
 		data = dat;
-		modelFilename = "Middle.tcl";
-		FemProgramType program = FemProgramType.OPENSEES;
-		SubstructureConfig cfg = new SubstructureConfig(address, dim, program,
-				modelFilename, nodes, workFiles);
-		for (Integer n : nodes) {
-			List<DispDof> edof = new ArrayList<DispDof>();
-			if (n == node1) {
-				edof.add(DispDof.DX);
-				edof.add(DispDof.RZ);
-			} else {
-				edof.add(DispDof.DX);
-			}
-			cfg.addEffectiveDofs(n, edof);
-		}
-		femCfg.getSubstructCfgs().put(address, cfg);
+		femCfg.getSubstructCfgs().put(address, cfgC.getConfig());
 	}
 
 	/**

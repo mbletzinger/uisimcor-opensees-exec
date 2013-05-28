@@ -104,7 +104,7 @@ public class FemExecutor {
 		for (String fsc : config.getSubstructCfgs().keySet()) {
 			FemInputFile input = new FemInputFile(progCfg, config
 					.getSubstructCfgs().get(fsc), workDir, configRootDir);
-			SubstructureExecutor exe = new SubstructureExecutor(progCfg, input);
+			SubstructureExecutor exe = new SubstructureExecutor(progCfg, input, null);
 			executors.put(fsc, exe);
 		}
 	}
