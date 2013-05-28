@@ -28,11 +28,24 @@ public class TestDataFileParsing {
 	/**
 	 * Expected displacement values. Should match the contents of tmp_disp.out.
 	 */
-
 	private final double[] expectedDisp = { 1.0E-4, 2.37522E-26, 3.11327E-20,
 			4.32399E-22, -2.37522E-26, 3.11327E-20, 6.83281E-21, 2.29679E-36,
 			-2.19581E-34, 2.10932E-38, 5.36481E-37, -5.04524E-35, 1.1498E-37,
 			-6.19862E-51, 5.95044E-49, -3.75328E-55, 1.21785E-51, -1.16916E-49 };
+	/**
+	 * Expected padded displacements.
+	 */
+	private final double[][] expectedPaddedDisp = {
+			{ 1.0E-4, 0.0, 0.0, 0.0, 0.0, 3.11327E-20 },
+			{ 6.83281E-21, 0.0, 0.0, 0.0, 0.0, 0.0 },
+			{ 2.29679E-36, 0.0, 0.0, 0.0, 0.0, 0.0 } };
+	/**
+	 * Expected padded forces.
+	 */
+	private final double[][] expectedPaddedForce = {
+			{ 0.726521, 0.0, 0.0, 0.0, 0.0, -3.11327 },
+			{ -0.683281, 0.0, 0.0, 0.0, 0.0, 0.0 },
+			{ -1.39598E-16, 0.0, 0.0, 0.0, 0.0, 0.0 } };
 	/**
 	 * Expected force values. Should match the contents of tmp_forc.out.
 	 */
@@ -71,10 +84,10 @@ public class TestDataFileParsing {
 	 * @param expected
 	 *            The expected data.
 	 */
-	private void compareData(List<Double>actualL, final double[] expected) {
-		double [] actual = new double[actualL.size()];
+	private void compareData(List<Double> actualL, final double[] expected) {
+		double[] actual = new double[actualL.size()];
 		int idx = 0;
-		for(double d : actualL) {
+		for (double d : actualL) {
 			actual[idx++] = d;
 		}
 		log.debug("Comparing expected " + Mtx2Str.array2String(expected)
@@ -82,12 +95,29 @@ public class TestDataFileParsing {
 		Assert.assertEquals(actual.length, expected.length);
 		for (int i = 0; i < expected.length; i++) {
 
-				if (Double.isNaN(expected[i])) {
-					Assert.assertTrue(Double.isNaN(actual[i]));
+			if (Double.isNaN(expected[i])) {
+				Assert.assertTrue(Double.isNaN(actual[i]));
+				continue;
+			}
+			final double increment = 0.001;
+			Assert.assertEquals(actual[i], expected[i], increment);
+		}
+	}
+
+	private void compareData(double[][] actual, double[][] expected) {
+		log.debug("Comparing expected " + Mtx2Str.matrix2String(expected)
+				+ "\nwith actual\n" + Mtx2Str.matrix2String(actual));
+		Assert.assertEquals(actual.length, expected.length);
+		Assert.assertEquals(actual[0].length, expected[0].length);
+		for (int i = 0; i < expected.length; i++) {
+			for (int j = 0; j < expected[0].length; j++) {
+
+				if (Double.isNaN(expected[i][j])) {
+					Assert.assertTrue(Double.isNaN(actual[i][j]));
 					continue;
 				}
-				final double increment = 0.001;
-				Assert.assertEquals(actual[i], expected[i], increment);
+				Assert.assertEquals(actual[i][j], expected[i][j], 0.001);
+			}
 		}
 	}
 
@@ -144,22 +174,26 @@ public class TestDataFileParsing {
 		compareData(ofpt1.getData(), expectedDisp);
 		compareData(ofpt2.getData(), expectedForce);
 	}
+
 	/**
 	 * Test data padding the output.
 	 */
 	@Test
 	public final void testDataPadding() {
-		CreateRefSubstructureConfig cfgR = new CreateRefSubstructureConfig("MDL-02");
+		CreateRefSubstructureConfig cfgR = new CreateRefSubstructureConfig(
+				"MDL-02");
 		DataPad dp = new DataPad(cfgR.getConfig());
 		OutputFileParser df = new OutputFileParser();
 		df.parseDataFile(dispPath);
 		List<Double> result = df.getArchive();
 		DoubleMatrix dm = dp.pad(result);
 		log.info("Padded DISP:\n" + dm);
+		compareData(dm.getData(), expectedPaddedDisp);
 
 		df.parseDataFile(forcePath);
 		result = df.getArchive();
-		 dm = dp.pad(result);
+		dm = dp.pad(result);
 		log.info("Padded FORCE:\n" + dm);
+		compareData(dm.getData(), expectedPaddedForce);
 	}
 }
