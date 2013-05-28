@@ -52,7 +52,7 @@ public class TestInputFileGeneration {
 	/**
 	 * Reference model name.
 	 */
-	private final String mdl = "MDL-01";
+	private final String mdl = "MDL-02";
 	/**
 	 * Logger.
 	 **/

@@ -4,12 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.nees.illinois.uisimcor.fem_executor.config.DispDof;
+import org.nees.illinois.uisimcor.fem_executor.config.DofIndexMagic;
 import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
 import org.nees.illinois.uisimcor.fem_executor.process.DoubleMatrix;
+import org.nees.illinois.uisimcor.fem_executor.utils.IllegalParameterException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Add double 0.0 elements to DOFs that are not effective.
  * @author Michael Bletzinger
- *
  */
 public class DataPad {
 	/**
@@ -17,6 +21,11 @@ public class DataPad {
 	 * the module.
 	 */
 	private final SubstructureConfig substructCfg;
+
+	/**
+	 * Logger.
+	 **/
+	private final Logger log = LoggerFactory.getLogger(DataPad.class);
 
 	/**
 	 * @param substructCfg
@@ -35,26 +44,40 @@ public class DataPad {
 	 */
 	public final DoubleMatrix pad(final List<Double> data) {
 		List<List<Double>> result = new ArrayList<List<Double>>();
-		int count = 0;
-		final int numSimCorDofs = 6;
+		int nodeCount = 0;
+		final DofIndexMagic openseesMagic = new DofIndexMagic(
+				substructCfg.getDimension(), false, false);
+		final DofIndexMagic uisimcorMagic = new DofIndexMagic(
+				substructCfg.getDimension(), false, true);
 		for (Integer n : substructCfg.getNodeSequence()) {
-			int lastEDof = 0;
+			int lastEffectiveDof = 0;
 			List<Double> row = new ArrayList<Double>();
 			for (DispDof d : substructCfg.getEffectiveDofs(n)) {
-				int idx = d.ordinal();
-				for (int j = lastEDof + 1; j < idx; j++) {
-					row.add(0.0);
-					count++;
+				int uisimcorIdx;
+				try {
+					uisimcorIdx = uisimcorMagic.index(d);
+				} catch (IllegalParameterException e) {
+					log.error("Substructure " + substructCfg.getAddress()
+							+ " is misconfigured");
+					return null;
 				}
-				row.add(data.get(count));
-				count++;
-				lastEDof = idx;
+				for (int j = lastEffectiveDof + 1; j < uisimcorIdx; j++) {
+					row.add(0.0);
+				}
+				try {
+					row.add(data.get(nodeCount * openseesMagic.numberOfDofs() + openseesMagic.index(d)));
+				} catch (IllegalParameterException e) {
+					log.error("Misconfigured substructure " + substructCfg.getAddress());
+					return null;
+				}
+				lastEffectiveDof = uisimcorIdx;
 			}
-			while(lastEDof < numSimCorDofs - 1) {
+			while (lastEffectiveDof < uisimcorMagic.numberOfDofs() - 1) {
 				row.add(0.0);
-				lastEDof++;
+				lastEffectiveDof++;
 			}
 			result.add(row);
+			nodeCount++;
 		}
 		return new DoubleMatrix(result);
 	}

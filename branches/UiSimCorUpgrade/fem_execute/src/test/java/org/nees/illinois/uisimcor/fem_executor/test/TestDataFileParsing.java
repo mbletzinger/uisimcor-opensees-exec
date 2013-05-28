@@ -28,30 +28,26 @@ public class TestDataFileParsing {
 	/**
 	 * Expected displacement values. Should match the contents of tmp_disp.out.
 	 */
-	private final double[] expectedDisp = { 1.0E-4, 2.37522E-26, 3.11327E-20,
-			4.32399E-22, -2.37522E-26, 3.11327E-20, 6.83281E-21, 2.29679E-36,
-			-2.19581E-34, 2.10932E-38, 5.36481E-37, -5.04524E-35, 1.1498E-37,
-			-6.19862E-51, 5.95044E-49, -3.75328E-55, 1.21785E-51, -1.16916E-49 };
+	private final double[] expectedDisp = { 0.0010, 2.0E-4, 3.002E-22, 0.0011,
+			2.1E-4, 3.0021E-19, 0.0012, 2.2E-4, 3.0022E-19 };
 	/**
 	 * Expected padded displacements.
 	 */
 	private final double[][] expectedPaddedDisp = {
-			{ 1.0E-4, 0.0, 0.0, 0.0, 0.0, 3.11327E-20 },
-			{ 6.83281E-21, 0.0, 0.0, 0.0, 0.0, 0.0 },
-			{ 2.29679E-36, 0.0, 0.0, 0.0, 0.0, 0.0 } };
+			{ 0.0010, 0.0, 0.0, 0.0, 0.0, 3.002E-22},
+			{ 0.0011, 0.0, 0.0, 0.0, 0.0, 0.0 },
+			{ 0.0012, 0.0, 0.0, 0.0, 0.0, 0.0 } };
 	/**
 	 * Expected padded forces.
 	 */
 	private final double[][] expectedPaddedForce = {
-			{ 0.726521, 0.0, 0.0, 0.0, 0.0, -3.11327 },
-			{ -0.683281, 0.0, 0.0, 0.0, 0.0, 0.0 },
-			{ -1.39598E-16, 0.0, 0.0, 0.0, 0.0, 0.0 } };
+			{ 12.44, 0.0, 0.0, 0.0, 0.0, 1289000.0 },
+			{ 12.45, 0.0, 0.0, 0.0, 0.0, 0.0 },
+			{ 12.46, 0.0, 0.0, 0.0, 0.0, 0.0 } };
 	/**
 	 * Expected force values. Should match the contents of tmp_forc.out.
 	 */
-	private final double[] expectedForce = { 0.726521, -2.37522E-6, -3.11327,
-			-0.0432399, 2.37522E-6, -3.11327, -0.683281, -1.39598E-16,
-			1.34154E-14, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+	private final double[] expectedForce = { 12.44, 56.54, 1289000.0, 12.45, 56.55, 1290000.0, 12.46, 56.56, 1291000.0 };
 	/**
 	 * Full path of a test text file.
 	 */
@@ -61,6 +57,10 @@ public class TestDataFileParsing {
 	 **/
 	private final Logger log = LoggerFactory
 			.getLogger(TestDataFileParsing.class);
+	/**
+	 * Sensitivity of the comparison.
+	 */
+	private final double compareTolerance = 0.0001;
 
 	/**
 	 * Convert Internet space codes and replace file separators for Windows
@@ -78,13 +78,13 @@ public class TestDataFileParsing {
 	}
 
 	/**
-	 * Compares two data matrices.
-	 * @param actual
+	 * Compares two data arrays.
+	 * @param actualL
 	 *            The actual data.
 	 * @param expected
 	 *            The expected data.
 	 */
-	private void compareData(List<Double> actualL, final double[] expected) {
+	private void compareData(final List<Double> actualL, final double[] expected) {
 		double[] actual = new double[actualL.size()];
 		int idx = 0;
 		for (double d : actualL) {
@@ -99,12 +99,18 @@ public class TestDataFileParsing {
 				Assert.assertTrue(Double.isNaN(actual[i]));
 				continue;
 			}
-			final double increment = 0.001;
-			Assert.assertEquals(actual[i], expected[i], increment);
+			Assert.assertEquals(actual[i], expected[i], compareTolerance);
 		}
 	}
 
-	private void compareData(double[][] actual, double[][] expected) {
+	/**
+	 * Compares two data matrices.
+	 * @param actual
+	 *            The actual data.
+	 * @param expected
+	 *            The expected data.
+	 */
+	private void compareData(final double[][] actual, final double[][] expected) {
 		log.debug("Comparing expected " + Mtx2Str.matrix2String(expected)
 				+ "\nwith actual\n" + Mtx2Str.matrix2String(actual));
 		Assert.assertEquals(actual.length, expected.length);
@@ -116,7 +122,7 @@ public class TestDataFileParsing {
 					Assert.assertTrue(Double.isNaN(actual[i][j]));
 					continue;
 				}
-				Assert.assertEquals(actual[i][j], expected[i][j], 0.001);
+				Assert.assertEquals(actual[i][j], expected[i][j], compareTolerance);
 			}
 		}
 	}
@@ -152,7 +158,7 @@ public class TestDataFileParsing {
 	/**
 	 * Test the parsing of the two output files.
 	 */
-	@Test
+	@Test(dependsOnMethods = { "testParsing" })
 	public final void testParsingTasks() {
 		OutputFileParsingTask ofpt1 = new OutputFileParsingTask(dispPath);
 		OutputFileParsingTask ofpt2 = new OutputFileParsingTask(forcePath);
@@ -178,7 +184,7 @@ public class TestDataFileParsing {
 	/**
 	 * Test data padding the output.
 	 */
-	@Test
+	@Test(dependsOnMethods = { "testParsing" })
 	public final void testDataPadding() {
 		CreateRefSubstructureConfig cfgR = new CreateRefSubstructureConfig(
 				"MDL-02");
