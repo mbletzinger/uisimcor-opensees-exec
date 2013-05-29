@@ -1,12 +1,14 @@
 package org.nees.illinois.uisimcor.fem_executor.process;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
 import org.nees.illinois.uisimcor.fem_executor.input.FemInputFile;
 import org.nees.illinois.uisimcor.fem_executor.output.DataPad;
 import org.nees.illinois.uisimcor.fem_executor.output.OutputFileParsingTask;
+import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,7 +73,7 @@ public class SubstructureExecutor {
 	 */
 	private final FemInputFile input;
 	/**
-	 * Reformat the output for UI-SimCor
+	 * Reformat the output for UI-SimCor.
 	 */
 	private final DataPad pad;
 
@@ -80,10 +82,11 @@ public class SubstructureExecutor {
 	 *            FEM program configuration parameters.
 	 * @param input
 	 *            FEM program input.
-	 * @param scfg TODO
+	 * @param scfg
+	 *            Configuration for the substructure.
 	 */
 	public SubstructureExecutor(final FemProgramConfig progCfg,
-			final FemInputFile input, SubstructureConfig scfg) {
+			final FemInputFile input, final SubstructureConfig scfg) {
 		this.workDir = input.getWorkDir();
 		this.command = progCfg;
 		this.input = input;
@@ -279,17 +282,17 @@ public class SubstructureExecutor {
 	 * Return the displacements data set.
 	 * @return double matrix
 	 */
-	public final double[][] getDisplacements() {
-		DoubleMatrix dm  = pad.pad(ofptDisp.getData());
-		return dm.getData();
+	public final double[] getDisplacements() {
+		List<Double> result = pad.filter(ofptDisp.getData());
+		return MtxUtils.list2Array(result);
 	}
 
 	/**
 	 * Return the forces data set.
 	 * @return double matrix
 	 */
-	public final double[][] getForces() {
-		DoubleMatrix dm  = pad.pad(ofptForce.getData());
-		return dm.getData();
+	public final double[] getForces() {
+		List<Double> result = pad.filter(ofptForce.getData());
+		return MtxUtils.list2Array(result);
 	}
 }

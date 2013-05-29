@@ -14,7 +14,7 @@ import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.config.LoadSaveConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
-import org.nees.illinois.uisimcor.fem_executor.utils.Mtx2Str;
+import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,7 +81,7 @@ public class TestLoadSaveConfig {
 		compareConfigs(lscfg.getFemConfig(), femCfg);
 		FemExecutorConfig fec = lscfg.getFemConfig();
 		for (SubstructureConfig scfg : fec.getSubstructCfgs().values()) {
-			String actual = Mtx2Str.matrix2String(scfg.getDofMaskMatrix());
+			String actual = MtxUtils.matrix2String(scfg.getDofMaskMatrix());
 			log.debug("Mask for substructure " + scfg.getAddress() + " is "
 					+ actual);
 			Assert.assertEquals(actual, expectedMasks.get(scfg.getAddress()));

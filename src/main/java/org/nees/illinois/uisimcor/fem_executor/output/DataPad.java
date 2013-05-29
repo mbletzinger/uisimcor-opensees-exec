@@ -81,4 +81,28 @@ public class DataPad {
 		}
 		return new DoubleMatrix(result);
 	}
+	/**
+	 * add filter only effective DOF for all nodes.
+	 * @param data
+	 *            Data from FEM.
+	 * @return Effective DOF values as one array for all nodes.
+	 */
+	public final List<Double> filter(final List<Double> data) {
+		List<Double> result = new ArrayList<Double>();
+		int nodeCount = 0;
+		final DofIndexMagic openseesMagic = new DofIndexMagic(
+				substructCfg.getDimension(), false, false);
+		for (Integer n : substructCfg.getNodeSequence()) {
+			for (DispDof d : substructCfg.getEffectiveDofs(n)) {
+				try {
+					result.add(data.get(nodeCount * openseesMagic.numberOfDofs() + openseesMagic.index(d)));
+				} catch (IllegalParameterException e) {
+					log.error("Misconfigured substructure " + substructCfg.getAddress());
+					return null;
+				}
+			}
+			nodeCount++;
+		}
+		return result;
+	}
 }
