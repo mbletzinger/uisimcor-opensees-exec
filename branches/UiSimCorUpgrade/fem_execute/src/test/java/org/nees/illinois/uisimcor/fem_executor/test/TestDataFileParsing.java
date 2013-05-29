@@ -8,7 +8,7 @@ import org.nees.illinois.uisimcor.fem_executor.output.DataPad;
 import org.nees.illinois.uisimcor.fem_executor.output.OutputFileParser;
 import org.nees.illinois.uisimcor.fem_executor.output.OutputFileParsingTask;
 import org.nees.illinois.uisimcor.fem_executor.process.DoubleMatrix;
-import org.nees.illinois.uisimcor.fem_executor.utils.Mtx2Str;
+import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
@@ -31,6 +31,10 @@ public class TestDataFileParsing {
 	private final double[] expectedDisp = { 0.0010, 2.0E-4, 3.002E-22, 0.0011,
 			2.1E-4, 3.0021E-19, 0.0012, 2.2E-4, 3.0022E-19 };
 	/**
+	 * Expected force values. Should match the contents of tmp_forc.out.
+	 */
+	private final double[] expectedForce = { 12.44, 56.54, 1289000.0, 12.45, 56.55, 1290000.0, 12.46, 56.56, 1291000.0 };
+	/**
 	 * Expected padded displacements.
 	 */
 	private final double[][] expectedPaddedDisp = {
@@ -45,9 +49,13 @@ public class TestDataFileParsing {
 			{ 12.45, 0.0, 0.0, 0.0, 0.0, 0.0 },
 			{ 12.46, 0.0, 0.0, 0.0, 0.0, 0.0 } };
 	/**
-	 * Expected force values. Should match the contents of tmp_forc.out.
+	 * Expected filtered displacement values.
 	 */
-	private final double[] expectedForce = { 12.44, 56.54, 1289000.0, 12.45, 56.55, 1290000.0, 12.46, 56.56, 1291000.0 };
+	private final double[] expectedFilteredDisp = { 0.0010, 3.002E-22, 0.0011, 0.0012 };
+	/**
+	 * Expected filtered force values.
+	 */
+	private final double[] expectedFilteredForce = { 12.44, 1289000.0, 12.45, 12.46 };
 	/**
 	 * Full path of a test text file.
 	 */
@@ -90,8 +98,8 @@ public class TestDataFileParsing {
 		for (double d : actualL) {
 			actual[idx++] = d;
 		}
-		log.debug("Comparing expected " + Mtx2Str.array2String(expected)
-				+ "\nwith actual\n" + Mtx2Str.array2String(actual));
+		log.debug("Comparing expected " + MtxUtils.array2String(expected)
+				+ "\nwith actual\n" + MtxUtils.array2String(actual));
 		Assert.assertEquals(actual.length, expected.length);
 		for (int i = 0; i < expected.length; i++) {
 
@@ -111,8 +119,8 @@ public class TestDataFileParsing {
 	 *            The expected data.
 	 */
 	private void compareData(final double[][] actual, final double[][] expected) {
-		log.debug("Comparing expected " + Mtx2Str.matrix2String(expected)
-				+ "\nwith actual\n" + Mtx2Str.matrix2String(actual));
+		log.debug("Comparing expected " + MtxUtils.matrix2String(expected)
+				+ "\nwith actual\n" + MtxUtils.matrix2String(actual));
 		Assert.assertEquals(actual.length, expected.length);
 		Assert.assertEquals(actual[0].length, expected[0].length);
 		for (int i = 0; i < expected.length; i++) {
@@ -201,5 +209,26 @@ public class TestDataFileParsing {
 		dm = dp.pad(result);
 		log.info("Padded FORCE:\n" + dm);
 		compareData(dm.getData(), expectedPaddedForce);
+	}
+	/**
+	 * Test data padding the output.
+	 */
+	@Test(dependsOnMethods = { "testParsing" })
+	public final void testDataFiltering() {
+		CreateRefSubstructureConfig cfgR = new CreateRefSubstructureConfig(
+				"MDL-02");
+		DataPad dp = new DataPad(cfgR.getConfig());
+		OutputFileParser df = new OutputFileParser();
+		df.parseDataFile(dispPath);
+		List<Double> result = df.getArchive();
+		List<Double> fresult = dp.filter(result);
+		log.info("Filtered DISP:\n" + fresult);
+		compareData(fresult, expectedFilteredDisp);
+
+		df.parseDataFile(forcePath);
+		result = df.getArchive();
+		fresult = dp.filter(result);
+		log.info("Filtered FORCE:\n" + fresult);
+		compareData(fresult, expectedFilteredForce);
 	}
 }

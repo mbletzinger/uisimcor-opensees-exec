@@ -1,14 +1,16 @@
 package org.nees.illinois.uisimcor.fem_executor.utils;
 
+import java.util.List;
+
 /**
  * Utility class to convert matrices and arrays to strings.
  * @author Michael Bletzinger
  */
-public final class Mtx2Str {
+public final class MtxUtils {
 	/**
 	 * Prevent class from being constructed.
 	 */
-	private Mtx2Str() {
+	private MtxUtils() {
 	}
 
 	/**
@@ -88,4 +90,13 @@ public final class Mtx2Str {
 		return result;
 	}
 
+	public static double[] list2Array(List<Double> list) {
+		double [] result = new double[list.size()];
+		int i = 0;
+		for(Double d : list) {
+			result[i++] = d;
+		}
+		return result;
+	}
+	
 }

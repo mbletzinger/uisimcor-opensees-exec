@@ -104,7 +104,8 @@ public class FemExecutor {
 		for (String fsc : config.getSubstructCfgs().keySet()) {
 			FemInputFile input = new FemInputFile(progCfg, config
 					.getSubstructCfgs().get(fsc), workDir, configRootDir);
-			SubstructureExecutor exe = new SubstructureExecutor(progCfg, input, null);
+			SubstructureExecutor exe = new SubstructureExecutor(progCfg, input, config
+					.getSubstructCfgs().get(fsc));
 			executors.put(fsc, exe);
 		}
 	}
@@ -144,7 +145,7 @@ public class FemExecutor {
 	 *            Substructure id.
 	 * @return Displacement data.
 	 */
-	public final double[][] getDisplacements(final String address) {
+	public final double[] getDisplacements(final String address) {
 		return executors.get(address).getDisplacements();
 	}
 
@@ -154,7 +155,7 @@ public class FemExecutor {
 	 *            Substructure id.
 	 * @return Force data.
 	 */
-	public final double[][] getForces(final String address) {
+	public final double[] getForces(final String address) {
 		return executors.get(address).getForces();
 	}
 

@@ -83,22 +83,12 @@ public class TestFemExecutor {
 			Collection<String> mdls = fexec.getConfig().getSubstructCfgs()
 					.keySet();
 			for (String m : mdls) {
-				double[][] vals = fexec.getDisplacements(m);
-				int nnodes = fexec.getConfig().getSubstructCfgs().get(m)
-						.getNumberOfNodes();
-				final int numberOfDofs = 3; // Configurations are 2D.
-				nnodes = (nnodes * numberOfDofs) + 1;
-				DoubleMatrix disp = new DoubleMatrix(vals);
-				int[] sz = disp.sizes();
-				log.debug("Displacements for " + m + " are " + disp);
-				Assert.assertEquals(sz[0], 1);
-				Assert.assertEquals(sz[1], nnodes);
+				double[] vals = fexec.getDisplacements(m);
+				final int numberOfDofs = fexec.getConfig().getSubstructCfgs().get(m).getTotalDofs(); // UI-SimCor vector size.
+				log.debug("Displacements for " + m + " are " + vals);
+				Assert.assertEquals(vals.length, numberOfDofs);
 				vals = fexec.getForces(m);
-				DoubleMatrix forces = new DoubleMatrix(vals);
-				sz = forces.sizes();
-				log.debug("Forces for " + m + " are " + forces);
-				Assert.assertEquals(sz[0], 1);
-				Assert.assertEquals(sz[1], nnodes);
+				Assert.assertEquals(vals.length, numberOfDofs);
 			}
 		}
 	}
