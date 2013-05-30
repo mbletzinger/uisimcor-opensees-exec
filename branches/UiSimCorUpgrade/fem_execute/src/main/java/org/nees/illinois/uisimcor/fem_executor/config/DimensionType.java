@@ -1,5 +1,8 @@
 package org.nees.illinois.uisimcor.fem_executor.config;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Enumeration specifying the dimensional space of the model.
  * @author Michael Bletzinger
@@ -14,19 +17,44 @@ public enum DimensionType {
 	 */
 	TwoD;
 	/**
-	 * Returns the MATLAB 1-based index.
-	 * @return Index + 1
+	 * Returns a list of indexes corresponding to the number of DOFs in the
+	 * dimension. The indexes are zero-based.
+	 * @return List of indexes.
 	 */
-	public int mtlb() {
-		if (equals(TwoD)) {
-			return 2;
+	public final int[] indexes() {
+		final int[] dof6 = { 0, 1, 2, 3, 4, 5 };
+		final int[] dof3 = { 0, 1, 2 };
+		if (this.equals(TwoD)) {
+			return dof3;
 		}
-		if (equals(ThreeD)) {
-			final int result = 3;
-			return result;
-		}
-		final int result = 0;
-		return result;
+		return dof6;
 	}
 
+	/**
+	 * Return the list of DOFs corresponding to this dimension.
+	 * @return List of DOFs.
+	 */
+	public final List<DispDof> dofs() {
+		final DispDof[] dof6 = { DispDof.DX, DispDof.DY, DispDof.DZ,
+				DispDof.RX, DispDof.RY, DispDof.RZ };
+		final DispDof[] dof3 = { DispDof.DX, DispDof.DY, DispDof.RZ };
+		if (this.equals(TwoD)) {
+			return array2List(dof3);
+		}
+		return array2List(dof6);
+	}
+
+	/**
+	 * Convert array of DOFs to a list.
+	 * @param dofs
+	 *            array.
+	 * @return list.
+	 */
+	private final List<DispDof> array2List(DispDof[] dofs) {
+		List<DispDof> result = new ArrayList<DispDof>();
+		for (DispDof d : dofs) {
+			result.add(d);
+		}
+		return result;
+	}
 }

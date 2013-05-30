@@ -98,12 +98,12 @@ public class FemExecutor {
 	/**
 	 * Load the input file parameters into each executor.
 	 */
-	public final void setup() {
+	public final void setup(boolean enableDebug) {
 		FemProgramConfig progCfg = config.getFemProgramParameters().get(
 				FemProgramType.OPENSEES);
 		for (String fsc : config.getSubstructCfgs().keySet()) {
 			FemInputFile input = new FemInputFile(progCfg, config
-					.getSubstructCfgs().get(fsc), workDir, configRootDir);
+					.getSubstructCfgs().get(fsc), workDir, configRootDir, enableDebug);
 			SubstructureExecutor exe = new SubstructureExecutor(progCfg, input, config
 					.getSubstructCfgs().get(fsc));
 			executors.put(fsc, exe);
