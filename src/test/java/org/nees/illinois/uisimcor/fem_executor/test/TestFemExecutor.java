@@ -12,6 +12,7 @@ import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
 import org.nees.illinois.uisimcor.fem_executor.process.DoubleMatrix;
 import org.nees.illinois.uisimcor.fem_executor.process.FileWithContentDelete;
+import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.nees.illinois.uisimcor.fem_executor.utils.WindowsPerlBatchCreator;
 import org.slf4j.Logger;
@@ -44,7 +45,7 @@ public class TestFemExecutor {
 	 */
 	private List<String> configFiles = new ArrayList<String>();
 	/**
-	 * Directory to store tmp files during FEM execution.
+	 * Directory to store temporary files during FEM execution.
 	 */
 	private String workDir;
 
@@ -61,7 +62,7 @@ public class TestFemExecutor {
 					.put(FemProgramType.OPENSEES, femProg);
 			Collection<SubstructureConfig> mdlCfgs = fexec.getConfig()
 					.getSubstructCfgs().values();
-			fexec.setup();
+			fexec.setup(false);
 			for (SubstructureConfig mCfg : mdlCfgs) {
 				loadExecutor(fexec, mCfg);
 			}
@@ -85,7 +86,7 @@ public class TestFemExecutor {
 			for (String m : mdls) {
 				double[] vals = fexec.getDisplacements(m);
 				final int numberOfDofs = fexec.getConfig().getSubstructCfgs().get(m).getTotalDofs(); // UI-SimCor vector size.
-				log.debug("Displacements for " + m + " are " + vals);
+				log.debug("Displacements for " + m + " are " + MtxUtils.array2String(vals));
 				Assert.assertEquals(vals.length, numberOfDofs);
 				vals = fexec.getForces(m);
 				Assert.assertEquals(vals.length, numberOfDofs);

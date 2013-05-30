@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.nees.illinois.uisimcor.fem_executor.config.DimensionType;
@@ -28,6 +29,9 @@ import org.slf4j.LoggerFactory;
  * @author Michael Bletzinger
  */
 public class FemInputFile {
+	
+	private final boolean enableDebug;
+	
 	/**
 	 * Path to the directory containing the configuration files.
 	 */
@@ -90,10 +94,11 @@ public class FemInputFile {
 	 *            Directory containing generated files.
 	 * @param configDir
 	 *            Root of directory containing the model configuration files.
+	 * @param enableDebug TODO
 	 */
 	public FemInputFile(final FemProgramConfig progCfg,
 			final SubstructureConfig substructureCfg, final String workDir,
-			final String configDir) {
+			final String configDir, boolean enableDebug) {
 		this.substructureCfg = substructureCfg;
 		tokenMap.put(modelFileToken, substructureCfg.getModelFileName());
 		tokenMap.put(staticAnalysisFileToken,
@@ -117,6 +122,7 @@ public class FemInputFile {
 		template = rawTemplate;
 		this.workDir = PathUtils.append(workDir, substructureCfg.getAddress());
 		this.configDir = configDir;
+		this.enableDebug = enableDebug;
 		createWorkDir();
 	}
 
@@ -190,6 +196,7 @@ public class FemInputFile {
 		final String stepK = "StepNumber";
 		final String loadK = "LoadPattern";
 		final int openSeesUpperBound = 99000;
+		tokenMap.put("Step", Integer.toString(step));
 		String content = template.replaceAll("\\$\\{" + stepK + "\\}",
 				Integer.toString(openSeesUpperBound + step));
 		String load;
@@ -216,15 +223,20 @@ public class FemInputFile {
 			throws IllegalParameterException {
 		String result = "";
 		int cnt = 0;
-		DofIndexMagic magic = new DofIndexMagic(substructureCfg.getDimension(), true, false);
+		DimensionType dim = substructureCfg.getDimension();
+		DofIndexMagic magic = new DofIndexMagic(dim, true, false);
 		log.debug("Encoding Substructure " + substructureCfg + " with "
 				+ doubleArray2String(displacements));
 		for (Integer n : substructureCfg.getNodeSequence()) {
-			for (DispDof d : substructureCfg.getEffectiveDofs(n)) {
-				result += "sp " + n + " "
-						+ magic.index(d) + " "
-						+ format.format(displacements[cnt]) + "\n";
-				cnt++;
+			List<DispDof> edofs = substructureCfg.getEffectiveDofs(n);
+			for (DispDof d : dim.dofs()) {
+				double val = 0.0;
+				if (edofs.contains(d)) {
+					val = displacements[cnt];
+					cnt++;
+				}
+				result += "sp " + n + " " + magic.index(d) + " "
+						+ format.format(val) + "\n";
 			}
 		}
 		return result;
@@ -241,7 +253,11 @@ public class FemInputFile {
 	 * @return the inputFileName
 	 */
 	public final String getInputFileName() {
-		return inputFileName;
+		String filename = inputFileName;
+		if(enableDebug) {
+			filename = inputFileName.replaceFirst(".tcl", tokenMap.get("Step") + ".tcl");
+		}
+		return filename;
 	}
 
 	/**
@@ -310,7 +326,7 @@ public class FemInputFile {
 	 *            The content.
 	 */
 	private void writeInputFile(final String content) {
-		String inputFilePath = PathUtils.append(workDir, inputFileName);
+		String inputFilePath = PathUtils.append(workDir, getInputFileName());
 		File inputF = new File(inputFilePath);
 		if (inputF.exists()) {
 			inputF.delete();

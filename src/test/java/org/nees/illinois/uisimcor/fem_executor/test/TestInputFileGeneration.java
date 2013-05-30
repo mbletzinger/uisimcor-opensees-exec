@@ -66,7 +66,7 @@ public class TestInputFileGeneration {
 	public final void testGenerate() {
 		FemInputFile fif = new FemInputFile(femCfg.getFemProgramParameters()
 				.get(FemProgramType.OPENSEES), femCfg.getSubstructCfgs().get(
-				mdl), System.getProperty("user.dir"), configDir);
+				mdl), System.getProperty("user.dir"), configDir, false);
 		final int stepNumber = 3;
 		fif.generate(stepNumber, data);
 		compareConfigs(inputFilePath, referenceFile);
