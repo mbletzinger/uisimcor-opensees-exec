@@ -5,7 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.ProgramConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +27,7 @@ public class WindowsPerlBatchCreator {
 	/**
 	 * Configuration of the batch file.
 	 */
-	private final FemProgramConfig batchConfig;
+	private final ProgramConfig batchConfig;
 	/**
 	 * Name of the batch file.
 	 */
@@ -51,19 +51,18 @@ public class WindowsPerlBatchCreator {
 	 *            Configuration of program to be wrapped.
 	 */
 	public WindowsPerlBatchCreator(final String folder,
-			final FemProgramConfig prog) {
+			final ProgramConfig prog) {
 		String batchContent = "perl \"" + prog.getExecutablePath() + "\" %1";
 		this.batchFilename = prog.getExecutablePath().replace(".pl", ".bat");
 		this.batchFolder = folder;
-		batchConfig = new FemProgramConfig(prog.getProgram(), batchFilename,
-				prog.getStaticAnalysisScriptPath());
+		batchConfig = new ProgramConfig(prog.getProgram(), batchFilename);
 		writeBatchFile(batchContent);
 	}
 
 	/**
 	 * @return the batchConfig
 	 */
-	public final FemProgramConfig getBatchConfig() {
+	public final ProgramConfig getBatchConfig() {
 		return batchConfig;
 	}
 

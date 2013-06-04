@@ -38,16 +38,16 @@ public class SubstructureConfig {
 	private final FemProgramType femProgram;
 
 	/**
-	 * Model file name (include extension).
+	 * Files which are sourced.
 	 */
-	private final String modelFileName;
+	private final List<String> sourcedFilenames;
 	/**
 	 * Control node numbers. Note: The sequence of nodes should be consistent
 	 * with Nodes in SimCor.
 	 */
 	private final List<Integer> nodeSequence;
 	/**
-	 * List of files to be copied into the work directory.
+	 *            Files which need to be copied from the configuration directory to the work directory but are not sourced.
 	 */
 	private final List<String> workFiles;
 
@@ -63,22 +63,22 @@ public class SubstructureConfig {
 	 *            1 for Zeus-NL, 2 for OpenSees, 3 for Abaqus, 4 for Vector, and
 	 *            9 for generic console-in console-out application. Vector has
 	 *            not been implemented yet.
-	 * @param modelFileName
+	 * @param sourcedFilenames
 	 *            Model file name (include extension).
 	 * @param nodeSequence
 	 *            Control node numbers. Note: The sequence of nodes should be
 	 *            consistent with Nodes in SimCor.
 	 * @param workFiles
-	 *            TODO
+	 *            Files which need to be copied from the config directory to the work directory but are not sourced.
 	 */
 	public SubstructureConfig(final String address,
 			final DimensionType dimension, final FemProgramType femProgram,
-			final String modelFileName, final List<Integer> nodeSequence,
+			final List<String> sourcedFilenames, final List<Integer> nodeSequence,
 			final List<String> workFiles) {
 		this.address = address;
 		this.dimension = dimension;
 		this.femProgram = femProgram;
-		this.modelFileName = modelFileName;
+		this.sourcedFilenames = sourcedFilenames;
 		this.nodeSequence = nodeSequence;
 		this.workFiles = workFiles;
 	}
@@ -166,8 +166,8 @@ public class SubstructureConfig {
 	/**
 	 * @return the modelFileName
 	 */
-	public final String getModelFileName() {
-		return modelFileName;
+	public final List<String> getSourcedFilenames() {
+		return sourcedFilenames;
 	}
 
 	/**

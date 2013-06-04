@@ -4,7 +4,7 @@ use Cwd;
 our $cwd = getcwd();
 our $dumFile = shift;
 print "Pretending to use \"$dumFile\"\n";
-print "Current directory is \"$cwd\"\n"; 
+print "Current directory is \"$cwd\"\n";
 our $timeSec = shift;
 our $repetitions = shift;
 $timeSec = 1 unless defined $timeSec;

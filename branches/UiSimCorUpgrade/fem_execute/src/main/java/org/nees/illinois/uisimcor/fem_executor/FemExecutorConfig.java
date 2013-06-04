@@ -8,7 +8,7 @@ import java.util.Map;
 
 import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
-import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.ProgramConfig;
 
 /**
  * Configuration for the executor.
@@ -18,7 +18,7 @@ public class FemExecutorConfig {
 	/**
 	 * Map of FEM program parameters.
 	 */
-	private final Map<FemProgramType, FemProgramConfig> femProgramParameters = new HashMap<FemProgramType, FemProgramConfig>();
+	private final Map<FemProgramType, ProgramConfig> femProgramParameters = new HashMap<FemProgramType, ProgramConfig>();
 	/**
 	 * Substructure configurations map.
 	 */
@@ -39,7 +39,7 @@ public class FemExecutorConfig {
 	/**
 	 * @return the femProgramPaths
 	 */
-	public final Map<FemProgramType, FemProgramConfig> getFemProgramParameters() {
+	public final Map<FemProgramType, ProgramConfig> getFemProgramParameters() {
 		return femProgramParameters;
 	}
 

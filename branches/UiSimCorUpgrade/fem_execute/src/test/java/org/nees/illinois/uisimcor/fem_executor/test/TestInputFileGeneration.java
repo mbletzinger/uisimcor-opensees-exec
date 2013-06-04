@@ -10,7 +10,7 @@ import java.util.List;
 import org.nees.illinois.uisimcor.fem_executor.FemExecutorConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.DimensionType;
 import org.nees.illinois.uisimcor.fem_executor.config.DispDof;
-import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.ProgramConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
 import org.nees.illinois.uisimcor.fem_executor.input.FemInputFile;
@@ -84,9 +84,8 @@ public class TestInputFileGeneration {
 		String cf = PathUtils.cleanPath(u.getPath());
 		configDir = PathUtils.parent(cf);
 		femCfg = new FemExecutorConfig(configDir);
-		FemProgramConfig femProg = new FemProgramConfig(
-				FemProgramType.OPENSEES, "/usr/bin/OpenSees",
-				"StaticAnalysisEnv.tcl");
+		ProgramConfig femProg = new ProgramConfig(
+				FemProgramType.OPENSEES, "/usr/bin/OpenSees");
 		femCfg.getFemProgramParameters().put(FemProgramType.OPENSEES, femProg);
 		String address = mdl;
 		inputFilePath = PathUtils.append(System.getProperty("user.dir"),

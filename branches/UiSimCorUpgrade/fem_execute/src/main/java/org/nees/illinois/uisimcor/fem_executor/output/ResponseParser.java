@@ -1,9 +1,5 @@
 package org.nees.illinois.uisimcor.fem_executor.output;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +11,7 @@ import org.slf4j.LoggerFactory;
  * {@link DoubleMatrix set} of numbers.
  * @author Michael Bletzinger
  */
-public class OutputFileParser {
+public class ResponseParser {
 	/**
 	 * The parsed data set.
 	 */
@@ -29,7 +25,7 @@ public class OutputFileParser {
 	/**
 	 * Logger.
 	 **/
-	private final Logger log = LoggerFactory.getLogger(OutputFileParser.class);
+	private final Logger log = LoggerFactory.getLogger(ResponseParser.class);
 
 	/**
 	 * @return the archive
@@ -47,37 +43,24 @@ public class OutputFileParser {
 
 	/**
 	 * Opens the text file and feeds all of the rows to the token reader.
+	 * @param strData
+	 *            String representation of displacements or forces.
 	 * @param strFile
 	 *            Name of the text file
 	 */
-	public final void parseDataFile(final String strFile) {
+	public final void parseDataString(final String strData, final String strFile) {
 		log.debug("Parsing file \"" + strFile + "\"");
-		BufferedReader br = null;
-		try {
-			br = new BufferedReader(new FileReader(strFile));
-		} catch (FileNotFoundException e) {
-			log.error("File \"" + strFile + "\" not found");
+		log.debug("Parsing line \"" + strData + "\"");
+		String[] tokens = strData.split("\\s+");
+		List<Double> row = tokens2Double(tokens, strFile);
+		if (row.isEmpty()) {
+			log.error("No values for file " + strFile + " line \"" + strData
+					+ "\"");
 			return;
 		}
-		String strLine = "";
-		try {
-			strLine = br.readLine();
-			log.debug("Parsing line \"" + strLine + "\"");
-			String[] tokens = strLine.split("\\s+");
-			List<Double> row = tokens2Double(tokens, strFile);
-			if (row.isEmpty()) {
-				log.error("No values for file " + strFile + " line \""
-						+ strLine + "\"");
-				br.close();
-				return;
-			}
-			empty = false;
-			archive = row;
-			log.debug("Archive Row Text: " + archive);
-			br.close();
-		} catch (IOException e) {
-			log.error("File \"" + strFile + "\" cannot be parsed because ", e);
-		}
+		empty = false;
+		archive = row;
+		log.debug("Archive Row Text: " + archive);
 	}
 
 	/**

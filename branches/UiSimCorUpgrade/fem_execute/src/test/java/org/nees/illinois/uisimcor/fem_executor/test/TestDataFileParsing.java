@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 
 import org.nees.illinois.uisimcor.fem_executor.output.DataPad;
-import org.nees.illinois.uisimcor.fem_executor.output.OutputFileParser;
+import org.nees.illinois.uisimcor.fem_executor.output.ResponseParser;
 import org.nees.illinois.uisimcor.fem_executor.output.OutputFileParsingTask;
 import org.nees.illinois.uisimcor.fem_executor.process.DoubleMatrix;
 import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
@@ -151,13 +151,13 @@ public class TestDataFileParsing {
 	 */
 	@Test
 	public final void testParsing() {
-		OutputFileParser df = new OutputFileParser();
-		df.parseDataFile(dispPath);
+		ResponseParser df = new ResponseParser();
+		df.parseDataString(null, dispPath);
 		List<Double> result = df.getArchive();
 		log.info("Parsed DISP:\n" + result);
 		compareData(result, expectedDisp);
 
-		df.parseDataFile(forcePath);
+		df.parseDataString(null, forcePath);
 		result = df.getArchive();
 		log.info("Parsed FORCE:\n" + result);
 		compareData(result, expectedForce);
@@ -197,14 +197,14 @@ public class TestDataFileParsing {
 		CreateRefSubstructureConfig cfgR = new CreateRefSubstructureConfig(
 				"MDL-02");
 		DataPad dp = new DataPad(cfgR.getConfig());
-		OutputFileParser df = new OutputFileParser();
-		df.parseDataFile(dispPath);
+		ResponseParser df = new ResponseParser();
+		df.parseDataString(null, dispPath);
 		List<Double> result = df.getArchive();
 		DoubleMatrix dm = dp.pad(result);
 		log.info("Padded DISP:\n" + dm);
 		compareData(dm.getData(), expectedPaddedDisp);
 
-		df.parseDataFile(forcePath);
+		df.parseDataString(null, forcePath);
 		result = df.getArchive();
 		dm = dp.pad(result);
 		log.info("Padded FORCE:\n" + dm);
@@ -218,14 +218,14 @@ public class TestDataFileParsing {
 		CreateRefSubstructureConfig cfgR = new CreateRefSubstructureConfig(
 				"MDL-02");
 		DataPad dp = new DataPad(cfgR.getConfig());
-		OutputFileParser df = new OutputFileParser();
-		df.parseDataFile(dispPath);
+		ResponseParser df = new ResponseParser();
+		df.parseDataString(null, dispPath);
 		List<Double> result = df.getArchive();
 		List<Double> fresult = dp.filter(result);
 		log.info("Filtered DISP:\n" + fresult);
 		compareData(fresult, expectedFilteredDisp);
 
-		df.parseDataFile(forcePath);
+		df.parseDataString(null, forcePath);
 		result = df.getArchive();
 		fresult = dp.filter(result);
 		log.info("Filtered FORCE:\n" + fresult);
