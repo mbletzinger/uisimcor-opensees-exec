@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Observable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,11 +15,11 @@ import ch.qos.logback.classic.Level;
  * Listener thread to listen to output from a Process execution.
  * @author Michael Bletzinger
  */
-public class ProcessResponse implements Runnable {
+public class ProcessResponse extends Observable implements Abortable {
 	/**
-	 * Control flag which tells the thread to finish.
+	 * Quit flag for Abortable interface.
 	 */
-	private boolean done;
+	private volatile boolean quit = false;
 	/**
 	 * Debugging level that is used to print output.
 	 */
@@ -78,35 +79,31 @@ public class ProcessResponse implements Runnable {
 		return output;
 	}
 
-	/**
-	 * @return the done
-	 */
-	public final synchronized boolean isDone() {
-		return done;
-	}
-
 	@Override
 	public final void run() {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(strm));
-		while (isDone() == false) {
+		while (isQuit() == false) {
 			try {
 				String cbuf;
 				if (reader.ready()) {
 					cbuf = reader.readLine();
-					// log.debug("read \"" + cbuf + "\"");
+//					log.debug("read \"" + cbuf + "\"");
+					if(cbuf.contains("#:")) {
+//						log.debug("Time to notify");
+						setChanged();
+						notifyObservers();
+					}
 					writeLog(cbuf);
 					output += cbuf + "\n";
 				}
 			} catch (IOException e) {
 				log.debug("Stream for \"" + processName + "\" has closed because ",e);
-				setDone(true);
+				setQuit(true);
 			}
 			try {
 				Thread.sleep(millSecWait);
 			} catch (InterruptedException e) {
-				@SuppressWarnings("unused")
-				int dumb = 0;
-				// Nobody cares.
+				log.debug("Checking quit flag");
 			}
 		}
 		try {
@@ -116,13 +113,6 @@ public class ProcessResponse implements Runnable {
 		}
 	}
 
-	/**
-	 * @param done
-	 *            the done to set
-	 */
-	public final synchronized void setDone(final boolean done) {
-		this.done = done;
-	}
 
 	/**
 	 * Writes line to the log specified by the logging level.
@@ -139,6 +129,16 @@ public class ProcessResponse implements Runnable {
 		if (level.equals(Level.DEBUG)) {
 			log.debug("[" + processName + "] " + line);
 		}
+	}
+
+	@Override
+	public final synchronized boolean isQuit() {
+		return quit;
+	}
+
+	@Override
+	public final synchronized void setQuit(final boolean quit) {
+		this.quit = quit;
 	}
 
 }

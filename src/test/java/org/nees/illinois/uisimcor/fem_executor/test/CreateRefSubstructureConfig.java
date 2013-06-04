@@ -55,8 +55,11 @@ public class CreateRefSubstructureConfig {
 		List<String> workFiles = new ArrayList<String>();
 		workFiles.add(workfile1);
 		workFiles.add(workfile2);
+		List<String> sourceFiles = new ArrayList<String>();
+		sourceFiles.add(modelFilename);
+		sourceFiles.add("StaticAnalysisEnv.tcl");
 		FemProgramType program = FemProgramType.OPENSEES;
-		config = new SubstructureConfig(address, dim, program, modelFilename,
+		config = new SubstructureConfig(address, dim, program, sourceFiles,
 				nodes, workFiles);
 		for (Integer n : nodes) {
 			List<DispDof> edof = new ArrayList<DispDof>();

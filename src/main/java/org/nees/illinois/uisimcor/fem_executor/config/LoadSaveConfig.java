@@ -104,7 +104,7 @@ public class LoadSaveConfig {
 		}
 		femConfig = new FemExecutorConfig(workDir);
 		for (FemProgramType p : FemProgramType.values()) {
-			FemProgramConfig fProgCfg = loadFemProgram(p);
+			ProgramConfig fProgCfg = loadFemProgram(p);
 			if (fProgCfg == null) {
 				continue;
 			}
@@ -123,11 +123,9 @@ public class LoadSaveConfig {
 	 * @param progCfg
 	 *            FEM program parameters set
 	 */
-	private void saveFemProgram(final FemProgramConfig progCfg) {
+	private void saveFemProgram(final ProgramConfig progCfg) {
 		FemProgramType ptype = progCfg.getProgram();
 		props.put(ptype + ".executable", progCfg.getExecutablePath());
-		props.put(ptype + ".static.script",
-				progCfg.getStaticAnalysisScriptPath());
 	}
 
 	/**
@@ -136,14 +134,12 @@ public class LoadSaveConfig {
 	 *            FEM program type.
 	 * @return FEM program parameters set
 	 */
-	private FemProgramConfig loadFemProgram(final FemProgramType ptype) {
+	private ProgramConfig loadFemProgram(final FemProgramType ptype) {
 		String executable = props.getProperty(ptype + ".executable");
 		if (executable == null) {
 			return null;
 		}
-		String staticScript = props.getProperty(ptype + ".static.script");
-		FemProgramConfig result = new FemProgramConfig(ptype, executable,
-				staticScript);
+		ProgramConfig result = new ProgramConfig(ptype, executable);
 		return result;
 	}
 
@@ -191,7 +187,6 @@ public class LoadSaveConfig {
 						+ name);
 			}
 		}
-		String modelFile = props.getProperty(name + ".model.filename");
 		str = props.getProperty(name + ".work.files");
 		List<String> wfiles = null;
 		if (str == null) {
@@ -204,8 +199,20 @@ public class LoadSaveConfig {
 						+ "\" not recognized for " + name, e);
 			}
 		}
+		str = props.getProperty(name + ".source.files");
+		List<String> sfiles = null;
+		if (str == null) {
+			log.error("Work files not found for " + name);
+		} else {
+			try {
+				sfiles = eoStringList.parse(str);
+			} catch (Exception e) {
+				log.error("Source files list \"" + str
+						+ "\" not recognized for " + name, e);
+			}
+		}
 		SubstructureConfig result = new SubstructureConfig(address, dim, fem,
-				modelFile, nodes, wfiles);
+				sfiles, nodes, wfiles);
 		for (Integer node : nodes) {
 			str = props.getProperty(name + ".effective.dofs." + node);
 			List<DispDof> edofs = null;
@@ -243,7 +250,7 @@ public class LoadSaveConfig {
 			first = false;
 		}
 		props.setProperty("substructures", str);
-		for (FemProgramConfig fpCfg : femConfig.getFemProgramParameters()
+		for (ProgramConfig fpCfg : femConfig.getFemProgramParameters()
 				.values()) {
 			saveFemProgram(fpCfg);
 		}
@@ -278,7 +285,7 @@ public class LoadSaveConfig {
 					eoDispDofList.encode(config.getEffectiveDofs(node)));
 		}
 		props.setProperty(name + ".fem.program", config.getFemProgram().name());
-		props.setProperty(name + ".model.filename", config.getModelFileName());
+		props.setProperty(name + ".source.files", eoStringList.encode(config.getSourcedFilenames()));
 		props.setProperty(name + ".work.files",
 				eoStringList.encode(config.getWorkFiles()));
 	}

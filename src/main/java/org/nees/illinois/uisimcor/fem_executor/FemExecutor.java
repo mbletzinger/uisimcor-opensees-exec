@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.ProgramConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.config.LoadSaveConfig;
 import org.nees.illinois.uisimcor.fem_executor.input.FemInputFile;
@@ -99,7 +99,7 @@ public class FemExecutor {
 	 * Load the input file parameters into each executor.
 	 */
 	public final void setup(boolean enableDebug) {
-		FemProgramConfig progCfg = config.getFemProgramParameters().get(
+		ProgramConfig progCfg = config.getFemProgramParameters().get(
 				FemProgramType.OPENSEES);
 		for (String fsc : config.getSubstructCfgs().keySet()) {
 			FemInputFile input = new FemInputFile(progCfg, config

@@ -3,7 +3,7 @@ package org.nees.illinois.uisimcor.fem_executor.process;
 import java.io.IOException;
 import java.util.List;
 
-import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.ProgramConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
 import org.nees.illinois.uisimcor.fem_executor.input.FemInputFile;
 import org.nees.illinois.uisimcor.fem_executor.output.DataPad;
@@ -22,7 +22,7 @@ public class SubstructureExecutor {
 	/**
 	 * Program configuration to run.
 	 */
-	private FemProgramConfig command;
+	private ProgramConfig command;
 
 	/**
 	 * Current execution state.
@@ -85,7 +85,7 @@ public class SubstructureExecutor {
 	 * @param scfg
 	 *            Configuration for the substructure.
 	 */
-	public SubstructureExecutor(final FemProgramConfig progCfg,
+	public SubstructureExecutor(final ProgramConfig progCfg,
 			final FemInputFile input, final SubstructureConfig scfg) {
 		this.workDir = input.getWorkDir();
 		this.command = progCfg;
@@ -94,7 +94,6 @@ public class SubstructureExecutor {
 				"tmp_disp.out"));
 		this.ofptForce = new OutputFileParsingTask(PathUtils.append(workDir,
 				"tmp_forc.out"));
-		this.filename = input.getInputFileName();
 		this.pad = new DataPad(scfg);
 
 	}
@@ -102,7 +101,7 @@ public class SubstructureExecutor {
 	/**
 	 * @return the command
 	 */
-	public final FemProgramConfig getCommand() {
+	public final ProgramConfig getCommand() {
 		return command;
 	}
 
@@ -159,7 +158,7 @@ public class SubstructureExecutor {
 	 * @param command
 	 *            the command to set
 	 */
-	public final void setCommand(final FemProgramConfig command) {
+	public final void setCommand(final ProgramConfig command) {
 		this.command = command;
 	}
 
@@ -201,7 +200,8 @@ public class SubstructureExecutor {
 		input.generate(step, displacements); // this may need to go in its own
 												// thread later.
 		pm = new ProcessManagement(command.getExecutablePath(), input
-				.getSubstructureCfg().getAddress(), waitInMillisecs);
+				.getSubstructureCfg().getAddress(), waitInMillisecs, null, null);
+		filename = input.getInputFileName();
 		pm.addArg(filename);
 		pm.setWorkDir(workDir);
 		try {

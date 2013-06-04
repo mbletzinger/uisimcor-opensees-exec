@@ -8,7 +8,7 @@ package org.nees.illinois.uisimcor.fem_executor.config;
  *
  * @author Michael Bletzinger
  */
-public class FemProgramConfig {
+public class ProgramConfig {
 	/**
 	 * Path to executable.
 	 */
@@ -18,23 +18,14 @@ public class FemProgramConfig {
 	 */
 	private final FemProgramType program;
 	/**
-	 * Path to static analysis script.
-	 */
-	private final String staticAnalysisScriptPath;
-
-	/**
 	 * @param program
 	 *            FEM program type.
 	 * @param executablePath
 	 *            Path to executable.
-	 * @param staticAnalysisScriptPath
-	 *            Path to static analysis script.
 	 */
-	public FemProgramConfig(final FemProgramType program, final String executablePath,
-			final String staticAnalysisScriptPath) {
+	public ProgramConfig(final FemProgramType program, final String executablePath) {
 		this.program = program;
 		this.executablePath = executablePath;
-		this.staticAnalysisScriptPath = staticAnalysisScriptPath;
 	}
 
 	/**
@@ -49,13 +40,6 @@ public class FemProgramConfig {
 	 */
 	public final FemProgramType getProgram() {
 		return program;
-	}
-
-	/**
-	 * @return the staticAnalysisScriptPath
-	 */
-	public final String getStaticAnalysisScriptPath() {
-		return staticAnalysisScriptPath;
 	}
 
 }

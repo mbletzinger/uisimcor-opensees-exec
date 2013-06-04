@@ -7,7 +7,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.nees.illinois.uisimcor.fem_executor.FemExecutor;
-import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.ProgramConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
 import org.nees.illinois.uisimcor.fem_executor.process.DoubleMatrix;
@@ -31,7 +31,7 @@ public class TestFemExecutor {
 	/**
 	 * Configuration containing the fake OpenSees.
 	 */
-	private FemProgramConfig femProg;
+	private ProgramConfig femProg;
 	/**
 	 * Directory containing the configuration files for the test.
 	 */
@@ -122,8 +122,7 @@ public class TestFemExecutor {
 		String command = PathUtils.cleanPath(u.getPath());
 		File cmdF = new File(command);
 		cmdF.setExecutable(true);
-		femProg = new FemProgramConfig(FemProgramType.OPENSEES, command,
-				"StaticAnalysisEnv.tcl");
+		femProg = new ProgramConfig(FemProgramType.OPENSEES, command);
 		if(WindowsPerlBatchCreator.isWindows()) {
 			WindowsPerlBatchCreator wpbc = new WindowsPerlBatchCreator(workDir, femProg);
 			femProg = wpbc.getBatchConfig();

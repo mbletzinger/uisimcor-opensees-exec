@@ -3,18 +3,14 @@ package org.nees.illinois.uisimcor.fem_executor.test;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.nees.illinois.uisimcor.fem_executor.FemExecutorConfig;
-import org.nees.illinois.uisimcor.fem_executor.config.DimensionType;
 import org.nees.illinois.uisimcor.fem_executor.config.DispDof;
-import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.config.LoadSaveConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.ProgramConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
-import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,11 +45,6 @@ public class TestLoadSaveConfig {
 	 */
 	private String workDir;
 	/**
-	 * Masks that are expected to be generated from the configuration.
-	 */
-	private Map<String, String> expectedMasks = new HashMap<String, String>();
-
-	/**
 	 * Logger.
 	 **/
 	private final Logger log = LoggerFactory
@@ -79,13 +70,6 @@ public class TestLoadSaveConfig {
 		lscfg.setConfigFilePath(configRefFile);
 		lscfg.load(configRefFolder);
 		compareConfigs(lscfg.getFemConfig(), femCfg);
-		FemExecutorConfig fec = lscfg.getFemConfig();
-		for (SubstructureConfig scfg : fec.getSubstructCfgs().values()) {
-			String actual = MtxUtils.matrix2String(scfg.getDofMaskMatrix());
-			log.debug("Mask for substructure " + scfg.getAddress() + " is "
-					+ actual);
-			Assert.assertEquals(actual, expectedMasks.get(scfg.getAddress()));
-		}
 	}
 
 	/**
@@ -114,21 +98,14 @@ public class TestLoadSaveConfig {
 		configRefFolder = pathF.getParent();
 		final int noSubstructures = 3;
 		femCfg = new FemExecutorConfig("/home/mbletzin/Tmp");
-		FemProgramConfig femProg = new FemProgramConfig(
-				FemProgramType.OPENSEES, "C:/Tcl/bin/OpenSees",
-				"StaticAnalysisEnv.tcl");
+		ProgramConfig femProg = new ProgramConfig(
+				FemProgramType.OPENSEES, "C:/Tcl/bin/OpenSees");
 		femCfg.getFemProgramParameters().put(FemProgramType.OPENSEES, femProg);
 		for (int i = 1; i < noSubstructures + 1; i++) {
 			String address = "MDL-0" + i;
 			CreateRefSubstructureConfig cfgR = new CreateRefSubstructureConfig(address);
 			femCfg.getSubstructCfgs().put(address, cfgR.getConfig());
 		}
-		expectedMasks.put("MDL-01", "\n[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0]");
-		expectedMasks
-				.put("MDL-02",
-						"\n[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0]\n[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]\n[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]");
-		expectedMasks.put("MDL-03", "\n[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]");
-
 	}
 
 	/**
@@ -144,24 +121,22 @@ public class TestLoadSaveConfig {
 		List<FemProgramType> eprogs = new ArrayList<FemProgramType>(expected
 				.getFemProgramParameters().keySet());
 		for (FemProgramType p : eprogs) {
-			FemProgramConfig eprogCfg = expected.getFemProgramParameters().get(
+			ProgramConfig eprogCfg = expected.getFemProgramParameters().get(
 					p);
-			FemProgramConfig aprogCfg = actual.getFemProgramParameters().get(p);
+			ProgramConfig aprogCfg = actual.getFemProgramParameters().get(p);
 			Assert.assertNotNull(aprogCfg, "Checking program parameters for "
 					+ p);
 			Assert.assertEquals(aprogCfg.getExecutablePath(),
 					eprogCfg.getExecutablePath(),
 					"Checking program parameters for " + p);
-			Assert.assertEquals(aprogCfg.getStaticAnalysisScriptPath(),
-					eprogCfg.getStaticAnalysisScriptPath(),
-					"Checking program parameters for " + p);
 		}
 		for (String n : expected.getSubstructCfgs().keySet()) {
+			log.debug("Checking substructure \"" + n + "\"");
 			SubstructureConfig ecfg = expected.getSubstructCfgs().get(n);
 			SubstructureConfig acfg = actual.getSubstructCfgs().get(n);
 			Assert.assertNotNull(acfg, "Checking substructure \"" + n + "\"");
-			Assert.assertEquals(acfg.getModelFileName(),
-					ecfg.getModelFileName(), "Checking substructure \"" + n
+			Assert.assertEquals(acfg.getSourcedFilenames(),
+					ecfg.getSourcedFilenames(), "Checking substructure \"" + n
 							+ "\"");
 			Assert.assertEquals(acfg.getDimension(), ecfg.getDimension(),
 					"Checking substructure \"" + n + "\"");
@@ -183,6 +158,19 @@ public class TestLoadSaveConfig {
 					Assert.assertEquals(aedofs.get(d), eedofs.get(d),
 							"Checking substructure " + n + "\" node " + node
 									+ " dof idx " + d);
+				}
+				List<String> efiles = ecfg.getSourcedFilenames();
+				List<String> afiles = acfg.getSourcedFilenames();
+				Assert.assertEquals(afiles.size(), efiles.size(),"Checking source file name sizes");
+				for( int f = 0; f < efiles.size(); f++) {
+					Assert.assertEquals(afiles.get(f), efiles.get(f),"Checking source file names");
+				}
+
+				efiles = ecfg.getWorkFiles();
+				afiles = acfg.getWorkFiles();
+				Assert.assertEquals(afiles.size(), efiles.size(),"Checking work file name sizes");
+				for( int f = 0; f < efiles.size(); f++) {
+					Assert.assertEquals(afiles.get(f), efiles.get(f),"Checking work file names");
 				}
 			}
 		}
