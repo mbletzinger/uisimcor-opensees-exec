@@ -28,12 +28,12 @@ public class ProcessManagement {
 	/**
 	 * Line command to execute.
 	 */
-	private final String cmd;
+	private String cmd;
 
 	/**
 	 * Command queue.
 	 */
-	private final BlockingQueue<String> commandQ = new LinkedBlockingQueue<String>();
+	private final BlockingQueue<QMessage> commandQ = new LinkedBlockingQueue<QMessage>();
 
 	/**
 	 * File which gets the response displacements.
@@ -80,6 +80,7 @@ public class ProcessManagement {
 	 * before reading content.
 	 */
 	private final int listenerWaitInterval = 100;
+
 	/**
 	 * Logger.
 	 */
@@ -95,7 +96,7 @@ public class ProcessManagement {
 	/**
 	 * Response queue.
 	 */
-	private final BlockingQueue<String> responseQ = new LinkedBlockingQueue<String>();
+	private final BlockingQueue<QMessage> responseQ = new LinkedBlockingQueue<QMessage>();
 	/**
 	 * Listener for output.
 	 */
@@ -146,7 +147,6 @@ public class ProcessManagement {
 		exchange.setQuit(true);
 		exchangeThrd.interrupt();
 	}
-
 	/**
 	 * Add an argument to the command.
 	 * @param arg
@@ -259,7 +259,7 @@ public class ProcessManagement {
 	/**
 	 * @return the commandQ
 	 */
-	public final BlockingQueue<String> getCommandQ() {
+	public final BlockingQueue<QMessage> getCommandQ() {
 		return commandQ;
 	}
 
@@ -303,7 +303,7 @@ public class ProcessManagement {
 	/**
 	 * @return the responseQ
 	 */
-	public final BlockingQueue<String> getResponseQ() {
+	public final BlockingQueue<QMessage> getResponseQ() {
 		return responseQ;
 	}
 
@@ -322,22 +322,10 @@ public class ProcessManagement {
 	}
 
 	/**
-	 * Check to see if the command has finished executing.
-	 * @return True if the command has finished.
+	 * @param cmd the command to set
 	 */
-	public final boolean isDone() {
-		if (process == null) {
-			log.error("Command \"" + cmd + "\" has not started.");
-			return true;
-		}
-		try {
-			exitValue = process.exitValue();
-		} catch (IllegalThreadStateException e) {
-			log.debug("Command \"" + cmd + "\" is still executing");
-			return false;
-		}
-		finish();
-		return true;
+	public final void setCmd(final String cmd) {
+		this.cmd = checkWindowsCommand(cmd);
 	}
 
 	/**

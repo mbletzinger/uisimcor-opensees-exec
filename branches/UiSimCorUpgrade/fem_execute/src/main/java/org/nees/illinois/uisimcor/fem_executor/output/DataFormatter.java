@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
  * Add double 0.0 elements to DOFs that are not effective.
  * @author Michael Bletzinger
  */
-public class DataPad {
+public class DataFormatter {
 	/**
 	 * Substructure configuration containing the nodes and effective DOFs for
 	 * the module.
@@ -25,14 +25,14 @@ public class DataPad {
 	/**
 	 * Logger.
 	 **/
-	private final Logger log = LoggerFactory.getLogger(DataPad.class);
+	private final Logger log = LoggerFactory.getLogger(DataFormatter.class);
 
 	/**
 	 * @param substructCfg
 	 *            Substructure configuration containing the nodes and effective
 	 *            DOFs for the module.
 	 */
-	public DataPad(final SubstructureConfig substructCfg) {
+	public DataFormatter(final SubstructureConfig substructCfg) {
 		this.substructCfg = substructCfg;
 	}
 
@@ -65,9 +65,11 @@ public class DataPad {
 					row.add(0.0);
 				}
 				try {
-					row.add(data.get(nodeCount * openseesMagic.numberOfDofs() + openseesMagic.index(d)));
+					row.add(data.get(nodeCount * openseesMagic.numberOfDofs()
+							+ openseesMagic.index(d)));
 				} catch (IllegalParameterException e) {
-					log.error("Misconfigured substructure " + substructCfg.getAddress());
+					log.error("Misconfigured substructure "
+							+ substructCfg.getAddress());
 					return null;
 				}
 				lastEffectiveDof = uisimcorIdx;
@@ -81,6 +83,7 @@ public class DataPad {
 		}
 		return new DoubleMatrix(result);
 	}
+
 	/**
 	 * add filter only effective DOF for all nodes.
 	 * @param data
@@ -95,9 +98,12 @@ public class DataPad {
 		for (Integer n : substructCfg.getNodeSequence()) {
 			for (DispDof d : substructCfg.getEffectiveDofs(n)) {
 				try {
-					result.add(data.get(nodeCount * openseesMagic.numberOfDofs() + openseesMagic.index(d)));
+					result.add(data.get(nodeCount
+							* openseesMagic.numberOfDofs()
+							+ openseesMagic.index(d)));
 				} catch (IllegalParameterException e) {
-					log.error("Misconfigured substructure " + substructCfg.getAddress());
+					log.error("Misconfigured substructure "
+							+ substructCfg.getAddress());
 					return null;
 				}
 			}
@@ -105,4 +111,29 @@ public class DataPad {
 		}
 		return result;
 	}
+
+	/**
+	 * Converts a set of tokens to {@link Double} numbers.
+	 * @param strData
+	 *            The set of tokens.
+	 * @return A row of doubles.
+	 */
+	public final List<Double> tokenString2Double(final String strData) {
+		String[] tokens = strData.split("\\s+");
+		List<Double> row = new ArrayList<Double>();
+		for (int t = 0; t < tokens.length; t++) {
+			Double val;
+			try {
+				val = new Double(tokens[t]);
+			} catch (NumberFormatException e) {
+				log.error("Token \"" + tokens[t]
+						+ "\" is not a number.  Column " + t + " for \""
+						+ strData + "\"",e);
+				val = 0.0;
+			}
+			row.add(val);
+		}
+		return row;
+	}
+
 }

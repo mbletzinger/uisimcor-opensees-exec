@@ -18,6 +18,20 @@ import org.slf4j.LoggerFactory;
  */
 public class WorkingDir {
 	/**
+	 * @return the configDir
+	 */
+	public final String getConfigDir() {
+		return configDir;
+	}
+
+	/**
+	 * @return the workDir
+	 */
+	public final String getWorkDir() {
+		return workDir;
+	}
+
+	/**
 	 * Path to the directory containing the configuration files.
 	 */
 	private final String configDir;
@@ -51,6 +65,8 @@ public class WorkingDir {
 		this.substructureCfg = substructureCfg;
 		this.workDir = PathUtils.append(workDir, substructureCfg.getAddress());
 		this.configDir = configDir;
+		log.debug("For substructure " +substructureCfg.getAddress() + " the workDir is \"" + this.workDir + "\"" );
+		log.debug("For substructure " +substructureCfg.getAddress() + " the configDir is \"" + this.configDir + "\"" );
 	}
 
 	/**

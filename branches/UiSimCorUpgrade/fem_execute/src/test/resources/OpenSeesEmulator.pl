@@ -1,44 +1,61 @@
 #!/usr/bin/perl -w
 use strict;
 use Cwd;
-our $cwd    = getcwd();
-our $infile = shift;
-print "Using \"$infile\"\n";
+my $old_fh = select(STDOUT);
+$| = 1;
+select($old_fh);
+print "Up and Running\n";
+our $cwd = getcwd();
 print "Current directory is \"$cwd\"\n";
-our $timeSec     = 1;
-our $repetitions = readInfile($infile);
-for my $r ( 0 .. $repetitions ) {
-	print STDOUT "Printing out $r out of $repetitions\n";
-	sleep $timeSec;
-	next unless $r % 3 == 0;
-	print STDERR "Erroring out $r\n";
+our ( $fout1, $fout2 );
+our $count = 0;
+open $fout1, ">>tmp_disp.out";
+open $fout2, ">>tmp_forc.out";
+our %nodes;
+
+$old_fh = select($fout1);
+$|      = 1;
+select($fout1);
+$old_fh = select($fout2);
+$|      = 1;
+select($fout2);
+print STDOUT "Starting to read STDIN\n";
+
+while ( my $line = <STDIN> ) {
+
+	#	print STDOUT "Read \"$line\"\n";
+	if ( $line =~ m!EXIT! ) {
+		print STDOUT "Goodbye\n";
+		last;
+	}
+	print STDOUT "Received \"$line\"";
+	my ($node) = $line =~ m!^sp\s+(\d+)!;
+	if ( defined $node ) {
+		$nodes{$node} = 1;
+		print STDOUT "Found node $node\n";
+	}
+	if ( $line =~ m!done\s+#:! ) {
+
+		#	print STDOUT "Writing to file disp\n";
+		outAFile( $fout1, $count );
+
+		#	print STDOUT "Writing to file force\n";
+		outAFile( $fout2, $count );
+		$count++;
+		print STDOUT "\"Current step $count - done #:\"\n";
+	}
 }
-outAFile( "tmp_disp.out", $repetitions );
-outAFile( "tmp_forc.out", $repetitions );
 
 sub outAFile {
-	my ( $name, $nodes ) = @_;
+	my ( $handle, $nodes ) = @_;
 	my $interval = 0.0001;
-	open FOUT, ">$name";
-	my $val = 0;
-	for my $c ( 1 .. ( $nodes * 3 + 1 ) ) {
-		print FOUT $val . " ";
+	my $val      = 0;
+	my $noc = scalar keys(%nodes) * 3 ;
+	print STDOUT "Writing $noc columns\n";
+	for my $c ( 1 .. $noc ) {
+		print $handle $val . " ";
 		$val += $interval;
 	}
-	print FOUT "\n";
-	close FOUT;
+	print $handle "\n";
 }
 
-sub readInfile {
-	my ($name) = @_;
-	open FIN, "<$name";
-	my %nodes;
-	while ( my $line = <FIN> ) {
-#		print STDOUT "Scanning line \"$line\"\n";
-		my ($node) = $line =~ m!^sp\s+(\d+)!;
-		next unless defined $node;
-		$nodes{$node} = 1;
-#		print STDOUT "Found node $node\n";
-	}
-	return scalar keys(%nodes);
-}

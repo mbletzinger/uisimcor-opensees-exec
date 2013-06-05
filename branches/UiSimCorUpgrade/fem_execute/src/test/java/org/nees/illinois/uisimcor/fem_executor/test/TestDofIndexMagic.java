@@ -8,7 +8,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
+/**
+ * Tests the "magic of mapping DOF indexes.
+ * @author Michael Bletzinger
+ *
+ */
 @Test(groups = { "dofindexmagic" })
 public class TestDofIndexMagic {
 	/**

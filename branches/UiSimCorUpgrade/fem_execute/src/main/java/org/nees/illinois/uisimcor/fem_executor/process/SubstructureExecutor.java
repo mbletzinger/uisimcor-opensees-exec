@@ -2,13 +2,16 @@ package org.nees.illinois.uisimcor.fem_executor.process;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 
 import org.nees.illinois.uisimcor.fem_executor.config.ProgramConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
-import org.nees.illinois.uisimcor.fem_executor.input.FemInputFile;
-import org.nees.illinois.uisimcor.fem_executor.output.DataPad;
-import org.nees.illinois.uisimcor.fem_executor.output.OutputFileParsingTask;
+import org.nees.illinois.uisimcor.fem_executor.input.OpenSeesSG;
+import org.nees.illinois.uisimcor.fem_executor.input.ScriptGeneratorI;
+import org.nees.illinois.uisimcor.fem_executor.output.DataFormatter;
+import org.nees.illinois.uisimcor.fem_executor.process.QMessage.MessageType;
 import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
+import org.nees.illinois.uisimcor.fem_executor.utils.OutputFileException;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,19 +28,10 @@ public class SubstructureExecutor {
 	private ProgramConfig command;
 
 	/**
-	 * Current execution state.
-	 */
-	private ExecutionState current = ExecutionState.NotStarted;
-
-	/**
 	 * default wait.
 	 */
 	private final int defaultWait = 2000;
 
-	/**
-	 * Filename as first argument.
-	 */
-	private String filename;
 	/**
 	 * Logger.
 	 **/
@@ -48,10 +42,6 @@ public class SubstructureExecutor {
 	 */
 	private ProcessManagement pm;
 	/**
-	 * Flag indicating that output files need to be parsed after execution.
-	 */
-	private boolean processOutputFiles = true;
-	/**
 	 * Wait interval for checking thread for done. Default is 2 seconds
 	 */
 	private int waitInMillisecs = defaultWait;
@@ -61,83 +51,44 @@ public class SubstructureExecutor {
 	 */
 	private final String workDir;
 	/**
-	 * Output file {@link OutputFileParsingTask parser} for displacements.
+	 * FEM execution script generator.
 	 */
-	private final OutputFileParsingTask ofptDisp;
-	/**
-	 * Output file {@link OutputFileParsingTask parser} for forces.
-	 */
-	private final OutputFileParsingTask ofptForce;
-	/**
-	 * FEM execution input.
-	 */
-	private final FemInputFile input;
+	private final ScriptGeneratorI scriptGen;
 	/**
 	 * Reformat the output for UI-SimCor.
 	 */
-	private final DataPad pad;
+	private final DataFormatter dformat;
+	/**
+	 * Results of a step command.
+	 */
+	private List<Double> rawDisp;
+	/**
+	 * Results of a step command.
+	 */
+	private List<Double> rawForce;
 
 	/**
 	 * @param progCfg
 	 *            FEM program configuration parameters.
-	 * @param input
-	 *            FEM program input.
 	 * @param scfg
 	 *            Configuration for the substructure.
+	 * @param workDir
+	 *            Directory to store temporary files.
+	 * @param configDir
+	 *            Directory containing templates and configuration files..
 	 */
 	public SubstructureExecutor(final ProgramConfig progCfg,
-			final FemInputFile input, final SubstructureConfig scfg) {
-		this.workDir = input.getWorkDir();
+			final SubstructureConfig scfg, final String configDir,
+			final String workDir) {
+		this.workDir = workDir;
 		this.command = progCfg;
-		this.input = input;
-		this.ofptDisp = new OutputFileParsingTask(PathUtils.append(workDir,
-				"tmp_disp.out"));
-		this.ofptForce = new OutputFileParsingTask(PathUtils.append(workDir,
-				"tmp_forc.out"));
-		this.pad = new DataPad(scfg);
+		String dispF = PathUtils.append(workDir, "tmp_disp.out");
+		String forceF = PathUtils.append(workDir, "tmp_forc.out");
+		this.dformat = new DataFormatter(scfg);
+		this.scriptGen = new OpenSeesSG(configDir, scfg);
+		this.pm = new ProcessManagement(command.getExecutablePath(), command
+				.getProgram().toString(), waitInMillisecs, dispF, forceF);
 
-	}
-
-	/**
-	 * @return the command
-	 */
-	public final ProgramConfig getCommand() {
-		return command;
-	}
-
-	/**
-	 * @return the current
-	 */
-	public final ExecutionState getCurrent() {
-		return current;
-	}
-
-	/**
-	 * @return the defaultWait
-	 */
-	public final int getDefaultWait() {
-		return defaultWait;
-	}
-
-	/**
-	 * @return the filename
-	 */
-	public final String getFilename() {
-		return filename;
-	}
-
-	/**
-	 * @return the pm
-	 */
-	public final ProcessManagement getPm() {
-		return pm;
-	}
-
-	/**
-	 * @return the waitInMillisecs
-	 */
-	public final int getWaitInMillisecs() {
-		return waitInMillisecs;
 	}
 
 	/**
@@ -148,34 +99,12 @@ public class SubstructureExecutor {
 	}
 
 	/**
-	 * @return the processOutputFiles
-	 */
-	public final boolean isProcessOutputFiles() {
-		return processOutputFiles;
-	}
-
-	/**
 	 * @param command
 	 *            the command to set
 	 */
 	public final void setCommand(final ProgramConfig command) {
 		this.command = command;
-	}
-
-	/**
-	 * @param filename
-	 *            the filename to set
-	 */
-	public final void setFilename(final String filename) {
-		this.filename = filename;
-	}
-
-	/**
-	 * @param processOutputFiles
-	 *            the processOutputFiles to set
-	 */
-	public final void setProcessOutputFiles(final boolean processOutputFiles) {
-		this.processOutputFiles = processOutputFiles;
+		pm.setCmd(command.getExecutablePath());
 	}
 
 	/**
@@ -187,95 +116,59 @@ public class SubstructureExecutor {
 	}
 
 	/**
-	 * Create the {@link ProcessManagement ProcessManagement} instance and start
-	 * it.
+	 * 	 */
+	public final void startSimulation() {
+		pm.setWorkDir(workDir);
+		try {
+			pm.startExecute();
+			String init = scriptGen.generateInit();
+			pm.getCommandQ().add(new QMessage(MessageType.Setup, init));
+		} catch (IOException e) {
+			log.debug(pm.getCmd() + " failed to start", e);
+		}
+	}
+
+	/**
+	 * Send the next step command to the FEM program.
 	 * @param step
 	 *            Current step.
 	 * @param displacements
 	 *            Current displacement target.
-	 * @return the {@link ProcessManagement ProcessManagement} instance
 	 */
-	public final ProcessManagement start(final int step,
-			final double[] displacements) {
-		input.generate(step, displacements); // this may need to go in its own
-												// thread later.
-		pm = new ProcessManagement(command.getExecutablePath(), input
-				.getSubstructureCfg().getAddress(), waitInMillisecs, null, null);
-		filename = input.getInputFileName();
-		pm.addArg(filename);
-		pm.setWorkDir(workDir);
-		try {
-			pm.startExecute();
-			current = ExecutionState.Executing;
-			return pm;
-		} catch (IOException e) {
-			log.debug(pm.getCmd() + " failed to start", e);
-		}
-		return null;
+	public final void startStep(final int step, final double[] displacements) {
+		String stepCmnd = scriptGen.generateStep(step, displacements);
+		pm.getCommandQ().add(new QMessage(MessageType.Command, stepCmnd));
 	}
 
 	/**
 	 * Execution Polling function. Use this repeatedly inside a polling loop to
 	 * transition the process to new execution states.
 	 * @return True if the command has completed.
+	 * @throws OutputFileException If force values are missing,
 	 */
-	public final boolean isDone() {
-		boolean result = false;
-		if (current.equals(ExecutionState.Executing)) {
-			boolean done = pm.isDone();
-			if (done) {
-				current = ExecutionState.ExecutionFinished;
-			}
+	public final boolean stepIsDone() throws OutputFileException {
+		BlockingQueue<QMessage> responses = pm.getResponseQ();
+		QMessage rspStr = responses.poll();
+		if (rspStr == null) {
+			return false;
 		}
-		if (current.equals(ExecutionState.ExecutionFinished)) {
-			if (processOutputFiles) {
-				Thread thrd1 = new Thread(ofptDisp);
-				Thread thrd2 = new Thread(ofptForce);
-				log.debug("Starting parsing threads");
-				thrd1.start();
-				thrd2.start();
-				current = ExecutionState.ProcessingOutputFiles;
-			} else {
-				current = ExecutionState.Finished;
-			}
+		if(rspStr.getType().equals(MessageType.Exit)) {
+			abort();
 		}
-		if (current.equals(ExecutionState.ProcessingOutputFiles)) {
-			boolean done = ofptDisp.isDone() && ofptForce.isDone();
-			if (done) {
-				current = ExecutionState.Finished;
-			}
+		rawDisp = dformat.tokenString2Double(rspStr.getContent());
+		rspStr = responses.poll();
+		if (rspStr == null) {
+			throw new OutputFileException("Force values are missing");
 		}
-
-		if (current.equals(ExecutionState.Finished)
-				|| current.equals(ExecutionState.NotStarted)) {
-			result = true;
-		}
-		log.debug("Current state is " + current);
-		return result;
+		rawForce = dformat.tokenString2Double(rspStr.getContent());
+		return true;
 	}
 
 	/**
 	 * Abort the execution.
-	 * @return True if the abort has completed.
 	 */
-	public final boolean abort() {
-		boolean result = false;
-		if (current.equals(ExecutionState.Executing)) {
+	public final void abort() {
 			pm.abort();
-			result = true;
-		}
-		if (current.equals(ExecutionState.ProcessingOutputFiles)) {
-			boolean done = ofptDisp.isDone() && ofptForce.isDone();
-			if (done) {
-				current = ExecutionState.Finished;
-				result = true;
-			}
-		}
-		if (current.equals(ExecutionState.Finished)) {
-			result = true;
-		}
-		log.debug("Current state is " + current);
-		return result;
 	}
 
 	/**
@@ -283,7 +176,7 @@ public class SubstructureExecutor {
 	 * @return double matrix
 	 */
 	public final double[] getDisplacements() {
-		List<Double> result = pad.filter(ofptDisp.getData());
+		List<Double> result = dformat.filter(rawDisp);
 		return MtxUtils.list2Array(result);
 	}
 
@@ -292,7 +185,7 @@ public class SubstructureExecutor {
 	 * @return double matrix
 	 */
 	public final double[] getForces() {
-		List<Double> result = pad.filter(ofptForce.getData());
+		List<Double> result = dformat.filter(rawForce);
 		return MtxUtils.list2Array(result);
 	}
 }

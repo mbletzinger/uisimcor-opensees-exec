@@ -3,4 +3,4 @@ ${LoadPattern}
 }
 analyze 1
 remove loadPattern ${StepNumber}
-puts "\"Current step %d - done #:\"\n"
+puts "Current step ${StepNumber} - done #:"

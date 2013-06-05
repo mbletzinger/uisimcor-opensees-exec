@@ -7,10 +7,9 @@ import java.util.Collection;
 import java.util.List;
 
 import org.nees.illinois.uisimcor.fem_executor.FemExecutor;
-import org.nees.illinois.uisimcor.fem_executor.config.ProgramConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
+import org.nees.illinois.uisimcor.fem_executor.config.ProgramConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
-import org.nees.illinois.uisimcor.fem_executor.process.DoubleMatrix;
 import org.nees.illinois.uisimcor.fem_executor.process.FileWithContentDelete;
 import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
@@ -62,7 +61,7 @@ public class TestFemExecutor {
 					.put(FemProgramType.OPENSEES, femProg);
 			Collection<SubstructureConfig> mdlCfgs = fexec.getConfig()
 					.getSubstructCfgs().values();
-			fexec.setup(false);
+			fexec.setup();
 			for (SubstructureConfig mCfg : mdlCfgs) {
 				loadExecutor(fexec, mCfg);
 			}
@@ -135,18 +134,18 @@ public class TestFemExecutor {
 		}
 	}
 
-	/**
-	 * Remove the files generated from the test.
-	 */
-	@AfterTest
-	public final void afterTest() {
-		FileWithContentDelete dir = new FileWithContentDelete(workDir);
-		boolean done = dir.delete();
-		if (done == false) {
-			log.error("Could not remove dir \"" + workDir + "\"");
-			return;
-		}
-		log.debug("\"" + workDir + "\" was removed");
-	}
+//	/**
+//	 * Remove the files generated from the test.
+//	 */
+//	@AfterTest
+//	public final void afterTest() {
+//		FileWithContentDelete dir = new FileWithContentDelete(workDir);
+//		boolean done = dir.delete();
+//		if (done == false) {
+//			log.error("Could not remove dir \"" + workDir + "\"");
+//			return;
+//		}
+//		log.debug("\"" + workDir + "\" was removed");
+//	}
 
 }

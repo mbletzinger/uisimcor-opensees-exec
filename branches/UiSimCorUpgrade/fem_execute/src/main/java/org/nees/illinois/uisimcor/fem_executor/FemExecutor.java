@@ -5,12 +5,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.nees.illinois.uisimcor.fem_executor.config.ProgramConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.config.LoadSaveConfig;
-import org.nees.illinois.uisimcor.fem_executor.input.FemInputFile;
-import org.nees.illinois.uisimcor.fem_executor.process.ProcessManagement;
+import org.nees.illinois.uisimcor.fem_executor.config.ProgramConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
+import org.nees.illinois.uisimcor.fem_executor.input.WorkingDir;
 import org.nees.illinois.uisimcor.fem_executor.process.SubstructureExecutor;
+import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
+import org.nees.illinois.uisimcor.fem_executor.utils.OutputFileException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,14 +100,16 @@ public class FemExecutor {
 	/**
 	 * Load the input file parameters into each executor.
 	 */
-	public final void setup(boolean enableDebug) {
+	public final void setup() {
 		ProgramConfig progCfg = config.getFemProgramParameters().get(
 				FemProgramType.OPENSEES);
 		for (String fsc : config.getSubstructCfgs().keySet()) {
-			FemInputFile input = new FemInputFile(progCfg, config
-					.getSubstructCfgs().get(fsc), workDir, configRootDir, enableDebug);
-			SubstructureExecutor exe = new SubstructureExecutor(progCfg, input, config
-					.getSubstructCfgs().get(fsc));
+			SubstructureConfig scfg = config.getSubstructCfgs().get(fsc);
+			WorkingDir wd = new WorkingDir(scfg, workDir, configRootDir);
+			wd.createWorkDir();
+			SubstructureExecutor exe = new SubstructureExecutor(progCfg, scfg,
+					configRootDir, wd.getWorkDir());
+			exe.startSimulation();
 			executors.put(fsc, exe);
 		}
 	}
@@ -117,11 +121,7 @@ public class FemExecutor {
 
 		for (String mdl : executors.keySet()) {
 			SubstructureExecutor exe = executors.get(mdl);
-			ProcessManagement pm = exe.start(step, list2Double(displacementsMap.get(mdl)));
-			if (pm == null) {
-				log.error("Aborting due to failed process start.");
-				abort();
-			}
+			exe.startStep(getStep(), MtxUtils.list2Array(displacementsMap.get(mdl)));
 		}
 	}
 
@@ -174,7 +174,11 @@ public class FemExecutor {
 		boolean result = true;
 		for (String mdl : executors.keySet()) {
 			SubstructureExecutor exe = executors.get(mdl);
-			result = result && exe.isDone();
+			try {
+				result = result && exe.stepIsDone();
+			} catch (OutputFileException e) {
+				log.error("Step command for " + mdl + " failed because",e);
+			}
 		}
 		return result;
 	}
@@ -187,7 +191,7 @@ public class FemExecutor {
 		boolean result = true;
 		for (String mdl : executors.keySet()) {
 			SubstructureExecutor exe = executors.get(mdl);
-			result = result && exe.abort();
+			exe.abort();
 		}
 		return result;
 	}
@@ -270,29 +274,31 @@ public class FemExecutor {
 			StatusPrinter.printInCaseOfErrorsOrWarnings(context);
 		}
 	}
+
 	/**
 	 * Converts array into list.
-	 *@param array double array
-	 *@return
-	 *Double List
+	 * @param array
+	 *            double array
+	 * @return Double List
 	 */
-	private List<Double> double2List(final double [] array) {
+	private List<Double> double2List(final double[] array) {
 		List<Double> result = new ArrayList<Double>();
-		for(double n : array) {
+		for (double n : array) {
 			result.add(new Double(n));
 		}
 		return result;
 	}
+
 	/**
 	 * Converts list into array.
-	 *@param list List
-	 *@return
-	 *array
+	 * @param list
+	 *            List
+	 * @return array
 	 */
 	private double[] list2Double(final List<Double> list) {
-		double [] result = new double[list.size()];
+		double[] result = new double[list.size()];
 		int c = 0;
-		for(double n : list) {
+		for (double n : list) {
 			result[c] = n;
 			c++;
 		}
