@@ -1,10 +1,6 @@
 package org.nees.illinois.uisimcor.fem_executor.process;
 
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -13,6 +9,7 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.concurrent.BlockingQueue;
 
+import org.nees.illinois.uisimcor.fem_executor.process.QMessage.MessageType;
 import org.nees.illinois.uisimcor.fem_executor.utils.OutputFileException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,12 +59,12 @@ public class StdInExchange implements Abortable, Observer {
 	/**
 	 * Current command string.
 	 */
-	private String command;
+	private QMessage command;
 
 	/**
 	 * Blocking queue containing the command strings.
 	 */
-	private final BlockingQueue<String> commandQ;
+	private final BlockingQueue<QMessage> commandQ;
 
 	/**
 	 * The output file for displacements.
@@ -99,7 +96,7 @@ public class StdInExchange implements Abortable, Observer {
 	/**
 	 * Queue to write the response strings to.
 	 */
-	private final BlockingQueue<String> responseQ;
+	private final BlockingQueue<QMessage> responseQ;
 	/**
 	 * Current state.
 	 */
@@ -108,6 +105,7 @@ public class StdInExchange implements Abortable, Observer {
 	 * STDIN for the FEM process where the commands are written to.
 	 */
 	private final PrintWriter strm;
+
 	/**
 	 * @param commandQ
 	 *            Blocking queue containing the command strings.
@@ -123,9 +121,9 @@ public class StdInExchange implements Abortable, Observer {
 	 *            Number of milliseconds to sleep between response file change
 	 *            checks.
 	 */
-	public StdInExchange(final BlockingQueue<String> commandQ,
+	public StdInExchange(final BlockingQueue<QMessage> commandQ,
 			final String dispF, final String forceF,
-			final BlockingQueue<String> responseQ, final OutputStream strm,
+			final BlockingQueue<QMessage> responseQ, final OutputStream strm,
 			final int filecheckInterval) {
 		this.commandQ = commandQ;
 		this.commandQ.clear();
@@ -136,6 +134,7 @@ public class StdInExchange implements Abortable, Observer {
 		this.filecheckInterval = filecheckInterval;
 		this.responseQ.clear();
 	}
+
 	/**
 	 * @return the analysisDone
 	 */
@@ -145,7 +144,7 @@ public class StdInExchange implements Abortable, Observer {
 
 	@Override
 	public final synchronized boolean isQuit() {
-//		log.debug("quit is " + quit);
+		// log.debug("quit is " + quit);
 		return quit;
 	}
 
@@ -172,7 +171,8 @@ public class StdInExchange implements Abortable, Observer {
 	private void returnResponses() {
 		for (String r : responseLines) {
 			try {
-				responseQ.put(r);
+				log.debug("Returning response \"" + r + "\"");
+				responseQ.put(new QMessage(MessageType.Response, r));
 			} catch (InterruptedException e) {
 				log.debug("Checking quit");
 				return;
@@ -218,13 +218,21 @@ public class StdInExchange implements Abortable, Observer {
 	 * Print command to the process STDIN.
 	 */
 	private void sendCommand() {
-		strm.println(command);
+		log.debug("Sending command " + command);
+		strm.println(command.getContent());
 		strm.flush();
-		state = StdInExState.WaitingForOutputFileChange;
+		if (command.getType().equals(MessageType.Command)) {
+			state = StdInExState.WaitingForOutputFileChange;
+		} else if (command.getType().equals(MessageType.Exit)) {
+			setQuit(true);
+		} else {
+			state = StdInExState.WaitingForCommand;
+		}
 	}
 
 	/**
-	 * @param analysisDone the analysisDone to set
+	 * @param analysisDone
+	 *            the analysisDone to set
 	 */
 	public final synchronized void setAnalysisDone(final boolean analysisDone) {
 		this.analysisDone = analysisDone;
@@ -232,7 +240,7 @@ public class StdInExchange implements Abortable, Observer {
 
 	@Override
 	public final synchronized void setQuit(final boolean quit) {
-//		log.debug("Setting quit " + quit);
+		// log.debug("Setting quit " + quit);
 		this.quit = quit;
 	}
 
@@ -258,10 +266,11 @@ public class StdInExchange implements Abortable, Observer {
 
 	/**
 	 * Checks to see if the output file has changed yet by checking the
-	 * analysisDone flag. The flag is set by the Observable ProsessResponse class.
+	 * analysisDone flag. The flag is set by the Observable ProsessResponse
+	 * class.
 	 */
 	private void waitForOutputFileChange() {
-		if(isAnalysisDone()) {
+		if (isAnalysisDone()) {
 			state = StdInExState.ReadingOutputFile;
 			setAnalysisDone(false);
 			return;

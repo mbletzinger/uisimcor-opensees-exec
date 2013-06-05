@@ -9,9 +9,10 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
 import org.nees.illinois.uisimcor.fem_executor.process.FileWithContentDelete;
-import org.nees.illinois.uisimcor.fem_executor.process.ProcessManagement;
 import org.nees.illinois.uisimcor.fem_executor.process.ProcessResponse;
+import org.nees.illinois.uisimcor.fem_executor.process.QMessage;
 import org.nees.illinois.uisimcor.fem_executor.process.StdInExchange;
+import org.nees.illinois.uisimcor.fem_executor.process.QMessage.MessageType;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,8 +51,8 @@ public class TestStdinExchange {
 		String[] cmd = { "perl", command, "dummy1", "2", "9" };
 		String dispFile = PathUtils.append(workDir, "tmp_disp.out");
 		String forceFile = PathUtils.append(workDir, "tmp_forc.out");
-		BlockingQueue<String> commands = new LinkedBlockingQueue<String>();
-		BlockingQueue<String> responses = new LinkedBlockingQueue<String>();
+		BlockingQueue<QMessage> commands = new LinkedBlockingQueue<QMessage>();
+		BlockingQueue<QMessage> responses = new LinkedBlockingQueue<QMessage>();
 		ProcessBuilder pb = new ProcessBuilder(cmd);
 		pb.directory(new File(workDir));
 		Process p = null;
@@ -89,8 +90,8 @@ public class TestStdinExchange {
 		final int pollCount = 6;
 		final int lastStep = 11;
 		for (int s = 1; s < lastStep; s++) {
-			commands.add("Execute Step " + s);
-			String rsp = null;
+			commands.add(new QMessage(MessageType.Command, "Execute Step " + s));
+			QMessage rsp = null;
 			int count = 0;
 			while (rsp == null && count < pollCount) {
 				try {
@@ -105,9 +106,9 @@ public class TestStdinExchange {
 			}
 			Assert.assertNotNull("Response not received within 5 seconds", rsp);
 			Assert.assertTrue("Response " + rsp + " contains step number " + s,
-					rsp.contains(Integer.toString(s)));
+					rsp.getContent().contains(Integer.toString(s)));
 		}
-		commands.add("EXIT");
+		commands.add(new QMessage(MessageType.Exit, "EXIT"));
 		log.debug("Ending threads");
 		errPr.setQuit(true);
 		errThrd.interrupt();
@@ -146,7 +147,6 @@ public class TestStdinExchange {
 	 /**
 	 * Remove test files.
 	 */
-	
 	 @AfterClass
 	 public final void cleanup() {
 	 FileWithContentDelete dirF = new FileWithContentDelete(workDir);

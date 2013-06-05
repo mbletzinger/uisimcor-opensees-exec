@@ -19,11 +19,14 @@
 		name="org.nees.illinois"
 		level="INFO" />
 	<logger
+		name="org.nees.illinois.uisimcor.fem_executor"
+		level="INFO" />
+	<logger
 		name="org.nees.illinois.uisimcor.fem_executor.test"
 		level="DEBUG" />
 	<logger
 		name="org.nees.illinois.uisimcor.fem_executor.process"
-		level="DEBUG" />
+		level="INFO" />
 	<logger
 		name="org.nees.illinois.uisimcor.fem_executor.process.DoubleMatrix"
 		level="INFO" />

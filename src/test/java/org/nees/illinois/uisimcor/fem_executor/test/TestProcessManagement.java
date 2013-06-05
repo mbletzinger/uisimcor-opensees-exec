@@ -9,6 +9,8 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.nees.illinois.uisimcor.fem_executor.process.FileWithContentDelete;
 import org.nees.illinois.uisimcor.fem_executor.process.ProcessManagement;
+import org.nees.illinois.uisimcor.fem_executor.process.QMessage;
+import org.nees.illinois.uisimcor.fem_executor.process.QMessage.MessageType;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,12 +58,12 @@ public class TestProcessManagement {
 			log.error("Failed to start because ", e);
 			Assert.fail(pmCommand + " \" failed to start");
 		}
-		BlockingQueue<String> commands = pm.getCommandQ();
-		BlockingQueue<String> responses = pm.getResponseQ();
+		BlockingQueue<QMessage> commands = pm.getCommandQ();
+		BlockingQueue<QMessage> responses = pm.getResponseQ();
 		final int lastStep = 11;
 		for (int s = 1; s < lastStep; s++) {
-			commands.add("Execute Step " + s);
-			String rsp = null;
+			commands.add(new QMessage(MessageType.Command,"Execute Step " + s));
+			QMessage rsp = null;
 			int count = 0;
 			while (rsp == null && count < pollCount) {
 				try {
@@ -76,9 +78,9 @@ public class TestProcessManagement {
 			}
 			Assert.assertNotNull("Response not received within 5 seconds", rsp);
 			Assert.assertTrue("Response contains step number",
-					rsp.contains(Integer.toString(s)));
+					rsp.getContent().contains(Integer.toString(s)));
 		}
-		commands.add("EXIT");
+		commands.add(new QMessage(MessageType.Exit,"EXIT"));
 		pm.finish();
 	}
 
