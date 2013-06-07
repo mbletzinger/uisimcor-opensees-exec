@@ -7,18 +7,10 @@ select($old_fh);
 print "Up and Running\n";
 our $cwd = getcwd();
 print "Current directory is \"$cwd\"\n";
-our ( $fout1, $fout2 );
+our ( $file1, $file2 ) = ("tmp_disp.txt","tmp_forc.txt");
 our $count = 0;
-open $fout1, ">>tmp_disp.out";
-open $fout2, ">>tmp_forc.out";
 our %nodes;
 
-$old_fh = select($fout1);
-$|      = 1;
-select($fout1);
-$old_fh = select($fout2);
-$|      = 1;
-select($fout2);
 print STDOUT "Starting to read STDIN\n";
 
 while ( my $line = <STDIN> ) {
@@ -37,17 +29,19 @@ while ( my $line = <STDIN> ) {
 	if ( $line =~ m!done\s+#:! ) {
 
 		#	print STDOUT "Writing to file disp\n";
-		outAFile( $fout1, $count );
+		outAFile( $file1, $count );
 
 		#	print STDOUT "Writing to file force\n";
-		outAFile( $fout2, $count );
+		outAFile( $file2, $count );
 		$count++;
 		print STDOUT "\"Current step $count - done #:\"\n";
 	}
 }
 
 sub outAFile {
-	my ( $handle, $nodes ) = @_;
+	my ( $file, $nodes ) = @_;
+	my $handle;
+	open $handle, ">$file";
 	my $interval = 0.0001;
 	my $val      = 0;
 	my $noc = scalar keys(%nodes) * 3 ;
@@ -57,5 +51,5 @@ sub outAFile {
 		$val += $interval;
 	}
 	print $handle "\n";
+	close $handle;
 }
-

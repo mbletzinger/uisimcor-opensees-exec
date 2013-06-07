@@ -4,7 +4,7 @@ import java.net.URL;
 
 import org.nees.illinois.uisimcor.fem_executor.FemExecutorConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
-import org.nees.illinois.uisimcor.fem_executor.config.ProgramConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.ProgramDao;
 import org.nees.illinois.uisimcor.fem_executor.input.OpenSeesSG;
 import org.nees.illinois.uisimcor.fem_executor.input.ScriptGeneratorI;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
@@ -82,7 +82,7 @@ public class TestInputCommandGeneration {
 		String cf = PathUtils.cleanPath(u.getPath());
 		configDir = PathUtils.parent(cf);
 		femCfg = new FemExecutorConfig(configDir);
-		ProgramConfig femProg = new ProgramConfig(FemProgramType.OPENSEES,
+		ProgramDao femProg = new ProgramDao(FemProgramType.OPENSEES,
 				"/usr/bin/OpenSees");
 		femCfg.getFemProgramParameters().put(FemProgramType.OPENSEES, femProg);
 		String address = mdl;

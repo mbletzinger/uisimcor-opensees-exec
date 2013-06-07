@@ -89,14 +89,18 @@ public final class MtxUtils {
 		}
 		return result;
 	}
-
-	public static double[] list2Array(List<Double> list) {
-		double [] result = new double[list.size()];
+/**
+ * Convert List<Double> to double[].
+ *@param list
+ *List<Double>
+ *@return double[]
+ */
+	public static double[] list2Array(final List<Double> list) {
+		double[] result = new double[list.size()];
 		int i = 0;
-		for(Double d : list) {
+		for (Double d : list) {
 			result[i++] = d;
 		}
 		return result;
 	}
-	
 }

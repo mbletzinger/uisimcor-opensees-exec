@@ -104,7 +104,7 @@ public class LoadSaveConfig {
 		}
 		femConfig = new FemExecutorConfig(workDir);
 		for (FemProgramType p : FemProgramType.values()) {
-			ProgramConfig fProgCfg = loadFemProgram(p);
+			ProgramDao fProgCfg = loadFemProgram(p);
 			if (fProgCfg == null) {
 				continue;
 			}
@@ -113,7 +113,7 @@ public class LoadSaveConfig {
 		String str = props.getProperty("substructures");
 		String[] names = str.split(", ");
 		for (String n : names) {
-			SubstructureConfig cfg = loadSubStructure(n);
+			SubstructureDao cfg = loadSubStructure(n);
 			femConfig.getSubstructCfgs().put(n, cfg);
 		}
 	}
@@ -123,7 +123,7 @@ public class LoadSaveConfig {
 	 * @param progCfg
 	 *            FEM program parameters set
 	 */
-	private void saveFemProgram(final ProgramConfig progCfg) {
+	private void saveFemProgram(final ProgramDao progCfg) {
 		FemProgramType ptype = progCfg.getProgram();
 		props.put(ptype + ".executable", progCfg.getExecutablePath());
 	}
@@ -134,12 +134,12 @@ public class LoadSaveConfig {
 	 *            FEM program type.
 	 * @return FEM program parameters set
 	 */
-	private ProgramConfig loadFemProgram(final FemProgramType ptype) {
+	private ProgramDao loadFemProgram(final FemProgramType ptype) {
 		String executable = props.getProperty(ptype + ".executable");
 		if (executable == null) {
 			return null;
 		}
-		ProgramConfig result = new ProgramConfig(ptype, executable);
+		ProgramDao result = new ProgramDao(ptype, executable);
 		return result;
 	}
 
@@ -149,7 +149,7 @@ public class LoadSaveConfig {
 	 *            Name of substructure.
 	 * @return Configuration data.
 	 */
-	private SubstructureConfig loadSubStructure(final String name) {
+	private SubstructureDao loadSubStructure(final String name) {
 		String address = name;
 		String str = props.getProperty(name + ".dimension");
 		DimensionType dim = null;
@@ -211,7 +211,7 @@ public class LoadSaveConfig {
 						+ "\" not recognized for " + name, e);
 			}
 		}
-		SubstructureConfig result = new SubstructureConfig(address, dim, fem,
+		SubstructureDao result = new SubstructureDao(address, dim, fem,
 				sfiles, nodes, wfiles);
 		for (Integer node : nodes) {
 			str = props.getProperty(name + ".effective.dofs." + node);
@@ -250,7 +250,7 @@ public class LoadSaveConfig {
 			first = false;
 		}
 		props.setProperty("substructures", str);
-		for (ProgramConfig fpCfg : femConfig.getFemProgramParameters()
+		for (ProgramDao fpCfg : femConfig.getFemProgramParameters()
 				.values()) {
 			saveFemProgram(fpCfg);
 		}
@@ -271,7 +271,7 @@ public class LoadSaveConfig {
 	 *            Name of substructure.
 	 */
 	private void saveSubStructure(final String name) {
-		SubstructureConfig config = femConfig.getSubstructCfgs().get(name);
+		SubstructureDao config = femConfig.getSubstructCfgs().get(name);
 		props.setProperty(name + ".dimension", config.getDimension().name());
 		props.setProperty(name + ".control.nodes",
 				eoIntegerList.encode(config.getNodeSequence()));

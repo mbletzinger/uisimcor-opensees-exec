@@ -12,7 +12,7 @@ public class DofIndexMagic {
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
-	public String toString() {
+	public final String toString() {
 		return "DofIndexMagic=" + dim + (isMatlab ? "/isMatlab" : "")
 				+ (isUiSimCor ? "/isUiSimCor" : "");
 	}

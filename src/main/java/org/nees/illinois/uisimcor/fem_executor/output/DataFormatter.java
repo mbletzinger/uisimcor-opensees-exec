@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.nees.illinois.uisimcor.fem_executor.config.DispDof;
 import org.nees.illinois.uisimcor.fem_executor.config.DofIndexMagic;
-import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.SubstructureDao;
 import org.nees.illinois.uisimcor.fem_executor.process.DoubleMatrix;
 import org.nees.illinois.uisimcor.fem_executor.utils.IllegalParameterException;
 import org.slf4j.Logger;
@@ -20,7 +20,7 @@ public class DataFormatter {
 	 * Substructure configuration containing the nodes and effective DOFs for
 	 * the module.
 	 */
-	private final SubstructureConfig substructCfg;
+	private final SubstructureDao substructCfg;
 
 	/**
 	 * Logger.
@@ -32,7 +32,7 @@ public class DataFormatter {
 	 *            Substructure configuration containing the nodes and effective
 	 *            DOFs for the module.
 	 */
-	public DataFormatter(final SubstructureConfig substructCfg) {
+	public DataFormatter(final SubstructureDao substructCfg) {
 		this.substructCfg = substructCfg;
 	}
 
