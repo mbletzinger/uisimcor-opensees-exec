@@ -5,7 +5,7 @@ package org.nees.illinois.uisimcor.fem_executor.config.dao;
  * configuration directory for templates.
  * @author Michael Bletzinger
  */
-public class TemplateDAO {
+public class TemplateDao {
 	/**
 	 * Template file for initializing an FEM analysis.
 	 */
@@ -21,7 +21,7 @@ public class TemplateDAO {
 	 * @param initTemplateFile
 	 *            Template file for initializing an FEM analysis.
 	 */
-	public TemplateDAO(final String stepTemplateFile, final String initTemplateFile) {
+	public TemplateDao(final String stepTemplateFile, final String initTemplateFile) {
 		this.stepTemplateFile = stepTemplateFile;
 		this.initTemplateFile = initTemplateFile;
 	}
