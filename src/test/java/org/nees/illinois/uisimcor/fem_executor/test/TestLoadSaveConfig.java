@@ -6,11 +6,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.nees.illinois.uisimcor.fem_executor.FemExecutorConfig;
-import org.nees.illinois.uisimcor.fem_executor.config.DispDof;
-import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.config.LoadSaveConfig;
-import org.nees.illinois.uisimcor.fem_executor.config.ProgramDao;
-import org.nees.illinois.uisimcor.fem_executor.config.SubstructureDao;
+import org.nees.illinois.uisimcor.fem_executor.config.dao.ProgramDao;
+import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
+import org.nees.illinois.uisimcor.fem_executor.config.types.DispDof;
+import org.nees.illinois.uisimcor.fem_executor.config.types.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

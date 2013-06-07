@@ -6,7 +6,7 @@ package org.nees.illinois.uisimcor.fem_executor.input;
 import java.io.File;
 import java.io.IOException;
 
-import org.nees.illinois.uisimcor.fem_executor.config.SubstructureDao;
+import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

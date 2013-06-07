@@ -3,10 +3,10 @@ package org.nees.illinois.uisimcor.fem_executor.test;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.nees.illinois.uisimcor.fem_executor.config.DimensionType;
-import org.nees.illinois.uisimcor.fem_executor.config.DispDof;
-import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
-import org.nees.illinois.uisimcor.fem_executor.config.SubstructureDao;
+import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
+import org.nees.illinois.uisimcor.fem_executor.config.types.DimensionType;
+import org.nees.illinois.uisimcor.fem_executor.config.types.DispDof;
+import org.nees.illinois.uisimcor.fem_executor.config.types.FemProgramType;
 
 /**
  * Creates a reference substructure config that is used for unit tests.

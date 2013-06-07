@@ -1,5 +1,6 @@
 package org.nees.illinois.uisimcor.fem_executor.config;
 
+import org.nees.illinois.uisimcor.fem_executor.config.types.DispDof;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 /**

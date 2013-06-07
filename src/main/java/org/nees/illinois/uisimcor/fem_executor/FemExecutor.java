@@ -5,10 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.config.LoadSaveConfig;
-import org.nees.illinois.uisimcor.fem_executor.config.ProgramDao;
-import org.nees.illinois.uisimcor.fem_executor.config.SubstructureDao;
+import org.nees.illinois.uisimcor.fem_executor.config.dao.ProgramDao;
+import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
+import org.nees.illinois.uisimcor.fem_executor.config.types.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.input.WorkingDir;
 import org.nees.illinois.uisimcor.fem_executor.process.SubstructureExecutor;
 import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;

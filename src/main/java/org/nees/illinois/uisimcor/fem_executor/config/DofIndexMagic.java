@@ -1,5 +1,7 @@
 package org.nees.illinois.uisimcor.fem_executor.config;
 
+import org.nees.illinois.uisimcor.fem_executor.config.types.DimensionType;
+import org.nees.illinois.uisimcor.fem_executor.config.types.DispDof;
 import org.nees.illinois.uisimcor.fem_executor.utils.IllegalParameterException;
 
 /**

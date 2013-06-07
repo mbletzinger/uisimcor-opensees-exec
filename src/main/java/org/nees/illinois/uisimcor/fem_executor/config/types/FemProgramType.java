@@ -1,4 +1,4 @@
-package org.nees.illinois.uisimcor.fem_executor.config;
+package org.nees.illinois.uisimcor.fem_executor.config.types;
 /**
  * Enumeration of FEM programs which UI-SimCor can communicate with.
  * @author Michael Bletzinger

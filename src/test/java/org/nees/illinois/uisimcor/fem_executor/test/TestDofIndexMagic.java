@@ -1,8 +1,8 @@
 package org.nees.illinois.uisimcor.fem_executor.test;
 
-import org.nees.illinois.uisimcor.fem_executor.config.DimensionType;
-import org.nees.illinois.uisimcor.fem_executor.config.DispDof;
 import org.nees.illinois.uisimcor.fem_executor.config.DofIndexMagic;
+import org.nees.illinois.uisimcor.fem_executor.config.types.DimensionType;
+import org.nees.illinois.uisimcor.fem_executor.config.types.DispDof;
 import org.nees.illinois.uisimcor.fem_executor.utils.IllegalParameterException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,7 +1,9 @@
 /**
  *
  */
-package org.nees.illinois.uisimcor.fem_executor.config;
+package org.nees.illinois.uisimcor.fem_executor.config.dao;
+
+import org.nees.illinois.uisimcor.fem_executor.config.types.FemProgramType;
 
 /**
  * Configuration parameters for an FEM program.

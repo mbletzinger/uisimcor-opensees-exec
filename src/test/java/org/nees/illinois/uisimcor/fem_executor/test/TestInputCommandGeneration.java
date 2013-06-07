@@ -3,8 +3,8 @@ package org.nees.illinois.uisimcor.fem_executor.test;
 import java.net.URL;
 
 import org.nees.illinois.uisimcor.fem_executor.FemExecutorConfig;
-import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
-import org.nees.illinois.uisimcor.fem_executor.config.ProgramDao;
+import org.nees.illinois.uisimcor.fem_executor.config.dao.ProgramDao;
+import org.nees.illinois.uisimcor.fem_executor.config.types.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.input.OpenSeesSG;
 import org.nees.illinois.uisimcor.fem_executor.input.ScriptGeneratorI;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
