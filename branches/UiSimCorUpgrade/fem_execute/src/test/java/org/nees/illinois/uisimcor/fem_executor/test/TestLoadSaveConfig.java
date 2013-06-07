@@ -9,8 +9,8 @@ import org.nees.illinois.uisimcor.fem_executor.FemExecutorConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.DispDof;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.config.LoadSaveConfig;
-import org.nees.illinois.uisimcor.fem_executor.config.ProgramConfig;
-import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.ProgramDao;
+import org.nees.illinois.uisimcor.fem_executor.config.SubstructureDao;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,7 +98,7 @@ public class TestLoadSaveConfig {
 		configRefFolder = pathF.getParent();
 		final int noSubstructures = 3;
 		femCfg = new FemExecutorConfig("/home/mbletzin/Tmp");
-		ProgramConfig femProg = new ProgramConfig(
+		ProgramDao femProg = new ProgramDao(
 				FemProgramType.OPENSEES, "C:/Tcl/bin/OpenSees");
 		femCfg.getFemProgramParameters().put(FemProgramType.OPENSEES, femProg);
 		for (int i = 1; i < noSubstructures + 1; i++) {
@@ -121,9 +121,9 @@ public class TestLoadSaveConfig {
 		List<FemProgramType> eprogs = new ArrayList<FemProgramType>(expected
 				.getFemProgramParameters().keySet());
 		for (FemProgramType p : eprogs) {
-			ProgramConfig eprogCfg = expected.getFemProgramParameters().get(
+			ProgramDao eprogCfg = expected.getFemProgramParameters().get(
 					p);
-			ProgramConfig aprogCfg = actual.getFemProgramParameters().get(p);
+			ProgramDao aprogCfg = actual.getFemProgramParameters().get(p);
 			Assert.assertNotNull(aprogCfg, "Checking program parameters for "
 					+ p);
 			Assert.assertEquals(aprogCfg.getExecutablePath(),
@@ -132,8 +132,8 @@ public class TestLoadSaveConfig {
 		}
 		for (String n : expected.getSubstructCfgs().keySet()) {
 			log.debug("Checking substructure \"" + n + "\"");
-			SubstructureConfig ecfg = expected.getSubstructCfgs().get(n);
-			SubstructureConfig acfg = actual.getSubstructCfgs().get(n);
+			SubstructureDao ecfg = expected.getSubstructCfgs().get(n);
+			SubstructureDao acfg = actual.getSubstructCfgs().get(n);
 			Assert.assertNotNull(acfg, "Checking substructure \"" + n + "\"");
 			Assert.assertEquals(acfg.getSourcedFilenames(),
 					ecfg.getSourcedFilenames(), "Checking substructure \"" + n

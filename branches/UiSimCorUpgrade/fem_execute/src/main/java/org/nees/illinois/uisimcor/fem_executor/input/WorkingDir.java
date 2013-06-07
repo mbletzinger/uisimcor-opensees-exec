@@ -6,7 +6,7 @@ package org.nees.illinois.uisimcor.fem_executor.input;
 import java.io.File;
 import java.io.IOException;
 
-import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.SubstructureDao;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +44,7 @@ public class WorkingDir {
 	/**
 	 * Substructure configuration parameters.
 	 */
-	private final SubstructureConfig substructureCfg;
+	private final SubstructureDao substructureCfg;
 
 	/**
 	 * Path to the directory containing the input file.
@@ -60,7 +60,7 @@ public class WorkingDir {
 	 * @param configDir
 	 *            Root of directory containing the model configuration files.
 	 */
-	public WorkingDir(final SubstructureConfig substructureCfg,
+	public WorkingDir(final SubstructureDao substructureCfg,
 			final String workDir, final String configDir) {
 		this.substructureCfg = substructureCfg;
 		this.workDir = PathUtils.append(workDir, substructureCfg.getAddress());

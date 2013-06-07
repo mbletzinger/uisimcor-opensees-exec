@@ -50,7 +50,7 @@ public enum DimensionType {
 	 *            array.
 	 * @return list.
 	 */
-	private final List<DispDof> array2List(DispDof[] dofs) {
+	private List<DispDof> array2List(final DispDof[] dofs) {
 		List<DispDof> result = new ArrayList<DispDof>();
 		for (DispDof d : dofs) {
 			result.add(d);

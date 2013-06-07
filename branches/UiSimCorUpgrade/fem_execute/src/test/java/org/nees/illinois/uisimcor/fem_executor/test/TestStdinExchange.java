@@ -49,8 +49,8 @@ public class TestStdinExchange {
 	@Test
 	public final void testOutput() {
 		String[] cmd = { "perl", command, "dummy1", "2", "9" };
-		String dispFile = PathUtils.append(workDir, "tmp_disp.out");
-		String forceFile = PathUtils.append(workDir, "tmp_forc.out");
+		String dispFile = PathUtils.append(workDir, "tmp_disp.txt");
+		String forceFile = PathUtils.append(workDir, "tmp_forc.txt");
 		BlockingQueue<QMessage> commands = new LinkedBlockingQueue<QMessage>();
 		BlockingQueue<QMessage> responses = new LinkedBlockingQueue<QMessage>();
 		ProcessBuilder pb = new ProcessBuilder(cmd);
@@ -70,8 +70,7 @@ public class TestStdinExchange {
 				p.getErrorStream(), milliWait, testName);
 		ProcessResponse stoutPr = new ProcessResponse(Level.DEBUG,
 				p.getInputStream(), milliWait, testName);
-		StdInExchange exchange = new StdInExchange(commands, dispFile,
-				forceFile, responses, p.getOutputStream(), milliWait);
+		StdInExchange exchange = new StdInExchange(p.getOutputStream());
 		stoutPr.addObserver(exchange);
 		Thread errThrd = new Thread(errPr);
 		Thread stoutThrd = new Thread(stoutPr);

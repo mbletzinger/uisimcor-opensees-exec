@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,16 +28,6 @@ public class ProcessManagement {
 	 * Line command to execute.
 	 */
 	private String cmd;
-
-	/**
-	 * Command queue.
-	 */
-	private final BlockingQueue<QMessage> commandQ = new LinkedBlockingQueue<QMessage>();
-
-	/**
-	 * File which gets the response displacements.
-	 */
-	private final String dispResponseFile;
 
 	/**
 	 * Environment variables for the command.
@@ -71,11 +60,6 @@ public class ProcessManagement {
 	private int exitValue;
 
 	/**
-	 * File which gets the force displacements.
-	 */
-	private final String forceResponseFile;
-
-	/**
 	 * Interval for the {@link ProcessResponse ProcessResponse} threads to wait
 	 * before reading content.
 	 */
@@ -94,10 +78,6 @@ public class ProcessManagement {
 	 */
 	private final String processName;
 	/**
-	 * Response queue.
-	 */
-	private final BlockingQueue<QMessage> responseQ = new LinkedBlockingQueue<QMessage>();
-	/**
 	 * Listener for output.
 	 */
 	private ProcessResponse stoutPr;
@@ -113,6 +93,7 @@ public class ProcessManagement {
 	 * Working directory for the execution.
 	 */
 	private String workDir = null;
+
 	/**
 	 * @param cmd
 	 *            Line command to execute.
@@ -120,19 +101,14 @@ public class ProcessManagement {
 	 *            Name of the command.
 	 * @param waitInMillSecs
 	 *            Argument list for the command.
-	 * @param dispResponseFile
-	 *            File which gets the response displacements.
-	 * @param forceResponseFile
-	 *            File which gets the force displacements.
 	 */
 	public ProcessManagement(final String cmd, final String processName,
-			final int waitInMillSecs, final String dispResponseFile, final String forceResponseFile) {
+			final int waitInMillSecs) {
 		this.cmd = checkWindowsCommand(cmd);
 		this.processName = processName;
 		this.waitInMillSecs = waitInMillSecs;
-		this.dispResponseFile = dispResponseFile;
-		this.forceResponseFile = forceResponseFile;
 	}
+
 	/**
 	 * Stop execution immediately.
 	 */
@@ -147,6 +123,7 @@ public class ProcessManagement {
 		exchange.setQuit(true);
 		exchangeThrd.interrupt();
 	}
+
 	/**
 	 * Add an argument to the command.
 	 * @param arg
@@ -180,30 +157,6 @@ public class ProcessManagement {
 			i++;
 		}
 		return result;
-	}
-
-	/**
-	 * Starts the command and does not return until the command has finished
-	 * executing.
-	 */
-	public final void blockingExecute() {
-		try {
-			startExecute();
-		} catch (IOException e) {
-			log.error(cmd + " failed to start because", e);
-			return;
-		}
-
-		boolean done = false;
-		while (done == false) {
-			try {
-				process.waitFor();
-				done = true;
-				finish();
-			} catch (InterruptedException e) {
-				log.debug("I was Interrupted");
-			}
-		}
 	}
 
 	/**
@@ -243,28 +196,28 @@ public class ProcessManagement {
 	}
 
 	/**
-	 * @return the args
+	 * @return the command arguments.
 	 */
 	public final List<String> getArgs() {
 		return args;
 	}
 
 	/**
-	 * @return the cmd
+	 * @return the command.
 	 */
 	public final String getCmd() {
 		return cmd;
 	}
 
 	/**
-	 * @return the commandQ
+	 * @return the STDIN queue
 	 */
-	public final BlockingQueue<QMessage> getCommandQ() {
-		return commandQ;
+	public final BlockingQueue<QMessage> getStdinQ() {
+		return exchange.getStdinQ();
 	}
 
 	/**
-	 * @return the env
+	 * @return the command environment.
 	 */
 	public final Map<String, String> getEnv() {
 		return env;
@@ -293,21 +246,6 @@ public class ProcessManagement {
 	}
 
 	/**
-	 * Get standard output from the command execution.
-	 * @return The current standard output.
-	 */
-	public final String getOutput() {
-		return stoutPr.getOutput();
-	}
-
-	/**
-	 * @return the responseQ
-	 */
-	public final BlockingQueue<QMessage> getResponseQ() {
-		return responseQ;
-	}
-
-	/**
 	 * @return the waitInMillSecs
 	 */
 	public final int getWaitInMillSecs() {
@@ -322,7 +260,8 @@ public class ProcessManagement {
 	}
 
 	/**
-	 * @param cmd the command to set
+	 * @param cmd
+	 *            the command to set
 	 */
 	public final void setCmd(final String cmd) {
 		this.cmd = checkWindowsCommand(cmd);
@@ -367,10 +306,7 @@ public class ProcessManagement {
 				listenerWaitInterval, processName);
 		stoutPr = new ProcessResponse(Level.DEBUG, process.getInputStream(),
 				listenerWaitInterval, processName);
-		exchange = new StdInExchange(commandQ, dispResponseFile,
-				forceResponseFile, responseQ, process.getOutputStream(),
-				waitInMillSecs);
-		stoutPr.addObserver(exchange);
+		exchange = new StdInExchange(waitInMillSecs, process.getOutputStream());
 		errThrd = new Thread(errPr);
 		stoutThrd = new Thread(stoutPr);
 		exchangeThrd = new Thread(exchange);

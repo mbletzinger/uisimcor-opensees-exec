@@ -6,9 +6,9 @@ package org.nees.illinois.uisimcor.fem_executor;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.SubstructureDao;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
-import org.nees.illinois.uisimcor.fem_executor.config.ProgramConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.ProgramDao;
 
 /**
  * Configuration for the executor.
@@ -18,11 +18,11 @@ public class FemExecutorConfig {
 	/**
 	 * Map of FEM program parameters.
 	 */
-	private final Map<FemProgramType, ProgramConfig> femProgramParameters = new HashMap<FemProgramType, ProgramConfig>();
+	private final Map<FemProgramType, ProgramDao> femProgramParameters = new HashMap<FemProgramType, ProgramDao>();
 	/**
 	 * Substructure configurations map.
 	 */
-	private final Map<String, SubstructureConfig> substructCfgs = new HashMap<String, SubstructureConfig>();
+	private final Map<String, SubstructureDao> substructCfgs = new HashMap<String, SubstructureDao>();
 	/**
 	 * Directory to store temporary files.
 	 */
@@ -39,14 +39,14 @@ public class FemExecutorConfig {
 	/**
 	 * @return the femProgramPaths
 	 */
-	public final Map<FemProgramType, ProgramConfig> getFemProgramParameters() {
+	public final Map<FemProgramType, ProgramDao> getFemProgramParameters() {
 		return femProgramParameters;
 	}
 
 	/**
 	 * @return the substructCfgs
 	 */
-	public final Map<String, SubstructureConfig> getSubstructCfgs() {
+	public final Map<String, SubstructureDao> getSubstructCfgs() {
 		return substructCfgs;
 	}
 

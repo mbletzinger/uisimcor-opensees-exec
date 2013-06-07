@@ -44,13 +44,13 @@ public class TestProcessManagement {
 	 */
 	@Test
 	public final void testProcessManagement() {
-		String dispFile = PathUtils.append(workDir, "tmp_disp.out");
-		String forceFile = PathUtils.append(workDir, "tmp_forc.out");
+		String dispFile = PathUtils.append(workDir, "tmp_disp.txt");
+		String forceFile = PathUtils.append(workDir, "tmp_forc.txt");
 		final int waitTime = 200;
 		final int pollCount = 6;
 		final int oneSec = 1000;
 		ProcessManagement pm = new ProcessManagement(pmCommand, "PM Test",
-				waitTime, dispFile, forceFile);
+				waitTime);
 		pm.setWorkDir(workDir);
 		try {
 			pm.startExecute();
@@ -58,7 +58,7 @@ public class TestProcessManagement {
 			log.error("Failed to start because ", e);
 			Assert.fail(pmCommand + " \" failed to start");
 		}
-		BlockingQueue<QMessage> commands = pm.getCommandQ();
+		BlockingQueue<QMessage> commands = pm.getStdinQ();
 		BlockingQueue<QMessage> responses = pm.getResponseQ();
 		final int lastStep = 11;
 		for (int s = 1; s < lastStep; s++) {

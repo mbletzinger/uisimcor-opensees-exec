@@ -66,7 +66,7 @@ public class QMessage {
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
-	public String toString() {
+	public final String toString() {
 		return "QMessage [content=\"" + content + "\", type=" + type + "]";
 	}
 

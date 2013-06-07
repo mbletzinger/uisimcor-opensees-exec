@@ -7,8 +7,8 @@ import java.util.Map;
 
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.config.LoadSaveConfig;
-import org.nees.illinois.uisimcor.fem_executor.config.ProgramConfig;
-import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.ProgramDao;
+import org.nees.illinois.uisimcor.fem_executor.config.SubstructureDao;
 import org.nees.illinois.uisimcor.fem_executor.input.WorkingDir;
 import org.nees.illinois.uisimcor.fem_executor.process.SubstructureExecutor;
 import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
@@ -101,10 +101,10 @@ public class FemExecutor {
 	 * Load the input file parameters into each executor.
 	 */
 	public final void setup() {
-		ProgramConfig progCfg = config.getFemProgramParameters().get(
+		ProgramDao progCfg = config.getFemProgramParameters().get(
 				FemProgramType.OPENSEES);
 		for (String fsc : config.getSubstructCfgs().keySet()) {
-			SubstructureConfig scfg = config.getSubstructCfgs().get(fsc);
+			SubstructureDao scfg = config.getSubstructCfgs().get(fsc);
 			WorkingDir wd = new WorkingDir(scfg, workDir, configRootDir);
 			wd.createWorkDir();
 			SubstructureExecutor exe = new SubstructureExecutor(progCfg, scfg,
@@ -175,6 +175,7 @@ public class FemExecutor {
 		for (String mdl : executors.keySet()) {
 			SubstructureExecutor exe = executors.get(mdl);
 			try {
+				log.debug("Checking " + mdl);
 				result = result && exe.stepIsDone();
 			} catch (OutputFileException e) {
 				log.error("Step command for " + mdl + " failed because",e);
@@ -221,7 +222,7 @@ public class FemExecutor {
 	 * includes all 6 displacements DOFs regardless of which of them are
 	 * effective. The executor uses the effective DOFs configuration parameter
 	 * to select which values to use from the matrix. ( See the function
-	 * <em>addEffectiveDofs</em> {@link SubstructureConfig here}).
+	 * <em>addEffectiveDofs</em> {@link SubstructureDao here}).
 	 * @param address
 	 *            Substructure id.
 	 * @param displacements

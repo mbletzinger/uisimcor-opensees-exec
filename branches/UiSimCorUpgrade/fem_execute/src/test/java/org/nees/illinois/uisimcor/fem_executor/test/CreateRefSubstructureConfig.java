@@ -6,7 +6,7 @@ import java.util.List;
 import org.nees.illinois.uisimcor.fem_executor.config.DimensionType;
 import org.nees.illinois.uisimcor.fem_executor.config.DispDof;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
-import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.SubstructureDao;
 
 /**
  * Creates a reference substructure config that is used for unit tests.
@@ -16,14 +16,14 @@ public class CreateRefSubstructureConfig {
 	/**
 	 * @return the configuration.
 	 */
-	public final SubstructureConfig getConfig() {
+	public final SubstructureDao getConfig() {
 		return config;
 	}
 
 	/**
 	 * Created configuration.
 	 */
-	private final SubstructureConfig config;
+	private final SubstructureDao config;
 
 	/**
 	 * Constructor.
@@ -59,7 +59,7 @@ public class CreateRefSubstructureConfig {
 		sourceFiles.add(modelFilename);
 		sourceFiles.add("StaticAnalysisEnv.tcl");
 		FemProgramType program = FemProgramType.OPENSEES;
-		config = new SubstructureConfig(address, dim, program, sourceFiles,
+		config = new SubstructureDao(address, dim, program, sourceFiles,
 				nodes, workFiles);
 		for (Integer n : nodes) {
 			List<DispDof> edof = new ArrayList<DispDof>();

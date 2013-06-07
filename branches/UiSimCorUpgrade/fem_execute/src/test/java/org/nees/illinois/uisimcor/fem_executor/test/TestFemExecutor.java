@@ -8,8 +8,8 @@ import java.util.List;
 
 import org.nees.illinois.uisimcor.fem_executor.FemExecutor;
 import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
-import org.nees.illinois.uisimcor.fem_executor.config.ProgramConfig;
-import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.ProgramDao;
+import org.nees.illinois.uisimcor.fem_executor.config.SubstructureDao;
 import org.nees.illinois.uisimcor.fem_executor.process.FileWithContentDelete;
 import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
@@ -30,7 +30,7 @@ public class TestFemExecutor {
 	/**
 	 * Configuration containing the fake OpenSees.
 	 */
-	private ProgramConfig femProg;
+	private ProgramDao femProg;
 	/**
 	 * Directory containing the configuration files for the test.
 	 */
@@ -59,10 +59,10 @@ public class TestFemExecutor {
 			// Replace OpenSees with fake script
 			fexec.getConfig().getFemProgramParameters()
 					.put(FemProgramType.OPENSEES, femProg);
-			Collection<SubstructureConfig> mdlCfgs = fexec.getConfig()
+			Collection<SubstructureDao> mdlCfgs = fexec.getConfig()
 					.getSubstructCfgs().values();
 			fexec.setup();
-			for (SubstructureConfig mCfg : mdlCfgs) {
+			for (SubstructureDao mCfg : mdlCfgs) {
 				loadExecutor(fexec, mCfg);
 			}
 			fexec.execute();
@@ -101,7 +101,7 @@ public class TestFemExecutor {
 	 *            Configuration for the substructure.
 	 */
 	private void loadExecutor(final FemExecutor fexec,
-			final SubstructureConfig subCfg) {
+			final SubstructureDao subCfg) {
 		final double[] disp = { 0.00023e-4, 0.00004e-5, 0.00023e-4, 0.00004e-5,
 				0.00023e-4, 0.00004e-5 };
 		fexec.setDisplacements(subCfg.getAddress(), disp);
@@ -121,7 +121,7 @@ public class TestFemExecutor {
 		String command = PathUtils.cleanPath(u.getPath());
 		File cmdF = new File(command);
 		cmdF.setExecutable(true);
-		femProg = new ProgramConfig(FemProgramType.OPENSEES, command);
+		femProg = new ProgramDao(FemProgramType.OPENSEES, command);
 		if(WindowsPerlBatchCreator.isWindows()) {
 			WindowsPerlBatchCreator wpbc = new WindowsPerlBatchCreator(workDir, femProg);
 			femProg = wpbc.getBatchConfig();

@@ -11,7 +11,8 @@ import java.util.Map;
 import org.nees.illinois.uisimcor.fem_executor.config.DimensionType;
 import org.nees.illinois.uisimcor.fem_executor.config.DispDof;
 import org.nees.illinois.uisimcor.fem_executor.config.DofIndexMagic;
-import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.SubstructureDao;
+import org.nees.illinois.uisimcor.fem_executor.config.dao.TemplateDAO;
 import org.nees.illinois.uisimcor.fem_executor.utils.IllegalParameterException;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
@@ -42,6 +43,10 @@ public class OpenSeesSG implements ScriptGeneratorI {
 	 * token name.
 	 */
 	private final String sourcedFilesToken = "SourcedFiles";
+	/**
+	 * Filenames for all of the templates used.
+	 */
+	private final TemplateDAO templateFiles;
 
 	/**
 	 * Constructor.
@@ -51,11 +56,12 @@ public class OpenSeesSG implements ScriptGeneratorI {
 	 *            Substructure configuration parameters.
 	 */
 	public OpenSeesSG(final String configDir,
-			final SubstructureConfig substructureCfg) {
+			final SubstructureDao substructureCfg, TemplateDAO templateFiles) {
 		this.configDir = configDir;
 		this.substructureCfg = substructureCfg;
+		this.templateFiles = templateFiles;
 		this.stepTemplate = setTemplate(PathUtils.append(configDir,
-				"step_template.tcl"));
+				this.templateFiles.getStepTemplateFile()));
 		String sourced = "";
 		for (String f : this.substructureCfg.getSourcedFilenames()) {
 			sourced += "source " + f + "\n";
@@ -81,7 +87,7 @@ public class OpenSeesSG implements ScriptGeneratorI {
 	/**
 	 * Substructure configuration parameters.
 	 */
-	private final SubstructureConfig substructureCfg;
+	private final SubstructureDao substructureCfg;
 	/**
 	 * Map of tokens to substitute in run.tcl template.
 	 */
@@ -95,10 +101,12 @@ public class OpenSeesSG implements ScriptGeneratorI {
 	@Override
 	public final String generateInit() {
 		String result = setTemplate(PathUtils.append(configDir,
-				"init_template.tcl"));
+				templateFiles.getInitTemplateFile()));
 		for (String k : tokenMap.keySet()) {
 			result = result.replaceAll("\\$\\{" + k + "\\}", tokenMap.get(k));
 		}
+		log.debug("Generated Init for  " + substructureCfg.getAddress() + " ["
+				+ result + "]");
 		return result;
 	}
 
@@ -120,11 +128,13 @@ public class OpenSeesSG implements ScriptGeneratorI {
 			return null;
 		}
 		result = result.replaceAll("\\$\\{" + loadK + "\\}", load);
+		log.debug("Generated step for  " + substructureCfg.getAddress() + " ["
+				+ result + "]");
 		return result;
 	}
 
 	/**
-	 * Get a string representation of the run.tcl template file.
+	 * Get a string representation of a template file.
 	 * @param file
 	 *            Path to template file.
 	 * @return string representation of the template file.

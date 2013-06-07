@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
-import org.nees.illinois.uisimcor.fem_executor.config.ProgramConfig;
-import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
+import org.nees.illinois.uisimcor.fem_executor.config.ProgramDao;
+import org.nees.illinois.uisimcor.fem_executor.config.SubstructureDao;
 import org.nees.illinois.uisimcor.fem_executor.input.OpenSeesSG;
 import org.nees.illinois.uisimcor.fem_executor.input.ScriptGeneratorI;
 import org.nees.illinois.uisimcor.fem_executor.output.DataFormatter;
@@ -25,7 +25,7 @@ public class SubstructureExecutor {
 	/**
 	 * Program configuration to run.
 	 */
-	private ProgramConfig command;
+	private ProgramDao command;
 
 	/**
 	 * default wait.
@@ -77,17 +77,26 @@ public class SubstructureExecutor {
 	 * @param configDir
 	 *            Directory containing templates and configuration files..
 	 */
-	public SubstructureExecutor(final ProgramConfig progCfg,
-			final SubstructureConfig scfg, final String configDir,
+	/**
+	 * Counter for debug messages.
+	 */
+	private int debugCnt = 0;
+	/**
+	 * Number of counts until reset.
+	 */
+	private final int maxCnt = 20;
+	
+	public SubstructureExecutor(final ProgramDao progCfg,
+			final SubstructureDao scfg, final String configDir,
 			final String workDir) {
 		this.workDir = workDir;
 		this.command = progCfg;
-		String dispF = PathUtils.append(workDir, "tmp_disp.out");
-		String forceF = PathUtils.append(workDir, "tmp_forc.out");
+		String dispF = PathUtils.append(workDir, "tmp_disp.txt");
+		String forceF = PathUtils.append(workDir, "tmp_forc.txt");
 		this.dformat = new DataFormatter(scfg);
 		this.scriptGen = new OpenSeesSG(configDir, scfg);
 		this.pm = new ProcessManagement(command.getExecutablePath(), command
-				.getProgram().toString(), waitInMillisecs, dispF, forceF);
+				.getProgram().toString(), waitInMillisecs);
 
 	}
 
@@ -102,7 +111,7 @@ public class SubstructureExecutor {
 	 * @param command
 	 *            the command to set
 	 */
-	public final void setCommand(final ProgramConfig command) {
+	public final void setCommand(final ProgramDao command) {
 		this.command = command;
 		pm.setCmd(command.getExecutablePath());
 	}
@@ -122,7 +131,7 @@ public class SubstructureExecutor {
 		try {
 			pm.startExecute();
 			String init = scriptGen.generateInit();
-			pm.getCommandQ().add(new QMessage(MessageType.Setup, init));
+			pm.getStdinQ().add(new QMessage(MessageType.Setup, init));
 		} catch (IOException e) {
 			log.debug(pm.getCmd() + " failed to start", e);
 		}
@@ -137,7 +146,8 @@ public class SubstructureExecutor {
 	 */
 	public final void startStep(final int step, final double[] displacements) {
 		String stepCmnd = scriptGen.generateStep(step, displacements);
-		pm.getCommandQ().add(new QMessage(MessageType.Command, stepCmnd));
+		pm.getStdinQ().add(new QMessage(MessageType.Command, stepCmnd));
+		debugCnt = 0;
 	}
 
 	/**
@@ -150,6 +160,12 @@ public class SubstructureExecutor {
 		BlockingQueue<QMessage> responses = pm.getResponseQ();
 		QMessage rspStr = responses.poll();
 		if (rspStr == null) {
+			if(debugCnt == maxCnt ) {
+				debugCnt = 0;
+				log.debug("Still waiting for " + pm.getCmd());
+			} else {
+				debugCnt++;
+			}
 			return false;
 		}
 		if(rspStr.getType().equals(MessageType.Exit)) {
