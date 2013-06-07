@@ -3,9 +3,9 @@ package org.nees.illinois.uisimcor.fem_executor.output;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.nees.illinois.uisimcor.fem_executor.config.DispDof;
 import org.nees.illinois.uisimcor.fem_executor.config.DofIndexMagic;
-import org.nees.illinois.uisimcor.fem_executor.config.SubstructureDao;
+import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
+import org.nees.illinois.uisimcor.fem_executor.config.types.DispDof;
 import org.nees.illinois.uisimcor.fem_executor.process.DoubleMatrix;
 import org.nees.illinois.uisimcor.fem_executor.utils.IllegalParameterException;
 import org.slf4j.Logger;

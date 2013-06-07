@@ -1,11 +1,15 @@
 /**
  *
  */
-package org.nees.illinois.uisimcor.fem_executor.config;
+package org.nees.illinois.uisimcor.fem_executor.config.dao;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.nees.illinois.uisimcor.fem_executor.config.types.DimensionType;
+import org.nees.illinois.uisimcor.fem_executor.config.types.DispDof;
+import org.nees.illinois.uisimcor.fem_executor.config.types.FemProgramType;
 
 /**
  * Class defining the parameters used to execute FEM programs.
