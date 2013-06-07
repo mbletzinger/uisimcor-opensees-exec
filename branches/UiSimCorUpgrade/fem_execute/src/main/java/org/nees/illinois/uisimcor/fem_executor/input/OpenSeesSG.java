@@ -12,7 +12,7 @@ import org.nees.illinois.uisimcor.fem_executor.config.DimensionType;
 import org.nees.illinois.uisimcor.fem_executor.config.DispDof;
 import org.nees.illinois.uisimcor.fem_executor.config.DofIndexMagic;
 import org.nees.illinois.uisimcor.fem_executor.config.SubstructureDao;
-import org.nees.illinois.uisimcor.fem_executor.config.dao.TemplateDAO;
+import org.nees.illinois.uisimcor.fem_executor.config.dao.TemplateDao;
 import org.nees.illinois.uisimcor.fem_executor.utils.IllegalParameterException;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
@@ -46,7 +46,7 @@ public class OpenSeesSG implements ScriptGeneratorI {
 	/**
 	 * Filenames for all of the templates used.
 	 */
-	private final TemplateDAO templateFiles;
+	private final TemplateDao templateFiles;
 
 	/**
 	 * Constructor.
@@ -54,9 +54,12 @@ public class OpenSeesSG implements ScriptGeneratorI {
 	 *            Path to the directory containing the configuration files.
 	 * @param substructureCfg
 	 *            Substructure configuration parameters.
+	 * @param templateFiles
+	 *            Filenames for all of the templates used.
 	 */
 	public OpenSeesSG(final String configDir,
-			final SubstructureDao substructureCfg, TemplateDAO templateFiles) {
+			final SubstructureDao substructureCfg,
+			final TemplateDao templateFiles) {
 		this.configDir = configDir;
 		this.substructureCfg = substructureCfg;
 		this.templateFiles = templateFiles;
