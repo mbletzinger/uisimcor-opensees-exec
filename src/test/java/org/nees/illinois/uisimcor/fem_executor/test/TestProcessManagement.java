@@ -3,14 +3,15 @@ package org.nees.illinois.uisimcor.fem_executor.test;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
 import org.nees.illinois.uisimcor.fem_executor.process.FileWithContentDelete;
 import org.nees.illinois.uisimcor.fem_executor.process.ProcessManagement;
-import org.nees.illinois.uisimcor.fem_executor.process.QMessage;
-import org.nees.illinois.uisimcor.fem_executor.process.QMessage.MessageType;
+import org.nees.illinois.uisimcor.fem_executor.process.QMessageT;
+import org.nees.illinois.uisimcor.fem_executor.process.QMessageType;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,12 +59,12 @@ public class TestProcessManagement {
 			log.error("Failed to start because ", e);
 			Assert.fail(pmCommand + " \" failed to start");
 		}
-		BlockingQueue<QMessage> commands = pm.getStdinQ();
-		BlockingQueue<QMessage> responses = pm.getResponseQ();
+		BlockingQueue<QMessageT<String>> commands = pm.getStdinQ();
+		BlockingQueue<QMessageT<List<Double>>> responses = pm.getResponseQ();
 		final int lastStep = 11;
 		for (int s = 1; s < lastStep; s++) {
-			commands.add(new QMessage(MessageType.Command,"Execute Step " + s));
-			QMessage rsp = null;
+			commands.add(new QMessageT(QMessageType.Command,"Execute Step " + s));
+			QMessageT rsp = null;
 			int count = 0;
 			while (rsp == null && count < pollCount) {
 				try {
@@ -80,7 +81,7 @@ public class TestProcessManagement {
 			Assert.assertTrue("Response contains step number",
 					rsp.getContent().contains(Integer.toString(s)));
 		}
-		commands.add(new QMessage(MessageType.Exit,"EXIT"));
+		commands.add(new QMessageT(QMessageType.Exit,"EXIT"));
 		pm.finish();
 	}
 

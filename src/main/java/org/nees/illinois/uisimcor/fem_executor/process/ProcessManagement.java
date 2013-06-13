@@ -212,7 +212,7 @@ public class ProcessManagement {
 	/**
 	 * @return the STDIN queue
 	 */
-	public final BlockingQueue<QMessage> getStdinQ() {
+	public final BlockingQueue<QMessageT<String>> getStdinQ() {
 		return exchange.getStdinQ();
 	}
 

@@ -3,8 +3,13 @@ package org.nees.illinois.uisimcor.fem_executor.output;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+
+import name.pachler.nio.file.WatchEvent;
 
 import org.apache.commons.io.FileUtils;
+import org.nees.illinois.uisimcor.fem_executor.process.AbortableI;
 import org.nees.illinois.uisimcor.fem_executor.utils.OutputFileException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +19,58 @@ import org.slf4j.LoggerFactory;
  * with its node recorders. It then reads the file and deletes it.
  * @author Michael Bletzinger
  */
-public class OutputFileMonitor {
+public class OutputFileMonitor implements AbortableI {
+	/**
+	 * Quit flag.
+	 */
+	private volatile boolean quit;
+
+	/**
+	 * @return the eventQ
+	 */
+	public final BlockingQueue<WatchEvent<?>> getEventQ() {
+		return eventQ;
+	}
+
+	/**
+	 * Operational states for the file monitor.
+	 * @author Michael Bletzinger
+	 */
+	public enum OfmStates {
+		/**
+		 * Waiting to start monitoring.
+		 */
+		Idle,
+		/**
+		 * Start monitoring.
+		 */
+		Starting,
+		/**
+		 * Waiting the heuristic delay.
+		 */
+		DelayWait,
+		/**
+		 * Wait for File creation.
+		 */
+		CheckFileCreation,
+		/**
+		 * Wait for no more modifications.
+		 */
+		CheckingForMods,
+		/**
+		 * Read the file.
+		 */
+		ReadingOutput,
+		/**
+		 * Return the output.
+		 */
+		SendOutput
+	};
+
+	/**
+	 * Current state of monitor.
+	 */
+	private OfmStates state;
 	/**
 	 * File to monitor.
 	 */
@@ -26,14 +82,13 @@ public class OutputFileMonitor {
 	private final Logger log = LoggerFactory.getLogger(OutputFileMonitor.class);
 
 	/**
-	 * Flag indicating that there is a new response.
-	 */
-	private boolean newResponse;
-
-	/**
 	 * The new response.
 	 */
 	private String response;
+	/**
+	 * Queue for the watcher service to send events.
+	 */
+	private final BlockingQueue<WatchEvent<?>> eventQ = new LinkedBlockingQueue<WatchEvent<?>>();
 
 	/**
 	 * @param file
@@ -56,13 +111,6 @@ public class OutputFileMonitor {
 	}
 
 	/**
-	 * @return the response
-	 */
-	public final String getResponse() {
-		return response;
-	}
-
-	/**
 	 * Read the output files by skipping lineCount lines and then reading the
 	 * last line for both force and displacement files.
 	 * @throws OutputFileException
@@ -71,7 +119,6 @@ public class OutputFileMonitor {
 	 */
 	public final boolean readOutput() throws OutputFileException {
 		File fileF = new File(file);
-		newResponse = false;
 		// log.debug("Checking \"" + file + "\"");
 		if (fileF.exists() == false) {
 			return false;
@@ -84,7 +131,7 @@ public class OutputFileMonitor {
 			throw new OutputFileException("Could not read file \"" + file
 					+ "\" because", e);
 		}
-		if(contents.isEmpty()) {
+		if (contents.isEmpty()) {
 			log.debug("\"" + file + "\" s got nuttin'");
 			return false;
 		}
@@ -114,10 +161,19 @@ public class OutputFileMonitor {
 
 	}
 
-	/**
-	 * @return the newResponse
-	 */
-	public final boolean isNewResponse() {
-		return newResponse;
+	@Override
+	public void run() {
 	}
+
+	@Override
+	public final synchronized boolean isQuit() {
+		return quit;
+	}
+
+	@Override
+	public final synchronized void setQuit(final boolean quit) {
+		this.quit = quit;
+
+	}
+
 }

@@ -105,7 +105,7 @@ public class FemExecutor {
 				FemProgramType.OPENSEES);
 		for (String fsc : config.getSubstructCfgs().keySet()) {
 			SubstructureDao scfg = config.getSubstructCfgs().get(fsc);
-			WorkingDir wd = new WorkingDir(scfg, workDir, configRootDir);
+			WorkingDir wd = new WorkingDir(workDir, configRootDir);
 			wd.createWorkDir();
 			SubstructureExecutor exe = new SubstructureExecutor(progCfg, scfg,
 					configRootDir, wd.getWorkDir());

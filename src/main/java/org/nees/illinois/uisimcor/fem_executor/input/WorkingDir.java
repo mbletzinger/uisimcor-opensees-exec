@@ -18,20 +18,6 @@ import org.slf4j.LoggerFactory;
  */
 public class WorkingDir {
 	/**
-	 * @return the configDir
-	 */
-	public final String getConfigDir() {
-		return configDir;
-	}
-
-	/**
-	 * @return the workDir
-	 */
-	public final String getWorkDir() {
-		return workDir;
-	}
-
-	/**
 	 * Path to the directory containing the configuration files.
 	 */
 	private final String configDir;
@@ -44,29 +30,29 @@ public class WorkingDir {
 	/**
 	 * Substructure configuration parameters.
 	 */
-	private final SubstructureDao substructureCfg;
+	private SubstructureDao substructureCfg;
 
 	/**
-	 * Path to the directory containing the input file.
+	 * Path to the working directory of the current substructure.
 	 */
-	private final String workDir;
+	private String workDir;
+
+	/**
+	 * Path to the root directory containing all of the processing files.
+	 */
+	private final String workDirRoot;
 
 	/**
 	 * Constructor.
-	 * @param substructureCfg
-	 *            Substructure parameters.
-	 * @param workDir
-	 *            Directory containing generated files.
+	 * @param workDirRoot
+	 *            Path to the root directory containing all of the processing
+	 *            files.
 	 * @param configDir
 	 *            Root of directory containing the model configuration files.
 	 */
-	public WorkingDir(final SubstructureDao substructureCfg,
-			final String workDir, final String configDir) {
-		this.substructureCfg = substructureCfg;
-		this.workDir = PathUtils.append(workDir, substructureCfg.getAddress());
+	public WorkingDir(final String workDirRoot, final String configDir) {
 		this.configDir = configDir;
-		log.debug("For substructure " +substructureCfg.getAddress() + " the workDir is \"" + this.workDir + "\"" );
-		log.debug("For substructure " +substructureCfg.getAddress() + " the configDir is \"" + this.configDir + "\"" );
+		this.workDirRoot = workDirRoot;
 	}
 
 	/**
@@ -74,6 +60,9 @@ public class WorkingDir {
 	 * files.
 	 */
 	public final void createWorkDir() {
+		if (workDir == null) {
+			log.error("Please set my substructure configuration using setSubstructureCfg before telling me to create a working directory......idiot");
+		}
 		File workDirF = new File(workDir);
 		if (workDirF.exists() && (workDirF.isDirectory() == false)) {
 			log.error("Cannot create working directory \"" + workDir + "\"");
@@ -108,6 +97,49 @@ public class WorkingDir {
 				return;
 			}
 		}
+	}
+
+	/**
+	 * @return the configDir
+	 */
+	public final String getConfigDir() {
+		return configDir;
+	}
+
+	/**
+	 * @return the substructureCfg
+	 */
+	public final SubstructureDao getSubstructureCfg() {
+		return substructureCfg;
+	}
+
+	/**
+	 * @return the workDir
+	 */
+	public final String getWorkDir() {
+		return workDir;
+	}
+
+	/**
+	 * @return the workDirRoot
+	 */
+	public final String getWorkDirRoot() {
+		return workDirRoot;
+	}
+
+	/**
+	 * @param substructureCfg
+	 *            the substructureCfg to set
+	 */
+	public final void setSubstructureCfg(final SubstructureDao substructureCfg) {
+		this.substructureCfg = substructureCfg;
+		this.workDir = PathUtils.append(workDirRoot,
+				substructureCfg.getAddress());
+
+		log.debug("For substructure " + substructureCfg.getAddress()
+				+ " the workDir is \"" + this.workDir + "\"");
+		log.debug("For substructure " + substructureCfg.getAddress()
+				+ " the configDir is \"" + this.configDir + "\"");
 	}
 
 }

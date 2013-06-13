@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import org.nees.illinois.uisimcor.fem_executor.config.dao.ProgramDao;
+import org.nees.illinois.uisimcor.fem_executor.config.dao.TemplateDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,12 +51,12 @@ public class WindowsPerlBatchCreator {
 	 * @param prog
 	 *            Configuration of program to be wrapped.
 	 */
-	public WindowsPerlBatchCreator(final String folder,
-			final ProgramDao prog) {
+	public WindowsPerlBatchCreator(final String folder, final ProgramDao prog) {
 		String batchContent = "perl \"" + prog.getExecutablePath() + "\" %1";
 		this.batchFilename = prog.getExecutablePath().replace(".pl", ".bat");
 		this.batchFolder = folder;
-		batchConfig = new ProgramDao(prog.getProgram(), batchFilename);
+		batchConfig = new ProgramDao(batchFilename, prog.getProgram(),
+				prog.getTemplateDao());
 		writeBatchFile(batchContent);
 	}
 
