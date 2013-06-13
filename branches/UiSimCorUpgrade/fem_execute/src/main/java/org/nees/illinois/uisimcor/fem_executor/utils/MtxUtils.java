@@ -14,6 +14,17 @@ public final class MtxUtils {
 	}
 
 	/**
+	 * Converts double list to string.
+	 * @param list
+	 *            Double list.
+	 * @return String.
+	 */
+	public static String list2String(final List<Double> list) {
+		double[] array = list2Array(list);
+		return array2String(array);
+	}
+
+	/**
 	 * Converts double array to string.
 	 * @param array
 	 *            Double array.
@@ -89,12 +100,13 @@ public final class MtxUtils {
 		}
 		return result;
 	}
-/**
- * Convert List<Double> to double[].
- *@param list
- *List<Double>
- *@return double[]
- */
+
+	/**
+	 * Convert List<Double> to double[].
+	 * @param list
+	 *            List<Double>
+	 * @return double[]
+	 */
 	public static double[] list2Array(final List<Double> list) {
 		double[] result = new double[list.size()];
 		int i = 0;

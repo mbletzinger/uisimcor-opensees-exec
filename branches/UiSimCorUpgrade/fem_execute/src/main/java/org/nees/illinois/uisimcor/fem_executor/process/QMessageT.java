@@ -3,47 +3,26 @@ package org.nees.illinois.uisimcor.fem_executor.process;
 /**
  * Wrapper class for messages sent in the command and response queues.
  * @author Michael Bletzinger
+ * @param <C>
+ * Type of the message content.
  */
-public class QMessage {
-	/**
-	 * Message types which indicate what to do with the contents.
-	 * @author Michael Bletzinger
-	 */
-	public enum MessageType {
-		/**
-		 * Command to the FEM program; expecting a response.
-		 */
-		Command,
-		/**
-		 * We are shutting down.
-		 */
-		Exit,
-		/**
-		 * Response to a command.
-		 */
-		Response,
-		/**
-		 * Initialization content; no response expected.
-		 */
-		Setup
-	}
-
+public class QMessageT<C> {
 	/**
 	 * Message content.
 	 */
-	private final String content;;
+	private final C content;
 
 	/**
 	 * Message type.
 	 */
-	private final MessageType type;
+	private final QMessageType type;
 	/**
 	 * @param type
 	 *            Message type.
 	 * @param content
 	 *            Message content.
 	 */
-	public QMessage(final MessageType type, final String content) {
+	public QMessageT(final QMessageType type, final C content) {
 		this.type = type;
 		this.content = content;
 	};
@@ -51,14 +30,14 @@ public class QMessage {
 	/**
 	 * @return the content
 	 */
-	public final String getContent() {
+	public final C getContent() {
 		return content;
 	}
 
 	/**
 	 * @return the type
 	 */
-	public final MessageType getType() {
+	public final QMessageType getType() {
 		return type;
 	}
 

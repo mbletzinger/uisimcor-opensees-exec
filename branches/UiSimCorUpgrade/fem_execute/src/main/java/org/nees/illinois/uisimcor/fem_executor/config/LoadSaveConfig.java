@@ -14,6 +14,7 @@ import java.util.Properties;
 import org.nees.illinois.uisimcor.fem_executor.FemExecutorConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.ProgramDao;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
+import org.nees.illinois.uisimcor.fem_executor.config.dao.TemplateDao;
 import org.nees.illinois.uisimcor.fem_executor.config.types.DimensionType;
 import org.nees.illinois.uisimcor.fem_executor.config.types.DispDof;
 import org.nees.illinois.uisimcor.fem_executor.config.types.FemProgramType;
@@ -130,7 +131,9 @@ public class LoadSaveConfig {
 	 */
 	private void saveFemProgram(final ProgramDao progCfg) {
 		FemProgramType ptype = progCfg.getProgram();
-		props.put(ptype + ".executable", progCfg.getExecutablePath());
+		props.put(ptype + ".path.executable", progCfg.getExecutablePath());
+		props.put(ptype + ".file.template.step", progCfg.getTemplateDao().getStepTemplateFile());
+		props.put(ptype + ".file.template.init", progCfg.getTemplateDao().getInitTemplateFile());
 	}
 
 	/**
@@ -140,11 +143,20 @@ public class LoadSaveConfig {
 	 * @return FEM program parameters set
 	 */
 	private ProgramDao loadFemProgram(final FemProgramType ptype) {
-		String executable = props.getProperty(ptype + ".executable");
+		String stepT = props.getProperty(ptype + ".file.template.step");
+		if (stepT == null) {
+			return null;
+		}
+		String initT = props.getProperty(ptype + ".file.template.init");
+		if (initT == null) {
+			return null;
+		}
+		TemplateDao tdao = new TemplateDao(stepT, initT);
+		String executable = props.getProperty(ptype + ".path.executable");
 		if (executable == null) {
 			return null;
 		}
-		ProgramDao result = new ProgramDao(ptype, executable);
+		ProgramDao result = new ProgramDao(executable, ptype, tdao);
 		return result;
 	}
 

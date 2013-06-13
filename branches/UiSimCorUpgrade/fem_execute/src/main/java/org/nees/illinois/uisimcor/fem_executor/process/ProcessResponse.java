@@ -15,9 +15,9 @@ import ch.qos.logback.classic.Level;
  * Listener thread to listen to output from a Process execution.
  * @author Michael Bletzinger
  */
-public class ProcessResponse extends Observable implements Abortable {
+public class ProcessResponse extends Observable implements AbortableI {
 	/**
-	 * Quit flag for Abortable interface.
+	 * Quit flag for {@link AbortableI abort} interface.
 	 */
 	private volatile boolean quit = false;
 	/**

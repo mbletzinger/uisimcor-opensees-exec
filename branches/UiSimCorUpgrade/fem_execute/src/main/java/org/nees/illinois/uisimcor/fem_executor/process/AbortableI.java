@@ -4,7 +4,7 @@ package org.nees.illinois.uisimcor.fem_executor.process;
  * @author Michael Bletzinger
  *
  */
-interface Abortable extends Runnable {
+public interface AbortableI extends Runnable {
 
 	/**
 	 * @return the abort flag.

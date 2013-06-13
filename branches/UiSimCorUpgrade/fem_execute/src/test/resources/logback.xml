@@ -33,6 +33,9 @@
 	<logger
 		name="org.nees.illinois.uisimcor.fem_executor.process.ProcessResponse"
 		level="DEBUG" />
+	<logger
+		name="org.nees.illinois.uisimcor.fem_executor.input"
+		level="INFO" />
 
 	<root level="DEBUG">
 		<appender-ref ref="A1" />

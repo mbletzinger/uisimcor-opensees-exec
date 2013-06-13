@@ -11,7 +11,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.nees.illinois.uisimcor.fem_executor.output.OutputFileMonitor;
-import org.nees.illinois.uisimcor.fem_executor.process.QMessage.MessageType;
 import org.nees.illinois.uisimcor.fem_executor.utils.OutputFileException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +19,7 @@ import org.slf4j.LoggerFactory;
  * Class which sends command strings to the FEM process and returns responses.
  * @author Michael Bletzinger
  */
-public class FemStateMachine implements Abortable, Observer {
+public class FemStateMachine implements AbortableI, Observer {
 	/**
 	 * State of the FEM exchange.
 	 * @author Michael Bletzinger
@@ -61,12 +60,12 @@ public class FemStateMachine implements Abortable, Observer {
 	/**
 	 * Current command string.
 	 */
-	private QMessage command;
+	private QMessageT command;
 
 	/**
 	 * Blocking queue containing the command strings.
 	 */
-	private final BlockingQueue<QMessage> commandQ;
+	private final BlockingQueue<QMessageT> commandQ;
 
 	/**
 	 * The output file for displacements.
@@ -102,7 +101,7 @@ public class FemStateMachine implements Abortable, Observer {
 	/**
 	 * Queue to write the response strings to.
 	 */
-	private final BlockingQueue<QMessage> responseQ;
+	private final BlockingQueue<QMessageT> responseQ;
 	/**
 	 * Current state.
 	 */
@@ -127,9 +126,9 @@ public class FemStateMachine implements Abortable, Observer {
 	 *            Number of milliseconds to sleep between response file change
 	 *            checks.
 	 */
-	public FemStateMachine(final BlockingQueue<QMessage> commandQ,
+	public FemStateMachine(final BlockingQueue<QMessageT> commandQ,
 			final String dispF, final String forceF,
-			final BlockingQueue<QMessage> responseQ, final OutputStream strm,
+			final BlockingQueue<QMessageT> responseQ, final OutputStream strm,
 			final int filecheckInterval) {
 		this.commandQ = commandQ;
 		this.commandQ.clear();
@@ -196,7 +195,7 @@ public class FemStateMachine implements Abortable, Observer {
 		for (String r : responses) {
 			try {
 				log.debug("Returning response \"" + r + "\"");
-				responseQ.put(new QMessage(MessageType.Response, r));
+				responseQ.put(new QMessageT(QMessageType.Response, r));
 			} catch (InterruptedException e) {
 				log.debug("Checking quit");
 				return;
@@ -244,9 +243,9 @@ public class FemStateMachine implements Abortable, Observer {
 		log.debug("Sending command " + command);
 		strm.println(command.getContent());
 		strm.flush();
-		if (command.getType().equals(MessageType.Command)) {
+		if (command.getType().equals(QMessageType.Command)) {
 			state = StdInExState.WaitingForOutputFileChange;
-		} else if (command.getType().equals(MessageType.Exit)) {
+		} else if (command.getType().equals(QMessageType.Exit)) {
 			setQuit(true);
 		} else {
 			state = StdInExState.WaitingForCommand;

@@ -47,6 +47,11 @@ public class TestFemExecutor {
 	 * Directory to store temporary files during FEM execution.
 	 */
 	private String workDir;
+	/**
+	 * Flag to indicate whether the generated files should be removed or not
+	 * after the tests are over.
+	 */
+	private boolean keepFiles = false;
 
 	/**
 	 * Run all of the test configuration through the FEM executor.
@@ -84,8 +89,10 @@ public class TestFemExecutor {
 					.keySet();
 			for (String m : mdls) {
 				double[] vals = fexec.getDisplacements(m);
-				final int numberOfDofs = fexec.getConfig().getSubstructCfgs().get(m).getTotalDofs(); // UI-SimCor vector size.
-				log.debug("Displacements for " + m + " are " + MtxUtils.array2String(vals));
+				final int numberOfDofs = fexec.getConfig().getSubstructCfgs()
+						.get(m).getTotalDofs(); // UI-SimCor vector size.
+				log.debug("Displacements for " + m + " are "
+						+ MtxUtils.array2String(vals));
 				Assert.assertEquals(vals.length, numberOfDofs);
 				vals = fexec.getForces(m);
 				Assert.assertEquals(vals.length, numberOfDofs);
@@ -112,7 +119,8 @@ public class TestFemExecutor {
 	 */
 	@BeforeClass
 	public final void beforeClass() {
-		URL u = ClassLoader.getSystemResource("config/ReferenceConfig.properties");
+		URL u = ClassLoader
+				.getSystemResource("config/ReferenceConfig.properties");
 		String cf = PathUtils.cleanPath(u.getPath());
 		configDir = PathUtils.parent(cf);
 		workDir = PathUtils.append(System.getProperty("user.dir"),
@@ -122,8 +130,9 @@ public class TestFemExecutor {
 		File cmdF = new File(command);
 		cmdF.setExecutable(true);
 		femProg = new ProgramDao(FemProgramType.OPENSEES, command);
-		if(WindowsPerlBatchCreator.isWindows()) {
-			WindowsPerlBatchCreator wpbc = new WindowsPerlBatchCreator(workDir, femProg);
+		if (WindowsPerlBatchCreator.isWindows()) {
+			WindowsPerlBatchCreator wpbc = new WindowsPerlBatchCreator(workDir,
+					femProg);
 			femProg = wpbc.getBatchConfig();
 		}
 
@@ -134,18 +143,21 @@ public class TestFemExecutor {
 		}
 	}
 
-//	/**
-//	 * Remove the files generated from the test.
-//	 */
-//	@AfterTest
-//	public final void afterTest() {
-//		FileWithContentDelete dir = new FileWithContentDelete(workDir);
-//		boolean done = dir.delete();
-//		if (done == false) {
-//			log.error("Could not remove dir \"" + workDir + "\"");
-//			return;
-//		}
-//		log.debug("\"" + workDir + "\" was removed");
-//	}
+	/**
+	 * Remove the files generated from the test.
+	 */
+	@AfterTest
+	public final void afterTest() {
+		if (keepFiles) {
+			return;
+		}
+		FileWithContentDelete dir = new FileWithContentDelete(workDir);
+		boolean done = dir.delete();
+		if (done == false) {
+			log.error("Could not remove dir \"" + workDir + "\"");
+			return;
+		}
+		log.debug("\"" + workDir + "\" was removed");
+	}
 
 }

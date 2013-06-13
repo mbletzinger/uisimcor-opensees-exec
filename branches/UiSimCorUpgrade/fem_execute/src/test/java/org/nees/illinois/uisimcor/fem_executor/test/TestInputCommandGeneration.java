@@ -4,6 +4,7 @@ import java.net.URL;
 
 import org.nees.illinois.uisimcor.fem_executor.FemExecutorConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.ProgramDao;
+import org.nees.illinois.uisimcor.fem_executor.config.dao.TemplateDao;
 import org.nees.illinois.uisimcor.fem_executor.config.types.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.input.OpenSeesSG;
 import org.nees.illinois.uisimcor.fem_executor.input.ScriptGeneratorI;
@@ -64,7 +65,8 @@ public class TestInputCommandGeneration {
 	@Test
 	public final void testGenerate() {
 		ScriptGeneratorI fif = new OpenSeesSG(configDir, femCfg
-				.getSubstructCfgs().get(mdl));
+				.getSubstructCfgs().get(mdl), femCfg.getFemProgramParameters()
+				.get(FemProgramType.OPENSEES).getTemplateDao());
 		final int stepNumber = 3;
 		String initInput = fif.generateInit();
 		Assert.assertEquals(initInput, initReference);
@@ -82,8 +84,10 @@ public class TestInputCommandGeneration {
 		String cf = PathUtils.cleanPath(u.getPath());
 		configDir = PathUtils.parent(cf);
 		femCfg = new FemExecutorConfig(configDir);
-		ProgramDao femProg = new ProgramDao(FemProgramType.OPENSEES,
-				"/usr/bin/OpenSees");
+		TemplateDao tdao = new TemplateDao("step_template.tcl",
+				"init_template.tcl");
+		ProgramDao femProg = new ProgramDao("/usr/bin/OpenSees",
+				FemProgramType.OPENSEES, tdao);
 		femCfg.getFemProgramParameters().put(FemProgramType.OPENSEES, femProg);
 		String address = mdl;
 		final double[] dat = { 13.0203e-08, 34.00012e-12, 12.00345e-08,

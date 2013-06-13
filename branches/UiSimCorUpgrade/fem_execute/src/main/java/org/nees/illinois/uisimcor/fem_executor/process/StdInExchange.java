@@ -14,12 +14,12 @@ import org.slf4j.LoggerFactory;
  * Class which sends command strings to the FEM process and returns responses.
  * @author Michael Bletzinger
  */
-public class StdInExchange implements Abortable {
+public class StdInExchange implements AbortableI {
 
 	/**
 	 * Current command string.
 	 */
-	private QMessage command;
+	private QMessageT<?> command;
 
 	/**
 	 * Logger.
@@ -39,12 +39,21 @@ public class StdInExchange implements Abortable {
 	/**
 	 * Blocking queue containing the command strings.
 	 */
-	private final BlockingQueue<QMessage> stdinQ = new LinkedBlockingQueue<QMessage>();
+	private final BlockingQueue<QMessageT<String>> stdinQ = new LinkedBlockingQueue<QMessageT<String>>();
 
 	/**
 	 * STDIN for the FEM process where the commands are written to.
 	 */
 	private final PrintWriter strm;
+
+	/**
+	 * Count for debug messages during a poll.
+	 */
+	private int pollCount = 0;
+	/**
+	 * Number of times to log a polling message.
+	 */
+	private final int pollPrintWait = 20;
 
 	/**
 	 * @param queueCheckInterval
@@ -60,14 +69,14 @@ public class StdInExchange implements Abortable {
 	/**
 	 * @return the queueCheckInterval
 	 */
-	public  final int getQueueCheckInterval() {
+	public final int getQueueCheckInterval() {
 		return queueCheckInterval;
 	}
 
 	/**
 	 * @return the commandQ
 	 */
-	public  final BlockingQueue<QMessage> getStdinQ() {
+	public final BlockingQueue<QMessageT<String>> getStdinQ() {
 		return stdinQ;
 	}
 
@@ -110,17 +119,23 @@ public class StdInExchange implements Abortable {
 	 * @return True if a command was read.
 	 */
 	private boolean waitForCommand() {
+		if (pollCount > pollPrintWait) {
+			pollCount = 0;
+		} else {
+			pollCount++;
+		}
+		if (pollCount == 0) {
+			log.debug("Waiting for command");
+		}
 		try {
-			log.debug("Reading Command");
 			command = stdinQ.poll(queueCheckInterval, TimeUnit.MILLISECONDS);
-			if (command == null) {
-				return false;
-			}
 		} catch (InterruptedException e) {
-			log.debug("Checking abort flag");
+			log.debug("Checking quit flag");
 			return false;
 		}
-		log.debug("Command is \"" + command + "\"");
+		if (command == null) {
+			return false;
+		}
 		return true;
 	}
 

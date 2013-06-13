@@ -9,6 +9,7 @@ import org.nees.illinois.uisimcor.fem_executor.FemExecutorConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.LoadSaveConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.ProgramDao;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
+import org.nees.illinois.uisimcor.fem_executor.config.dao.TemplateDao;
 import org.nees.illinois.uisimcor.fem_executor.config.types.DispDof;
 import org.nees.illinois.uisimcor.fem_executor.config.types.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
@@ -98,8 +99,8 @@ public class TestLoadSaveConfig {
 		configRefFolder = pathF.getParent();
 		final int noSubstructures = 3;
 		femCfg = new FemExecutorConfig("/home/mbletzin/Tmp");
-		ProgramDao femProg = new ProgramDao(
-				FemProgramType.OPENSEES, "C:/Tcl/bin/OpenSees");
+		TemplateDao tdao = new TemplateDao("step_template.tcl", "init_template.tcl");
+		ProgramDao femProg = new ProgramDao("C:/Tcl/bin/OpenSees", FemProgramType.OPENSEES, tdao);
 		femCfg.getFemProgramParameters().put(FemProgramType.OPENSEES, femProg);
 		for (int i = 1; i < noSubstructures + 1; i++) {
 			String address = "MDL-0" + i;

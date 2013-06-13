@@ -1,6 +1,13 @@
 package org.nees.illinois.uisimcor.fem_executor.output;
 
+import java.io.DataInputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.nees.illinois.uisimcor.fem_executor.config.DofIndexMagic;
@@ -128,7 +135,7 @@ public class DataFormatter {
 			} catch (NumberFormatException e) {
 				log.error("Token \"" + tokens[t]
 						+ "\" is not a number.  Column " + t + " for \""
-						+ strData + "\"",e);
+						+ strData + "\"", e);
 				val = 0.0;
 			}
 			row.add(val);
@@ -136,4 +143,54 @@ public class DataFormatter {
 		return row;
 	}
 
+	/**
+	 * Read a binary file with one line of response values.
+	 * @param file
+	 *            Name of file.
+	 * @param length
+	 *            Number of values expected.
+	 * @return List of doubles. Returns null if there were problems.
+	 */
+	public final List<Double> readFile(final String file, final int length) {
+		// create FileInputStream object
+		DataInputStream din;
+		try {
+			FileInputStream fin = new FileInputStream(file);
+			din = new DataInputStream(fin);
+		} catch (FileNotFoundException e) {
+			log.error("File \"" + file + "\" could not be read because ", e);
+			return null;
+		}
+
+		/*
+		 * To read a Java double primitive from file, use byte readDouble()
+		 * method of Java DataInputStream class. This method reads 8 bytes and
+		 * returns it as a double value.
+		 */
+		List<Double> result = new ArrayList<Double>();
+		for (int n = 0; n < length; n++) {
+			double d = 0.0;
+			try {
+				d = din.readDouble();
+			} catch (IOException e) {
+				log.error("File \"" + file + "\" could not be read because ", e);
+				try {
+					din.close();
+				} catch (IOException e1) {
+					log.error("File \"" + file
+							+ "\" could not be closed but who cares ", e1);
+				}
+				return null;
+			}
+			result.add(d);
+		}
+		try {
+			din.close();
+		} catch (IOException e1) {
+			log.error("File \"" + file
+					+ "\" could not be closed but who cares ", e1);
+		}
+
+		return result;
+	}
 }

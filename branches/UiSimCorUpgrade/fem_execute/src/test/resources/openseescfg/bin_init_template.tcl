@@ -1,3 +1,3 @@
 ${SourcedFiles}
-recorder Node -file tmp_disp.out -node ${NodeList} -dof ${ResponseDofs} disp
-recorder Node -file tmp_forc.out -node ${NodeList} -dof ${ResponseDofs} reaction
+recorder Node -binary tmp_disp.bin -node ${NodeList} -dof ${ResponseDofs} disp
+recorder Node -binary tmp_forc.bin -node ${NodeList} -dof ${ResponseDofs} reaction
