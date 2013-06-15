@@ -1,14 +1,8 @@
 package org.nees.illinois.uisimcor.fem_executor.test;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
 
-import org.junit.Assert;
-import org.nees.illinois.uisimcor.fem_executor.process.FileWithContentDelete;
-import org.nees.illinois.uisimcor.fem_executor.process.ProcessManagement;
 import org.nees.illinois.uisimcor.fem_executor.process.ProcessResponse;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
@@ -30,15 +24,6 @@ public class TestProcessResponse {
 	 * Command to execute for testing the response processing.
 	 */
 	private String command;
-	/**
-	 * Command to execute for testing process management.
-	 */
-	private String pmCommand;
-	/**
-	 * Working directory for process execution.
-	 */
-	private String workDir;
-
 	/**
 	 * Logger.
 	 */

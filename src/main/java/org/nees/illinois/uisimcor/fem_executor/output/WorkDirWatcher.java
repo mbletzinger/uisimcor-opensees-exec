@@ -32,11 +32,6 @@ public class WorkDirWatcher implements AbortableI {
 	private final Logger log = LoggerFactory.getLogger(WorkDirWatcher.class);
 
 	/**
-	 * Number of milliseconds to poll for changes.
-	 */
-	private final long milliSecWait;
-
-	/**
 	 * Flag to exit the thread.
 	 */
 	private volatile boolean quit = false;
@@ -51,21 +46,13 @@ public class WorkDirWatcher implements AbortableI {
 			.newWatchService();
 
 	/**
-	 * @param milliSecWait
-	 *            Number of milliseconds to poll for changes.
-	 */
-	public WorkDirWatcher(final long milliSecWait) {
-		this.milliSecWait = milliSecWait;
-	}
-
-	/**
 	 * Add full path of file to watch list.
 	 * @param path
 	 *            Full pathname.
 	 * @param queue
 	 *            Queue used to send events.
 	 */
-	public final void addFileWatch(final String path,
+	public final synchronized void addFileWatch(final String path,
 			final BlockingQueue<List<WatchEvent<?>>> queue) {
 		Path wp = Paths.get(path);
 		WatchKey key;
@@ -91,8 +78,7 @@ public class WorkDirWatcher implements AbortableI {
 		while (isQuit() == false) {
 			WatchKey signaledK;
 			try {
-				signaledK = watchService.poll(milliSecWait,
-						TimeUnit.MILLISECONDS);
+				signaledK = watchService.take();
 			} catch (ClosedWatchServiceException e) {
 				log.error("Watch service has died because ", e);
 				return;
@@ -100,11 +86,9 @@ public class WorkDirWatcher implements AbortableI {
 				log.debug("Checking Quit");
 				continue;
 			}
-			if (signaledK == null) {
-				continue;
-			}
 			List<WatchEvent<?>> events = signaledK.pollEvents();
-
+			log.debug("Got events for " + events.get(0).context() );
+			signaledK.reset();
 			try {
 				watches.get(signaledK).put(events);
 			} catch (InterruptedException e) {

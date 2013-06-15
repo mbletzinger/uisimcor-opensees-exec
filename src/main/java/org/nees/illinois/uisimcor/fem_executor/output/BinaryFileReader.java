@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.nees.illinois.uisimcor.fem_executor.utils.OutputFileException;
+import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,15 +26,16 @@ public class BinaryFileReader {
 	 * Name of file.
 	 */
 	private final String filename;
+
 	/**
 	 * Logger.
 	 **/
 	private final Logger log = LoggerFactory.getLogger(BinaryFileReader.class);
+
 	/**
 	 * Number of doubles to be found in file.
 	 */
 	private final int totalDofs;
-
 	/**
 	 * @param filename
 	 *            Name of file.
@@ -43,6 +45,51 @@ public class BinaryFileReader {
 	public BinaryFileReader(final String filename, final int totalDofs) {
 		this.filename = filename;
 		this.totalDofs = totalDofs;
+	}
+	/**
+	 * Attempts to delete the file.
+	 * @throws OutputFileException
+	 *             If the file cannot be deleted.
+	 */
+	public final void clean() throws OutputFileException {
+		File fileF = new File(filename);
+		if (fileF.exists()) {
+			log.debug("Deleting \"" + filename + "\"");
+			boolean done = fileF.delete();
+			if (done == false) {
+				throw new OutputFileException("\"" + filename
+						+ "\" cannot be deleted");
+			}
+		}
+
+	}
+	/**
+	 * @return the last modification date of the file.
+	 */
+	public final long getFileModDate() {
+		File file = new File(filename);
+		long time = file.lastModified();
+		return time;
+	}
+
+	/**
+	 * @return the filename that is being read.
+	 */
+	public final String getFilename() {
+		return filename;
+	}
+
+	/**
+	 * @return the directory containing the file that is being read.
+	 */
+	public final String getDirectory() {
+		return PathUtils.parent(filename);
+	}
+	/**
+	 * @return the number of double values that are expected in the file.
+	 */
+	public final int getTotalDofs() {
+		return totalDofs;
 	}
 
 	/**
@@ -105,7 +152,6 @@ public class BinaryFileReader {
 		}
 		return result;
 	}
-
 	/**
 	 * Parse byte array into double numbers.
 	 * @param record
