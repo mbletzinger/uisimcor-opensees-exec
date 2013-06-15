@@ -27,11 +27,11 @@ import org.nees.illinois.uisimcor.fem_executor.input.OpenSeesSG;
 import org.nees.illinois.uisimcor.fem_executor.input.WorkingDir;
 import org.nees.illinois.uisimcor.fem_executor.output.BinaryFileReader;
 import org.nees.illinois.uisimcor.fem_executor.output.DataFormatter;
-import org.nees.illinois.uisimcor.fem_executor.process.FileWithContentDelete;
 import org.nees.illinois.uisimcor.fem_executor.process.ProcessManagement;
 import org.nees.illinois.uisimcor.fem_executor.process.QMessageT;
 import org.nees.illinois.uisimcor.fem_executor.process.QMessageType;
 import org.nees.illinois.uisimcor.fem_executor.test.utils.CompareLists;
+import org.nees.illinois.uisimcor.fem_executor.utils.FileWithContentDelete;
 import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
 import org.nees.illinois.uisimcor.fem_executor.utils.OutputFileException;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
@@ -56,6 +56,11 @@ public class TestOpenSeesExecution {
 	 */
 	private String configDir;
 	/**
+	 * Flag to indicate whether the generated files should be removed or not
+	 * after the tests are over.
+	 */
+	private boolean keepFiles = false;
+	/**
 	 * Logger.
 	 **/
 	private final Logger log = LoggerFactory
@@ -72,16 +77,11 @@ public class TestOpenSeesExecution {
 	 * Templates used to change the OpenSees recording.
 	 */
 	private Map<String, TemplateDao> templates = new HashMap<String, TemplateDao>();
+
 	/**
 	 * Directory to store temporary files during FEM execution.
 	 */
 	private String workDir;
-
-	/**
-	 * Flag to indicate whether the generated files should be removed or not
-	 * after the tests are over.
-	 */
-	private boolean keepFiles = false;
 
 
 	/**

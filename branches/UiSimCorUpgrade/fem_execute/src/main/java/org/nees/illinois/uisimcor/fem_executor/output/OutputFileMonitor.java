@@ -1,15 +1,17 @@
 package org.nees.illinois.uisimcor.fem_executor.output;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
+import name.pachler.nio.file.Path;
+import name.pachler.nio.file.StandardWatchEventKind;
 import name.pachler.nio.file.WatchEvent;
 
-import org.apache.commons.io.FileUtils;
 import org.nees.illinois.uisimcor.fem_executor.process.AbortableI;
+import org.nees.illinois.uisimcor.fem_executor.process.QMessageT;
+import org.nees.illinois.uisimcor.fem_executor.process.QMessageType;
 import org.nees.illinois.uisimcor.fem_executor.utils.OutputFileException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,34 +23,10 @@ import org.slf4j.LoggerFactory;
  */
 public class OutputFileMonitor implements AbortableI {
 	/**
-	 * Quit flag.
-	 */
-	private volatile boolean quit;
-
-	/**
-	 * @return the eventQ
-	 */
-	public final BlockingQueue<WatchEvent<?>> getEventQ() {
-		return eventQ;
-	}
-
-	/**
 	 * Operational states for the file monitor.
 	 * @author Michael Bletzinger
 	 */
 	public enum OfmStates {
-		/**
-		 * Waiting to start monitoring.
-		 */
-		Idle,
-		/**
-		 * Start monitoring.
-		 */
-		Starting,
-		/**
-		 * Waiting the heuristic delay.
-		 */
-		DelayWait,
 		/**
 		 * Wait for File creation.
 		 */
@@ -58,23 +36,28 @@ public class OutputFileMonitor implements AbortableI {
 		 */
 		CheckingForMods,
 		/**
+		 * Heuristic delay to get all mod events at once.
+		 */
+		HeuristicDelay,
+		/**
+		 * The thread is not running.
+		 */
+		Idle,
+		/**
 		 * Read the file.
 		 */
 		ReadingOutput,
-		/**
-		 * Return the output.
-		 */
-		SendOutput
-	};
+	}
 
 	/**
-	 * Current state of monitor.
+	 * Determines poll wait time for events.
 	 */
-	private OfmStates state;
+	private final DelayHeuristics delay = new DelayHeuristics();
+
 	/**
-	 * File to monitor.
+	 * Queue for the watcher service to send events.
 	 */
-	private final String file;
+	private final BlockingQueue<List<WatchEvent<?>>> eventQ = new LinkedBlockingQueue<List<WatchEvent<?>>>();
 
 	/**
 	 * Logger.
@@ -82,87 +65,148 @@ public class OutputFileMonitor implements AbortableI {
 	private final Logger log = LoggerFactory.getLogger(OutputFileMonitor.class);
 
 	/**
-	 * The new response.
+	 * Amount of time we wait for file changes before assuming the output file
+	 * is ready.
 	 */
-	private String response;
-	/**
-	 * Queue for the watcher service to send events.
-	 */
-	private final BlockingQueue<WatchEvent<?>> eventQ = new LinkedBlockingQueue<WatchEvent<?>>();
+	private final int modCheckWait = 400;
 
 	/**
-	 * @param file
-	 *            File to monitor.
+	 * Quit flag.
 	 */
-	public OutputFileMonitor(final String file) {
-		this.file = file;
+	private volatile boolean quit;
+
+	/**
+	 * Reader which reads the file being monitored.
+	 */
+	private final BinaryFileReader dispReader;
+
+	/**
+	 * Reader which reads the file being monitored.
+	 */
+	private final BinaryFileReader forceReader;
+
+	/**
+	 * Queue for sending the contents of the file.
+	 */
+	private final BlockingQueue<QMessageT<List<Double>>> responseQ = new LinkedBlockingQueue<QMessageT<List<Double>>>();
+	/**
+	 * Current state of monitor.
+	 */
+	private volatile OfmStates state;
+	/**
+	 * Directory watch service.
+	 */
+	private final WorkDirWatcher watcher;
+
+	/**
+	 * @param dispReader
+	 *            Displacement output file to monitor.
+	 * @param forceReader 	
+	  *            Force output file to monitor.
+	 * @param watcher 
+	 * 	Directory watch service.
+	 */
+	public OutputFileMonitor(final BinaryFileReader dispReader, BinaryFileReader forceReader, WorkDirWatcher watcher) {
+		this.dispReader = dispReader;
+		this.forceReader = forceReader;
 		try {
-			clean();
+			dispReader.clean();
 		} catch (OutputFileException e) {
-			log.warn("File \"" + file + "\" could not be deleted because", e);
+			log.error("Remove failed", e);
+			setQuit(true);
 		}
+		final int initialDelay = 5000;
+		delay.setDelay(initialDelay);
+		delay.startStep();
+		this.watcher = watcher;
 	}
 
 	/**
-	 * @return the file
+	 * Wait for a file creation event.
 	 */
-	public final String getFile() {
-		return file;
-	}
-
-	/**
-	 * Read the output files by skipping lineCount lines and then reading the
-	 * last line for both force and displacement files.
-	 * @throws OutputFileException
-	 *             thrown when problems reading the output file occurs.
-	 * @return true if the output was read.
-	 */
-	public final boolean readOutput() throws OutputFileException {
-		File fileF = new File(file);
-		// log.debug("Checking \"" + file + "\"");
-		if (fileF.exists() == false) {
-			return false;
-		}
-		List<String> contents;
+	@SuppressWarnings("unchecked")
+	private void checkForFileCreation() {
+		List<WatchEvent<?>> events;
 		try {
-
-			contents = FileUtils.readLines(fileF);
-		} catch (IOException e) {
-			throw new OutputFileException("Could not read file \"" + file
-					+ "\" because", e);
+			events = eventQ.take();
+		} catch (InterruptedException e) {
+			log.debug("Checking quit");
+			return;
 		}
-		if (contents.isEmpty()) {
-			log.debug("\"" + file + "\" s got nuttin'");
-			return false;
-		}
-		if (contents.size() > 1) {
-			log.warn("File \"" + file + "\" has to many lines");
-		}
-		response = contents.get(0);
-		log.debug("New output \"" + response + "\"");
-		clean();
-		return true;
-	}
-
-	/**
-	 * Attempts to delete the file.
-	 * @throws OutputFileException
-	 *             If the file cannot be deleted.
-	 */
-	private void clean() throws OutputFileException {
-		File fileF = new File(file);
-		if (fileF.exists()) {
-			boolean done = fileF.delete();
-			if (done == false) {
-				throw new OutputFileException("File \"" + file
-						+ "\" could not be deleted");
+		for (WatchEvent<?> e : events) {
+			WatchEvent<Path> pe = (WatchEvent<Path>) e;
+			log.debug("Checking " + pe.kind().name());
+			if (pe.kind().equals(StandardWatchEventKind.ENTRY_CREATE) || pe.kind().equals(StandardWatchEventKind.ENTRY_MODIFY)) {
+				setState(OfmStates.HeuristicDelay);
+				return;
 			}
 		}
-
 	}
 
-	@Override
-	public void run() {
+	/**
+	 * Check for a lack of events within the modCheckWait timeframe.
+	 */
+	@SuppressWarnings("unchecked")
+	private void checkForMods() {
+		List<WatchEvent<?>> events;
+		try {
+			events = eventQ.poll(modCheckWait, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			log.debug("Checking quit");
+			return;
+		}
+		if (events == null) {
+			delay.completedStep(forceReader.getFileModDate());
+			setState(OfmStates.ReadingOutput);
+			return;
+		}
+		for (WatchEvent<?> e : events) {
+			WatchEvent<Path> pe = (WatchEvent<Path>) e;
+			log.debug("Checking " + pe.kind().name());
+		}
+	}
+
+	/**
+	 * @return the eventQ
+	 */
+	public final BlockingQueue<List<WatchEvent<?>>> getEventQ() {
+		return eventQ;
+	}
+
+	/**
+	 * @return the reader
+	 */
+	public final BinaryFileReader getDispReader() {
+		return dispReader;
+	}
+
+	/**
+	 * @return the responseQ
+	 */
+	public final BlockingQueue<QMessageT<List<Double>>> getResponseQ() {
+		return responseQ;
+	}
+
+	/**
+	 * @return the state
+	 */
+	public final synchronized OfmStates getState() {
+		return state;
+	}
+
+	/**
+	 * Wait the heuristic delay.
+	 */
+	private void heuristicDelay() {
+		try {
+			Thread.sleep(delay.getDelay());
+		} catch (InterruptedException e) {
+			log.debug("interrupted. Checking quit");
+			return; // We are going to chance a double delay rather on that was
+					// shortened by a spurious interrupt. If there is such a
+					// thing.
+		}
+		setState(OfmStates.CheckingForMods);
 	}
 
 	@Override
@@ -170,10 +214,80 @@ public class OutputFileMonitor implements AbortableI {
 		return quit;
 	}
 
+	/**
+	 * Read the output files by skipping lineCount lines and then reading the
+	 * last line for both force and displacement files.
+	 */
+	private void readOutput() {
+		List<Double> dresponse = null;
+		List<Double> fresponse = null;
+		try {
+			dresponse = dispReader.read();
+			dispReader.clean();
+			fresponse = forceReader.read();
+			forceReader.clean();
+		} catch (OutputFileException e) {
+			log.error("Read failed", e);
+			setQuit(true);
+		}
+		setState(OfmStates.CheckFileCreation); // Do this before the response is
+												// sent so that we are sure the
+												// file is created after we are
+												// watching it.
+		delay.startStep();
+		try {
+			responseQ.put(new QMessageT<List<Double>>(QMessageType.Response,
+					dresponse));
+			responseQ.put(new QMessageT<List<Double>>(QMessageType.Response,
+					fresponse));
+		} catch (InterruptedException e) {
+			log.error("Can't send response because ", e);
+			setQuit(true);
+		}
+		watcher.addFileWatch(dispReader.getDirectory(), getEventQ());
+	}
+
+	@Override
+	public final void run() {
+		watcher.addFileWatch(dispReader.getDirectory(), getEventQ());
+		log.debug("Starting fie monitoring of \"" + dispReader.getDirectory() + "\"");
+		setState(OfmStates.CheckFileCreation);
+		while (isQuit() == false) {
+			OfmStates st = getState();
+			log.debug("State: " + st);
+			if (st.equals(OfmStates.CheckFileCreation)) {
+				checkForFileCreation();
+				continue;
+			}
+			if (st.equals(OfmStates.HeuristicDelay)) {
+				heuristicDelay();
+				continue;
+			}
+			if (st.equals(OfmStates.CheckingForMods)) {
+				checkForMods();
+				continue;
+			}
+			if (st.equals(OfmStates.ReadingOutput)) {
+				readOutput();
+				continue;
+			}
+		}
+		setState(OfmStates.Idle);
+		log.debug("Ending STDIN Monitoring");
+	}
+
 	@Override
 	public final synchronized void setQuit(final boolean quit) {
 		this.quit = quit;
 
+	}
+
+	/**
+	 * @param state
+	 *            the state to set
+	 */
+	public final synchronized void setState(final OfmStates state) {
+		this.state = state;
 	}
 
 }

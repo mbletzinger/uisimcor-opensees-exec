@@ -9,6 +9,8 @@ our $timeSec = shift;
 our $repetitions = shift;
 $timeSec = 1 unless defined $timeSec;
 $repetitions = 3 unless defined $repetitions;
+my $old_fh = select(STDOUT);
+$| = 1;
 for my $r (0 .. $repetitions) {
 	print STDOUT "Printing out $r\n";
 	sleep $timeSec;
