@@ -3,7 +3,6 @@ package org.nees.illinois.uisimcor.fem_executor.test;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -45,8 +44,6 @@ public class TestProcessManagement {
 	 */
 	@Test
 	public final void testProcessManagement() {
-		String dispFile = PathUtils.append(workDir, "tmp_disp.txt");
-		String forceFile = PathUtils.append(workDir, "tmp_forc.txt");
 		final int waitTime = 200;
 		final int pollCount = 6;
 		final int oneSec = 1000;
@@ -60,16 +57,14 @@ public class TestProcessManagement {
 			Assert.fail(pmCommand + " \" failed to start");
 		}
 		BlockingQueue<QMessageT<String>> commands = pm.getStdinQ();
-		BlockingQueue<QMessageT<List<Double>>> responses = pm.getResponseQ();
+		BlockingQueue<String> responses = pm.addResponseListener().getSteps();
 		final int lastStep = 11;
 		for (int s = 1; s < lastStep; s++) {
-			commands.add(new QMessageT(QMessageType.Command,"Execute Step " + s));
-			QMessageT rsp = null;
+			commands.add(new QMessageT<String>(QMessageType.Command,"Execute Step " + s));
+			String rsp = null;
 			int count = 0;
 			while (rsp == null && count < pollCount) {
 				try {
-					rsp = responses.poll(oneSec, TimeUnit.MILLISECONDS);
-					log.debug("Received \"" + rsp + "\" from process");
 					rsp = responses.poll(oneSec, TimeUnit.MILLISECONDS);
 					log.debug("Received \"" + rsp + "\" from process");
 				} catch (InterruptedException e) {
@@ -77,11 +72,12 @@ public class TestProcessManagement {
 				}
 				count++;
 			}
+			log.debug("Received " + rsp);
 			Assert.assertNotNull("Response not received within 5 seconds", rsp);
 			Assert.assertTrue("Response contains step number",
-					rsp.getContent().contains(Integer.toString(s)));
+					rsp.contains(Integer.toString(s)));
 		}
-		commands.add(new QMessageT(QMessageType.Exit,"EXIT"));
+		commands.add(new QMessageT<String>(QMessageType.Exit,"EXIT"));
 		pm.finish();
 	}
 
@@ -125,5 +121,4 @@ public class TestProcessManagement {
 		}
 		log.debug("\"" + workDir + "\" was removed");
 	}
-
 }

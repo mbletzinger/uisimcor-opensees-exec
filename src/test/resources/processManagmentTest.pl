@@ -18,26 +18,9 @@ while ( my $line = <STDIN> ) {
 		print STDOUT "Goodbye\n";
 		last;
 	}
-#	print STDOUT "Received \"$line\"";
-#	print STDOUT "Writing to file disp\n";
-	outAFile( $file1, $count );
-#	print STDOUT "Writing to file force\n";
-	outAFile( $file2, $count );
-	$count++;
+	print STDOUT "Received \"$line\"";
 	print STDOUT "\"Current step $count - done #:\"\n";
+	$count++;
 	sleep 2; # aggravate the ouput monitor
 }
 
-sub outAFile {
-	my ( $file, $step ) = @_;
-	my $handle;
-	open $handle, ">$file";
-	my $interval = 0.0001;
-	my $val      = $step;
-	for my $c ( 1 .. 10 ) {
-		print $handle $val . " ";
-		$val += $interval;
-	}
-	print $handle "\n";
-	close $handle;
-}

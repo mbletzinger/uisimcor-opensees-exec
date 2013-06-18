@@ -45,6 +45,7 @@ public class BinaryFileReader {
 	public BinaryFileReader(final String filename, final int totalDofs) {
 		this.filename = filename;
 		this.totalDofs = totalDofs;
+		log.debug("Set up to read " + this.totalDofs + " dofs from " + this.filename);
 	}
 	/**
 	 * Attempts to delete the file.

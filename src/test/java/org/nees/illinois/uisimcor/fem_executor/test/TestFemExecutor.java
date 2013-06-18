@@ -9,6 +9,7 @@ import java.util.List;
 import org.nees.illinois.uisimcor.fem_executor.FemExecutor;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.ProgramDao;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
+import org.nees.illinois.uisimcor.fem_executor.config.dao.TemplateDao;
 import org.nees.illinois.uisimcor.fem_executor.config.types.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.utils.FileWithContentDelete;
 import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
@@ -81,7 +82,7 @@ public class TestFemExecutor {
 					log.debug("Sleeping...");
 				}
 				if (count > tiredOfWaiting) {
-					fexec.abort();
+					fexec.finish();
 					Assert.fail("Execution has hung for some reason");
 				}
 			}
@@ -97,6 +98,7 @@ public class TestFemExecutor {
 				vals = fexec.getForces(m);
 				Assert.assertEquals(vals.length, numberOfDofs);
 			}
+			fexec.finish();
 		}
 	}
 
@@ -129,7 +131,8 @@ public class TestFemExecutor {
 		String command = PathUtils.cleanPath(u.getPath());
 		File cmdF = new File(command);
 		cmdF.setExecutable(true);
-		femProg = new ProgramDao(FemProgramType.OPENSEES, command);
+		TemplateDao tdao = new TemplateDao("step_template.tcl", "init_template.tcl");
+		femProg = new ProgramDao(command, FemProgramType.OPENSEES,tdao);
 		if (WindowsPerlBatchCreator.isWindows()) {
 			WindowsPerlBatchCreator wpbc = new WindowsPerlBatchCreator(workDir,
 					femProg);
