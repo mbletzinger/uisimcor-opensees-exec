@@ -92,7 +92,7 @@ public class DofIndexMagic {
 	 * Return the number of DOFs based on the settings of the class.
 	 * @return The number of DOFs.
 	 */
-	public final int numberOfDofs() {
+	public final int numberOfDofsPerNode() {
 		if (isUiSimCor) {
 			return numDofs3D;
 		}

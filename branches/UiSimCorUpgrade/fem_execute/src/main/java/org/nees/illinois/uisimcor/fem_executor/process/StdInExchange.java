@@ -88,14 +88,14 @@ public class StdInExchange implements AbortableI {
 
 	@Override
 	public final void run() {
-		log.debug("Starting STDIN Monitoring");
+		log.info("Starting STDIN monitoring");
 		while (isQuit() == false) {
 			boolean recieved = waitForCommand();
 			if (recieved) {
 				sendCommand();
 			}
 		}
-		log.debug("Ending STDIN Monitoring");
+		log.info("Ending STDIN monitoring");
 	}
 
 	/**

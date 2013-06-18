@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
 
 import name.pachler.nio.file.ClosedWatchServiceException;
 import name.pachler.nio.file.FileSystems;
@@ -87,15 +86,16 @@ public class WorkDirWatcher implements AbortableI {
 				continue;
 			}
 			List<WatchEvent<?>> events = signaledK.pollEvents();
-			log.debug("Got events for " + events.get(0).context() );
+			log.debug("Got events for " + events.get(0).context());
 			signaledK.reset();
 			try {
 				watches.get(signaledK).put(events);
 			} catch (InterruptedException e) {
-				log.error("Queue put to OutputFileMonitor failed because ", e);
+				log.debug("Queue put to OutputFileMonitor was interrupted");
 				continue;
 			}
 		}
+		log.info("Watch service is closing");
 		try {
 			watchService.close();
 		} catch (IOException e) {

@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Observable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +18,18 @@ import ch.qos.logback.classic.Level;
  * @author Michael Bletzinger
  */
 public class ProcessResponse extends Observable implements AbortableI {
+	/**
+	 * @param output
+	 *            the output to set
+	 */
+	public final synchronized void appendOutput(final String output) {
+		this.output += output;
+	}
+
+	/**
+	 * Pattern for the observable function.
+	 */
+	private final Pattern regex = Pattern.compile("step\\s+([0-9]+)");
 	/**
 	 * Quit flag for {@link AbortableI abort} interface.
 	 */
@@ -35,7 +49,7 @@ public class ProcessResponse extends Observable implements AbortableI {
 	/**
 	 * Output accumulator.
 	 */
-	private String output = "";
+	private volatile String output = "";
 	/**
 	 * Name of the process. Used as a label for logging messages.
 	 */
@@ -75,29 +89,34 @@ public class ProcessResponse extends Observable implements AbortableI {
 	/**
 	 * @return the output
 	 */
-	public final String getOutput() {
+	public final synchronized String getOutput() {
 		return output;
 	}
 
 	@Override
 	public final void run() {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(strm));
+		log.info("Starting response monitor");
 		while (isQuit() == false) {
 			try {
 				String cbuf;
 				if (reader.ready()) {
 					cbuf = reader.readLine();
-//					log.debug("read \"" + cbuf + "\"");
-					if(cbuf.contains("#:")) {
-//						log.debug("Time to notify");
+					// log.debug("read \"" + cbuf + "\"");
+					if (cbuf.contains("#:")) {
+						Matcher match = regex.matcher(cbuf);
+						match.find();
+						String step = match.group(1);
+						// log.debug("Time to notify");
 						setChanged();
-						notifyObservers();
+						notifyObservers(step);
 					}
 					writeLog(cbuf);
-					output += cbuf + "\n";
+					appendOutput(cbuf + "\n");
 				}
 			} catch (IOException e) {
-				log.debug("Stream for \"" + processName + "\" has closed because ",e);
+				log.debug("Stream for \"" + processName
+						+ "\" has closed because ", e);
 				setQuit(true);
 			}
 			try {
@@ -109,10 +128,11 @@ public class ProcessResponse extends Observable implements AbortableI {
 		try {
 			reader.close();
 		} catch (IOException e) {
-			log.debug("Could not close stream for \"" + processName + "\" because ",e);
+			log.debug("Could not close stream for \"" + processName
+					+ "\" because ", e);
 		}
+		log.info("Closing down response monitor");
 	}
-
 
 	/**
 	 * Writes line to the log specified by the logging level.

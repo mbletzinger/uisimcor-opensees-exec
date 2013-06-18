@@ -12,6 +12,7 @@ import name.pachler.nio.file.WatchEvent;
 import org.nees.illinois.uisimcor.fem_executor.process.AbortableI;
 import org.nees.illinois.uisimcor.fem_executor.process.QMessageT;
 import org.nees.illinois.uisimcor.fem_executor.process.QMessageType;
+import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
 import org.nees.illinois.uisimcor.fem_executor.utils.OutputFileException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,12 +102,13 @@ public class OutputFileMonitor implements AbortableI {
 	/**
 	 * @param dispReader
 	 *            Displacement output file to monitor.
-	 * @param forceReader 	
-	  *            Force output file to monitor.
-	 * @param watcher 
-	 * 	Directory watch service.
+	 * @param forceReader
+	 *            Force output file to monitor.
+	 * @param watcher
+	 *            Directory watch service.
 	 */
-	public OutputFileMonitor(final BinaryFileReader dispReader, BinaryFileReader forceReader, WorkDirWatcher watcher) {
+	public OutputFileMonitor(final BinaryFileReader dispReader,
+			final BinaryFileReader forceReader, final WorkDirWatcher watcher) {
 		this.dispReader = dispReader;
 		this.forceReader = forceReader;
 		try {
@@ -136,7 +138,8 @@ public class OutputFileMonitor implements AbortableI {
 		for (WatchEvent<?> e : events) {
 			WatchEvent<Path> pe = (WatchEvent<Path>) e;
 			log.debug("Checking " + pe.kind().name());
-			if (pe.kind().equals(StandardWatchEventKind.ENTRY_CREATE) || pe.kind().equals(StandardWatchEventKind.ENTRY_MODIFY)) {
+			if (pe.kind().equals(StandardWatchEventKind.ENTRY_CREATE)
+					|| pe.kind().equals(StandardWatchEventKind.ENTRY_MODIFY)) {
 				setState(OfmStates.HeuristicDelay);
 				return;
 			}
@@ -223,8 +226,10 @@ public class OutputFileMonitor implements AbortableI {
 		List<Double> fresponse = null;
 		try {
 			dresponse = dispReader.read();
+			log.debug("Read displacements " + MtxUtils.list2String(dresponse));
 			dispReader.clean();
 			fresponse = forceReader.read();
+			log.debug("Read forces " + MtxUtils.list2String(fresponse));
 			forceReader.clean();
 		} catch (OutputFileException e) {
 			log.error("Read failed", e);
@@ -250,7 +255,8 @@ public class OutputFileMonitor implements AbortableI {
 	@Override
 	public final void run() {
 		watcher.addFileWatch(dispReader.getDirectory(), getEventQ());
-		log.debug("Starting fie monitoring of \"" + dispReader.getDirectory() + "\"");
+		log.info("Starting fie monitoring of \"" + dispReader.getDirectory()
+				+ "\"");
 		setState(OfmStates.CheckFileCreation);
 		while (isQuit() == false) {
 			OfmStates st = getState();
@@ -273,7 +279,7 @@ public class OutputFileMonitor implements AbortableI {
 			}
 		}
 		setState(OfmStates.Idle);
-		log.debug("Ending STDIN Monitoring");
+		log.info("Ending output file monitoring");
 	}
 
 	@Override

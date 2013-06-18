@@ -49,8 +49,12 @@ public class DataFormatter {
 		for (Integer n : substructCfg.getNodeSequence()) {
 			for (DispDof d : substructCfg.getEffectiveDofs(n)) {
 				try {
+					log.debug("Adding data at local index " + d + " nodeCount "
+							+ nodeCount + " numDofs "
+							+ openseesMagic.numberOfDofsPerNode() + " index "
+							+ openseesMagic.index(d));
 					result.add(data.get(nodeCount
-							* openseesMagic.numberOfDofs()
+							* openseesMagic.numberOfDofsPerNode()
 							+ openseesMagic.index(d)));
 				} catch (IllegalParameterException e) {
 					log.error("Misconfigured substructure "

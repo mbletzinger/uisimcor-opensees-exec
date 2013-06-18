@@ -145,6 +145,16 @@ public class ProcessManagement {
 	}
 
 	/**
+	 * Returns a response monitor whose queue receives step strings.
+	 * @return monitor instance.
+	 */
+	public final ResponseMonitor addResponseListener() {
+		ResponseMonitor result = new ResponseMonitor();
+		stoutPr.addObserver(result);
+		return result;
+	}
+
+	/**
 	 * Assemble the command and its arguments.
 	 * @return The full command string.
 	 */
@@ -210,13 +220,6 @@ public class ProcessManagement {
 	}
 
 	/**
-	 * @return the STDIN queue
-	 */
-	public final BlockingQueue<QMessageT<String>> getStdinQ() {
-		return exchange.getStdinQ();
-	}
-
-	/**
 	 * @return the command environment.
 	 */
 	public final Map<String, String> getEnv() {
@@ -243,6 +246,13 @@ public class ProcessManagement {
 	 */
 	public final int getListenerWaitInterval() {
 		return listenerWaitInterval;
+	}
+
+	/**
+	 * @return the STDIN queue
+	 */
+	public final BlockingQueue<QMessageT<String>> getStdinQ() {
+		return exchange.getStdinQ();
 	}
 
 	/**

@@ -10,6 +10,7 @@ import org.nees.illinois.uisimcor.fem_executor.config.dao.ProgramDao;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
 import org.nees.illinois.uisimcor.fem_executor.config.types.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.input.WorkingDir;
+import org.nees.illinois.uisimcor.fem_executor.output.WorkDirWatcher;
 import org.nees.illinois.uisimcor.fem_executor.process.SubstructureExecutor;
 import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
 import org.nees.illinois.uisimcor.fem_executor.utils.OutputFileException;
@@ -98,17 +99,30 @@ public class FemExecutor {
 	}
 
 	/**
+	 * Directory watcher for the working directory.
+	 */
+	private WorkDirWatcher watcher;
+	/**
+	 * Thread running the directory watcher.
+	 */
+	private Thread watcherThrd;
+
+	/**
 	 * Load the input file parameters into each executor.
 	 */
 	public final void setup() {
 		ProgramDao progCfg = config.getFemProgramParameters().get(
 				FemProgramType.OPENSEES);
+		WorkingDir wd = new WorkingDir(workDir, configRootDir);
+		watcher = new WorkDirWatcher();
+		watcherThrd = new Thread(watcher);
+		watcherThrd.start();
 		for (String fsc : config.getSubstructCfgs().keySet()) {
 			SubstructureDao scfg = config.getSubstructCfgs().get(fsc);
-			WorkingDir wd = new WorkingDir(workDir, configRootDir);
+			wd.setSubstructureCfg(scfg);
 			wd.createWorkDir();
 			SubstructureExecutor exe = new SubstructureExecutor(progCfg, scfg,
-					configRootDir, wd.getWorkDir());
+					configRootDir, wd.getWorkDir(), watcher);
 			exe.startSimulation();
 			executors.put(fsc, exe);
 		}
@@ -121,7 +135,8 @@ public class FemExecutor {
 
 		for (String mdl : executors.keySet()) {
 			SubstructureExecutor exe = executors.get(mdl);
-			exe.startStep(getStep(), MtxUtils.list2Array(displacementsMap.get(mdl)));
+			exe.startStep(getStep(),
+					MtxUtils.list2Array(displacementsMap.get(mdl)));
 		}
 	}
 
@@ -175,10 +190,10 @@ public class FemExecutor {
 		for (String mdl : executors.keySet()) {
 			SubstructureExecutor exe = executors.get(mdl);
 			try {
-				log.debug("Checking " + mdl);
+				// log.debug("Checking " + mdl);
 				result = result && exe.stepIsDone();
 			} catch (OutputFileException e) {
-				log.error("Step command for " + mdl + " failed because",e);
+				log.error("Step command for " + mdl + " failed because", e);
 			}
 		}
 		return result;
@@ -188,12 +203,14 @@ public class FemExecutor {
 	 * Abort the execution.
 	 * @return True if the abort has completed.
 	 */
-	public final boolean abort() {
+	public final boolean finish() {
 		boolean result = true;
 		for (String mdl : executors.keySet()) {
 			SubstructureExecutor exe = executors.get(mdl);
 			exe.abort();
 		}
+		watcher.setQuit(true);
+		watcherThrd.interrupt();
 		return result;
 	}
 
@@ -286,22 +303,6 @@ public class FemExecutor {
 		List<Double> result = new ArrayList<Double>();
 		for (double n : array) {
 			result.add(new Double(n));
-		}
-		return result;
-	}
-
-	/**
-	 * Converts list into array.
-	 * @param list
-	 *            List
-	 * @return array
-	 */
-	private double[] list2Double(final List<Double> list) {
-		double[] result = new double[list.size()];
-		int c = 0;
-		for (double n : list) {
-			result[c] = n;
-			c++;
 		}
 		return result;
 	}
