@@ -30,6 +30,10 @@ import org.nees.illinois.uisimcor.fem_executor.output.DataFormatter;
 import org.nees.illinois.uisimcor.fem_executor.process.ProcessManagement;
 import org.nees.illinois.uisimcor.fem_executor.process.QMessageT;
 import org.nees.illinois.uisimcor.fem_executor.process.QMessageType;
+import org.nees.illinois.uisimcor.fem_executor.tcp.TcpLinkDto;
+import org.nees.illinois.uisimcor.fem_executor.tcp.TcpListener;
+import org.nees.illinois.uisimcor.fem_executor.tcp.TcpParameters;
+import org.nees.illinois.uisimcor.fem_executor.tcp.TcpReader;
 import org.nees.illinois.uisimcor.fem_executor.test.utils.CompareLists;
 import org.nees.illinois.uisimcor.fem_executor.utils.FileWithContentDelete;
 import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
@@ -77,12 +81,46 @@ public class TestOpenSeesExecution {
 	 * Templates used to change the OpenSees recording.
 	 */
 	private Map<String, TemplateDao> templates = new HashMap<String, TemplateDao>();
-
+	/**
+	 * Displacement TCP reader.
+	 */
+	private TcpReader dispTcpReader;
+	/**
+	 * Force TCP reader
+	 */
+	private TcpReader forceTcpReader;
+	/**
+	 * Displacement TCP listener.
+	 */
+	private TcpListener dispTcpListener;
+	/**
+	 * Displacement TCP port.
+	 */
+	private final int dispPort = 4114;
+	/**
+	 * Force TCP port.
+	 */
+	private final int forcePort = 4115;
+	/**
+	 * Force TCP listener.
+	 */
+	private TcpListener forceTcpListener;
+	/**
+	 * Displacement accumulator.
+	 */
+	private List<List<Double>> tcpDisplacements = new ArrayList<List<Double>>();
+	/**
+	 * Force accumulator.
+	 */
+	private List<List<Double>> tcpForces = new ArrayList<List<Double>>();
+	/**
+	 * TCP template name.
+	 */
+	private final String tcpName = "TCP";
 	/**
 	 * Directory to store temporary files during FEM execution.
 	 */
 	private String workDir;
-
 
 	/**
 	 * Clean up work directories.
@@ -99,6 +137,14 @@ public class TestOpenSeesExecution {
 			return;
 		}
 		log.debug("\"" + workDir + "\" was removed");
+		dispTcpListener.setQuit(true);
+		dispTcpListener.interrupt();
+		dispTcpReader.setQuit(true);
+		dispTcpReader.interrupt();
+		forceTcpListener.setQuit(true);
+		forceTcpListener.interrupt();
+		forceTcpReader.setQuit(true);
+		forceTcpReader.interrupt();
 	}
 
 	/**
@@ -124,13 +170,30 @@ public class TestOpenSeesExecution {
 		File cmdF = new File(command);
 		cmdF.setExecutable(true);
 		templates.put("Text", new TemplateDao(stepT, "txt_init_template.tcl"));
-		templates
-				.put("Binary", new TemplateDao(stepT, "bin_init_template.tcl"));
+//		templates
+//				.put("Binary", new TemplateDao(stepT, "bin_init_template.tcl"));
+		templates.put(tcpName, new TemplateDao(stepT, "tcp_init_template.tcl"));
 		LoadSaveConfig lscfg = new LoadSaveConfig();
 		lscfg.setConfigFilePath("OneSubstructureTestConfig.properties");
 		lscfg.load(configDir);
 		sdao = lscfg.getFemConfig().getSubstructCfgs().get("MDL-01");
-
+		final int tcpWait = 50000;
+		try {
+			dispTcpListener = new TcpListener(new TcpParameters(null, 0,
+					dispPort, tcpWait));
+		} catch (IOException e) {
+			log.error("Listener failed on port " + dispPort + " because ", e);
+			Assert.fail();
+		}
+		dispTcpListener.start();
+		try {
+			forceTcpListener = new TcpListener(new TcpParameters(null, 0,
+					forcePort, tcpWait));
+		} catch (IOException e) {
+			log.error("Listener failed on port " + forcePort + " because ", e);
+			Assert.fail();
+		}
+		forceTcpListener.start();
 	}
 
 	/**
@@ -151,6 +214,30 @@ public class TestOpenSeesExecution {
 
 	/**
 	 * Compares the binary and text outputs of an OpenSees run.
+	 * @param tfilename
+	 *            Text output file.
+	 */
+	private void compareTcp2Text(final String tfilename, List<List<Double>> actual) {
+		WorkingDir wd = new WorkingDir(workDir, configDir);
+		wd.setSubstructureCfg(sdao);
+		List<List<Double>> expected = null;
+		try {
+			expected = readTxtOutput(PathUtils.append(wd.getWorkDir(), tfilename));
+		} catch (OutputFileException e) {
+			Assert.fail(PathUtils.append(wd.getWorkDir(), tfilename)
+					+ " cannot be read");
+		}
+		for (int s = 0; s < numberOfSteps; s++) {
+			final double cmpTolerance = 0.001;
+			CompareLists<Double> cmp = new CompareLists<Double>(cmpTolerance);
+			log.debug("Comparing \n\t" + MtxUtils.list2String(actual.get(s))
+					+ " to \n\t" + expected.get(s));
+			cmp.compare(actual.get(s), expected.get(s));
+		}
+	}
+
+	/**
+	 * Compares the binary and text outputs of an OpenSees run.
 	 * @param bfilename
 	 *            Binary output file.
 	 * @param tfilename
@@ -161,7 +248,7 @@ public class TestOpenSeesExecution {
 		wd.setSubstructureCfg(sdao);
 		List<List<Double>> expected = null;
 		try {
-			expected = readOutput(PathUtils.append(wd.getWorkDir(), tfilename));
+			expected = readTxtOutput(PathUtils.append(wd.getWorkDir(), tfilename));
 		} catch (OutputFileException e) {
 			Assert.fail(PathUtils.append(wd.getWorkDir(), tfilename)
 					+ " cannot be read");
@@ -258,7 +345,7 @@ public class TestOpenSeesExecution {
 	 * @throws OutputFileException
 	 *             If there are problems with the file.
 	 */
-	private List<List<Double>> readOutput(final String file)
+	private List<List<Double>> readTxtOutput(final String file)
 			throws OutputFileException {
 		File fileF = new File(file);
 		List<List<Double>> result = new ArrayList<List<Double>>();
@@ -277,7 +364,6 @@ public class TestOpenSeesExecution {
 		DataFormatter df = new DataFormatter(sdao);
 		for (String l : contents) {
 			List<Double> record = df.tokenString2Double(l);
-			record.remove(0); // first step is time
 			result.add(record);
 		}
 		return result;
@@ -285,15 +371,16 @@ public class TestOpenSeesExecution {
 
 	/**
 	 * Execute a number of steps for the specified OpenSees script templates.
-	 * @param templates
+	 * @param name
 	 *            Script templates to use.
 	 */
-	private void runTemplate(final TemplateDao templates) {
+	private void runTemplate(final String name) {
 		final int waitTime = 200;
+		TemplateDao template = templates.get(name);
 		WorkingDir wd = new WorkingDir(workDir, configDir);
 		wd.setSubstructureCfg(sdao);
 		wd.createWorkDir();
-		OpenSeesSG input = new OpenSeesSG(configDir, sdao, templates);
+		OpenSeesSG input = new OpenSeesSG(configDir, sdao, template);
 		ProcessManagement pm = new ProcessManagement(command, "PM Test",
 				waitTime);
 		pm.setWorkDir(wd.getWorkDir());
@@ -311,8 +398,12 @@ public class TestOpenSeesExecution {
 			log.debug("Interrupted for some reason.");
 		}
 		delaysDelays();
+		if (name.equals(tcpName)) {
+			listenTcp(true);
+			listenTcp(false);
+		}
 		final int responseSize = 6;
-		final int rzIdx = 5;
+		final int rzIdx = 3;
 		double[] disp = new double[responseSize];
 		final double interval = 0.0002;
 		for (int i = 0; i < numberOfSteps; i++) {
@@ -325,6 +416,10 @@ public class TestOpenSeesExecution {
 				log.debug("Interrupted for some reason.");
 			}
 			delaysDelays();
+			if (name.equals(tcpName)) {
+				readTcp(true);
+				readTcp(false);
+			}
 		}
 		try {
 			commands.put(new QMessageT<String>(QMessageType.Command, "exit"));
@@ -333,6 +428,36 @@ public class TestOpenSeesExecution {
 		}
 		delaysDelays();
 		pm.finish();
+	}
+private void listenTcp(boolean isDisp) {
+	TcpListener listener = isDisp ? dispTcpListener : forceTcpListener;
+	TcpLinkDto link = listener.getConnections().poll();
+	TcpReader reader = null;
+	Assert.assertNotNull(link);
+	try {
+		reader = new TcpReader(link);
+		if (isDisp) {
+			dispTcpReader = reader;
+		} else {
+			forceTcpReader = reader;
+		}
+	} catch (IOException e) {
+		log.error((isDisp ? "Disp" : "Force")
+				+ " connection failed because ", e);
+	}
+	reader.start();
+	
+}
+	private void readTcp(boolean isDisp) {
+		TcpReader reader = isDisp ? dispTcpReader : forceTcpReader;
+		List<Double> list = reader.getDoublesQ().poll();
+		if (list == null) {
+			log.debug("Nothing to read from tcp");
+			return;
+		}
+		List<List<Double>> accum = isDisp ? tcpDisplacements : tcpForces;
+		log.debug("Read " + list);
+		accum.add(list);
 	}
 
 	/**
@@ -438,7 +563,7 @@ public class TestOpenSeesExecution {
 	public final void testOpensSeesRecorderFormats() {
 		for (String t : templates.keySet()) {
 			log.debug("Executing simulation style " + t);
-			runTemplate(templates.get(t));
+			runTemplate(t);
 		}
 	}
 
@@ -447,11 +572,19 @@ public class TestOpenSeesExecution {
 	 */
 	@Test
 	public final void verifyBinaryOutput() {
-		WorkingDir wd = new WorkingDir(workDir, configDir);
-		wd.setSubstructureCfg(sdao);
-		splitBinaryFile(PathUtils.append(wd.getWorkDir(), "tmp_disp.bin"));
-		compareBin2Text("tmp_disp.bin", "tmp_disp.txt");
-		splitBinaryFile(PathUtils.append(wd.getWorkDir(), "tmp_forc.bin"));
-		compareBin2Text("tmp_forc.bin", "tmp_forc.txt");
+//		WorkingDir wd = new WorkingDir(workDir, configDir);
+//		wd.setSubstructureCfg(sdao);
+//		splitBinaryFile(PathUtils.append(wd.getWorkDir(), "tmp_disp.bin"));
+//		compareBin2Text("tmp_disp.bin", "tmp_disp.txt");
+//		splitBinaryFile(PathUtils.append(wd.getWorkDir(), "tmp_forc.bin"));
+//		compareBin2Text("tmp_forc.bin", "tmp_forc.txt");
+	}
+	/**
+	 * Compare the TCP and binary outputs of an OpenSees run.
+	 */
+	@Test
+	public final void verifyTcpOutput() {
+		compareTcp2Text("tmp_disp.txt", tcpDisplacements);
+		compareTcp2Text("tmp_forc.txt", tcpForces);
 	}
 }

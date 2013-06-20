@@ -69,7 +69,7 @@ public class OutputFileMonitor implements AbortableI {
 	 * Amount of time we wait for file changes before assuming the output file
 	 * is ready.
 	 */
-	private final int modCheckWait = 400;
+	private final int modCheckWait = 200;
 
 	/**
 	 * Quit flag.
@@ -117,7 +117,7 @@ public class OutputFileMonitor implements AbortableI {
 			log.error("Remove failed", e);
 			setQuit(true);
 		}
-		final int initialDelay = 5000;
+		final int initialDelay = 200;
 		delay.setDelay(initialDelay);
 		delay.startStep();
 		this.watcher = watcher;
@@ -227,10 +227,10 @@ public class OutputFileMonitor implements AbortableI {
 		try {
 			dresponse = dispReader.read();
 			log.debug("Read displacements " + MtxUtils.list2String(dresponse));
-			dispReader.clean();
+//			dispReader.clean();
 			fresponse = forceReader.read();
 			log.debug("Read forces " + MtxUtils.list2String(fresponse));
-			forceReader.clean();
+//			forceReader.clean();
 		} catch (OutputFileException e) {
 			log.error("Read failed", e);
 			setQuit(true);

@@ -164,12 +164,12 @@ public class BinaryFileReader {
 	private List<Double> readDoubles(final byte[] record)
 			throws OutputFileException {
 		final int numberOfBytesInDouble = 8;
-		if (record.length < numberOfBytesInDouble * (totalDofs + 1)) {
+		if (record.length < numberOfBytesInDouble * (totalDofs)) {
 			throw new OutputFileException("\"" + filename
 					+ "\" does not have enough values");
 		}
 		List<Double> result = new ArrayList<Double>();
-		for (int i = 1; i < totalDofs + 1; i++) { // Skip the first number which is time
+		for (int i = 0; i < totalDofs; i++) { // Skip the first number which is time
 			int from = i * numberOfBytesInDouble;
 			int to = (i + 1) * numberOfBytesInDouble;
 			byte[] number = Arrays.copyOfRange(record, from, to);
