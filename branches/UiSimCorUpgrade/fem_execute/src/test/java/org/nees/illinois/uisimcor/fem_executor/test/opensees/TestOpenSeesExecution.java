@@ -86,7 +86,7 @@ public class TestOpenSeesExecution {
 	 */
 	private TcpReader dispTcpReader;
 	/**
-	 * Force TCP reader
+	 * Force TCP reader.
 	 */
 	private TcpReader forceTcpReader;
 	/**
@@ -170,8 +170,8 @@ public class TestOpenSeesExecution {
 		File cmdF = new File(command);
 		cmdF.setExecutable(true);
 		templates.put("Text", new TemplateDao(stepT, "txt_init_template.tcl"));
-//		templates
-//				.put("Binary", new TemplateDao(stepT, "bin_init_template.tcl"));
+		// templates
+		// .put("Binary", new TemplateDao(stepT, "bin_init_template.tcl"));
 		templates.put(tcpName, new TemplateDao(stepT, "tcp_init_template.tcl"));
 		LoadSaveConfig lscfg = new LoadSaveConfig();
 		lscfg.setConfigFilePath("OneSubstructureTestConfig.properties");
@@ -216,13 +216,17 @@ public class TestOpenSeesExecution {
 	 * Compares the binary and text outputs of an OpenSees run.
 	 * @param tfilename
 	 *            Text output file.
+	 * @param actual
+	 *            Values for the TCP template.
 	 */
-	private void compareTcp2Text(final String tfilename, List<List<Double>> actual) {
+	private void compareTcp2Text(final String tfilename,
+			final List<List<Double>> actual) {
 		WorkingDir wd = new WorkingDir(workDir, configDir);
 		wd.setSubstructureCfg(sdao);
 		List<List<Double>> expected = null;
 		try {
-			expected = readTxtOutput(PathUtils.append(wd.getWorkDir(), tfilename));
+			expected = readTxtOutput(PathUtils.append(wd.getWorkDir(),
+					tfilename));
 		} catch (OutputFileException e) {
 			Assert.fail(PathUtils.append(wd.getWorkDir(), tfilename)
 					+ " cannot be read");
@@ -243,12 +247,14 @@ public class TestOpenSeesExecution {
 	 * @param tfilename
 	 *            Text output file.
 	 */
+	@SuppressWarnings("unused")
 	private void compareBin2Text(final String bfilename, final String tfilename) {
 		WorkingDir wd = new WorkingDir(workDir, configDir);
 		wd.setSubstructureCfg(sdao);
 		List<List<Double>> expected = null;
 		try {
-			expected = readTxtOutput(PathUtils.append(wd.getWorkDir(), tfilename));
+			expected = readTxtOutput(PathUtils.append(wd.getWorkDir(),
+					tfilename));
 		} catch (OutputFileException e) {
 			Assert.fail(PathUtils.append(wd.getWorkDir(), tfilename)
 					+ " cannot be read");
@@ -429,26 +435,38 @@ public class TestOpenSeesExecution {
 		delaysDelays();
 		pm.finish();
 	}
-private void listenTcp(boolean isDisp) {
-	TcpListener listener = isDisp ? dispTcpListener : forceTcpListener;
-	TcpLinkDto link = listener.getConnections().poll();
-	TcpReader reader = null;
-	Assert.assertNotNull(link);
-	try {
-		reader = new TcpReader(link);
-		if (isDisp) {
-			dispTcpReader = reader;
-		} else {
-			forceTcpReader = reader;
+
+	/**
+	 * Start the TCP listeners for OpenSees.
+	 * @param isDisp
+	 *            True if working with the displacement link.
+	 */
+	private void listenTcp(final boolean isDisp) {
+		TcpListener listener = isDisp ? dispTcpListener : forceTcpListener;
+		TcpLinkDto link = listener.getConnections().poll();
+		TcpReader reader = null;
+		Assert.assertNotNull(link);
+		try {
+			reader = new TcpReader(link);
+			if (isDisp) {
+				dispTcpReader = reader;
+			} else {
+				forceTcpReader = reader;
+			}
+		} catch (IOException e) {
+			log.error((isDisp ? "Disp" : "Force")
+					+ " connection failed because ", e);
 		}
-	} catch (IOException e) {
-		log.error((isDisp ? "Disp" : "Force")
-				+ " connection failed because ", e);
+		reader.start();
+
 	}
-	reader.start();
-	
-}
-	private void readTcp(boolean isDisp) {
+
+	/**
+	 * Start the TCP readers for OpenSees.
+	 * @param isDisp
+	 *            True if working with the displacement link.
+	 */
+	private void readTcp(final boolean isDisp) {
 		TcpReader reader = isDisp ? dispTcpReader : forceTcpReader;
 		List<Double> list = reader.getDoublesQ().poll();
 		if (list == null) {
@@ -467,6 +485,7 @@ private void listenTcp(boolean isDisp) {
 	 * @param filename
 	 *            Name of the file to split.
 	 */
+	@SuppressWarnings("unused")
 	private void splitBinaryFile(final String filename) {
 
 		final int recordLength = 25; // In this case 3 8-byte doubles plus the
@@ -572,13 +591,14 @@ private void listenTcp(boolean isDisp) {
 	 */
 	@Test
 	public final void verifyBinaryOutput() {
-//		WorkingDir wd = new WorkingDir(workDir, configDir);
-//		wd.setSubstructureCfg(sdao);
-//		splitBinaryFile(PathUtils.append(wd.getWorkDir(), "tmp_disp.bin"));
-//		compareBin2Text("tmp_disp.bin", "tmp_disp.txt");
-//		splitBinaryFile(PathUtils.append(wd.getWorkDir(), "tmp_forc.bin"));
-//		compareBin2Text("tmp_forc.bin", "tmp_forc.txt");
+		// WorkingDir wd = new WorkingDir(workDir, configDir);
+		// wd.setSubstructureCfg(sdao);
+		// splitBinaryFile(PathUtils.append(wd.getWorkDir(), "tmp_disp.bin"));
+		// compareBin2Text("tmp_disp.bin", "tmp_disp.txt");
+		// splitBinaryFile(PathUtils.append(wd.getWorkDir(), "tmp_forc.bin"));
+		// compareBin2Text("tmp_forc.bin", "tmp_forc.txt");
 	}
+
 	/**
 	 * Compare the TCP and binary outputs of an OpenSees run.
 	 */
