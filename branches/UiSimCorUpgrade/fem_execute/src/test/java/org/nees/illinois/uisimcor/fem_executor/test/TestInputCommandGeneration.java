@@ -29,8 +29,8 @@ public class TestInputCommandGeneration {
 	 * Test saving the reference init.
 	 */
 	private String initReference = "source Middle.tcl\nsource StaticAnalysisEnv.tcl\n\n"
-			+ "recorder Node -file tmp_disp.out -node 2 3 4 -dof 1 2 3 disp\n"
-			+ "recorder Node -file tmp_forc.out -node 2 3 4 -dof 1 2 3 reaction\n";
+			+ "recorder Node -tcp 127.0.0.1 4116 -node 2 3 4 -dof 1 2 3 disp\n"
+			+ "recorder Node -tcp 127.0.0.1 4117 -node 2 3 4 -dof 1 2 3 reaction\n";
 	/**
 	 * Reference step.
 	 */

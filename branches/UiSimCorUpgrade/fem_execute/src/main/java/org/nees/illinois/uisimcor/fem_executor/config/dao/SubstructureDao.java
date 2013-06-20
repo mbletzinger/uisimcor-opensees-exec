@@ -17,6 +17,20 @@ import org.nees.illinois.uisimcor.fem_executor.config.types.FemProgramType;
  */
 public class SubstructureDao {
 	/**
+	 * @return the dispPort
+	 */
+	public final int getDispPort() {
+		return dispPort;
+	}
+
+	/**
+	 * @return the forcePort
+	 */
+	public final int getForcePort() {
+		return forcePort;
+	}
+
+	/**
 	 * Address identifying the substructure to UI-SimCor.
 	 */
 	private final String address;
@@ -51,12 +65,20 @@ public class SubstructureDao {
 	 */
 	private final List<Integer> nodeSequence;
 	/**
-	 *            Files which need to be copied from the configuration directory to the work directory but are not sourced.
+	 * Files which need to be copied from the configuration directory to the
+	 * work directory but are not sourced.
 	 */
 	private final List<String> workFiles;
+	/**
+	 * Displacement TCP port.
+	 */
+	private final int dispPort;
+	/**
+	 * Force TCP port.
+	 */
+	private final int forcePort;
 
 	/**
-	 * Constructor.
 	 * @param address
 	 *            Address identifying the substructure to UI-SimCor
 	 * @param dimension
@@ -68,23 +90,31 @@ public class SubstructureDao {
 	 *            9 for generic console-in console-out application. Vector has
 	 *            not been implemented yet.
 	 * @param sourcedFilenames
-	 *            Model file name (include extension).
+	 *            Model file names (include extension). These are copied from
+	 *            the configuration directory to the source directory.
 	 * @param nodeSequence
 	 *            Control node numbers. Note: The sequence of nodes should be
 	 *            consistent with Nodes in SimCor.
 	 * @param workFiles
-	 *            Files which need to be copied from the config directory to the work directory but are not sourced.
+	 *            Files which need to be copied from the configuration directory
+	 *            to the work directory but are not sourced.
+	 * @param dispPort
+	 *            port OpenSees uses to send displacements.
+	 * @param forcePort
+	 *            port OpenSees uses to send forces.
 	 */
-	public SubstructureDao(final String address,
-			final DimensionType dimension, final FemProgramType femProgram,
-			final List<String> sourcedFilenames, final List<Integer> nodeSequence,
-			final List<String> workFiles) {
+	public SubstructureDao(final String address, final DimensionType dimension,
+			final FemProgramType femProgram, final List<String> sourcedFilenames,
+			final List<Integer> nodeSequence, final List<String> workFiles, final int dispPort,
+			final int forcePort) {
 		this.address = address;
 		this.dimension = dimension;
 		this.femProgram = femProgram;
 		this.sourcedFilenames = sourcedFilenames;
 		this.nodeSequence = nodeSequence;
 		this.workFiles = workFiles;
+		this.dispPort = dispPort;
+		this.forcePort = forcePort;
 	}
 
 	/**
@@ -148,8 +178,7 @@ public class SubstructureDao {
 	/**
 	 * Create a matrix of effective DOF masks where the rows are the nodes and
 	 * the columns are the six displacement DOFs.
-	 * @return
-	 * The matrix.
+	 * @return The matrix.
 	 */
 	public final double[][] getDofMaskMatrix() {
 		final int dof3DSize = 6;

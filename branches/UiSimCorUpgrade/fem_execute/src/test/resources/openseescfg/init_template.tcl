@@ -1,3 +1,3 @@
 ${SourcedFiles}
-recorder Node -binary tmp_disp.out -node ${NodeList} -dof ${ResponseDofs} disp
-recorder Node -binary tmp_forc.out -node ${NodeList} -dof ${ResponseDofs} reaction
+recorder Node -tcp 127.0.0.1 ${DispPort} -node ${NodeList} -dof ${ResponseDofs} disp
+recorder Node -tcp 127.0.0.1 ${ForcePort} -node ${NodeList} -dof ${ResponseDofs} reaction

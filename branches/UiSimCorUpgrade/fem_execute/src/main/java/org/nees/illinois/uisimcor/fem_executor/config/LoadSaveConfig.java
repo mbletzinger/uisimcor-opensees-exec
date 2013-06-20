@@ -228,8 +228,13 @@ public class LoadSaveConfig {
 						+ "\" not recognized for " + name, e);
 			}
 		}
+		str = props.getProperty(name + ".tcp.port.disp");
+		int dport = Integer.parseInt(str);
+		str = props.getProperty(name + ".tcp.port.forc");
+		int fport = Integer.parseInt(str);
+
 		SubstructureDao result = new SubstructureDao(address, dim, fem,
-				sfiles, nodes, wfiles);
+				sfiles, nodes, wfiles,dport,fport);
 		for (Integer node : nodes) {
 			str = props.getProperty(name + ".effective.dofs." + node);
 			List<DispDof> edofs = null;
@@ -305,6 +310,8 @@ public class LoadSaveConfig {
 		props.setProperty(name + ".source.files", eoStringList.encode(config.getSourcedFilenames()));
 		props.setProperty(name + ".work.files",
 				eoStringList.encode(config.getWorkFiles()));
+		props.setProperty(name + ".tcp.port.disp",Integer.toString(config.getDispPort()));
+		props.setProperty(name + ".tcp.port.forc",Integer.toString(config.getForcePort()));
 	}
 
 	/**
