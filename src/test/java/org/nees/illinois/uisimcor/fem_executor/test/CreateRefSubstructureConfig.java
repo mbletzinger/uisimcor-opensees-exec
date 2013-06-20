@@ -36,6 +36,8 @@ public class CreateRefSubstructureConfig {
 		final int node3 = 4;
 		final String workfile1 = "Wsection.tcl";
 		final String workfile2 = "acc475C.dat";
+		final int initialPort = 4114;
+		int dport;
 
 		DimensionType dim = DimensionType.TwoD;
 		List<Integer> nodes = new ArrayList<Integer>();
@@ -43,14 +45,18 @@ public class CreateRefSubstructureConfig {
 		if (address.equals("MDL-01")) {
 			nodes.add(node1);
 			modelFilename = "LeftCol.tcl";
+			dport = initialPort;
 		} else if (address.equals("MDL-02")) {
 			nodes.add(node1);
 			nodes.add(node2);
 			nodes.add(node3);
 			modelFilename = "Middle.tcl";
+			dport = initialPort + 2;
 		} else {
 			nodes.add(node2);
 			modelFilename = "RightCol.tcl";
+			final int number4 = 4;
+			dport = initialPort + number4;
 		}
 		List<String> workFiles = new ArrayList<String>();
 		workFiles.add(workfile1);
@@ -60,7 +66,7 @@ public class CreateRefSubstructureConfig {
 		sourceFiles.add("StaticAnalysisEnv.tcl");
 		FemProgramType program = FemProgramType.OPENSEES;
 		config = new SubstructureDao(address, dim, program, sourceFiles,
-				nodes, workFiles);
+				nodes, workFiles, dport, dport + 1);
 		for (Integer n : nodes) {
 			List<DispDof> edof = new ArrayList<DispDof>();
 			if (n == node1) {

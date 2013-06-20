@@ -80,6 +80,8 @@ public class OpenSeesSG implements ScriptGeneratorI {
 			first = false;
 		}
 		tokenMap.put(nodeListToken, nodes);
+		tokenMap.put("DispPort", Integer.toString(substructureCfg.getDispPort()));
+		tokenMap.put("ForcePort", Integer.toString(substructureCfg.getForcePort()));
 	}
 
 	/**
