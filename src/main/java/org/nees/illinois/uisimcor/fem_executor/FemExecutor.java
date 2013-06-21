@@ -10,7 +10,6 @@ import org.nees.illinois.uisimcor.fem_executor.config.dao.ProgramDao;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
 import org.nees.illinois.uisimcor.fem_executor.config.types.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.input.WorkingDir;
-import org.nees.illinois.uisimcor.fem_executor.output.WorkDirWatcher;
 import org.nees.illinois.uisimcor.fem_executor.process.SubstructureExecutor;
 import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
 import org.nees.illinois.uisimcor.fem_executor.utils.OutputFileException;
@@ -99,35 +98,38 @@ public class FemExecutor {
 	}
 
 	/**
-	 * Directory watcher for the working directory.
-	 */
-	private WorkDirWatcher watcher;
-	/**
-	 * Thread running the directory watcher.
-	 */
-	private Thread watcherThrd;
-
-	/**
 	 * Load the input file parameters into each executor.
+	 * @return True if successful.
 	 */
-	public final void setup() {
+	public final boolean setup() {
 		ProgramDao progCfg = config.getFemProgramParameters().get(
 				FemProgramType.OPENSEES);
 		WorkingDir wd = new WorkingDir(workDir, configRootDir);
-		watcher = new WorkDirWatcher();
-		watcherThrd = new Thread(watcher);
-		watcherThrd.start();
+		boolean result = true;
 		for (String fsc : config.getSubstructCfgs().keySet()) {
 			SubstructureDao scfg = config.getSubstructCfgs().get(fsc);
 			wd.setSubstructureCfg(scfg);
 			wd.createWorkDir();
 			SubstructureExecutor exe = new SubstructureExecutor(progCfg, scfg,
-					configRootDir, wd.getWorkDir(), watcher);
-			exe.startSimulation();
+					configRootDir, wd.getWorkDir());
+			result = result && exe.setup();
 			executors.put(fsc, exe);
 		}
+		return result;
 	}
 
+	/**
+	 * Start the simulation for all of the substructures for the current step.
+	 * @return True if successful.
+	 */
+	public final boolean startSimulation() {
+		boolean result = true;
+		for (String mdl : executors.keySet()) {
+			SubstructureExecutor exe = executors.get(mdl);
+			result = result && exe.startSimulation();
+		}
+		return result;
+	}
 	/**
 	 * Start execution of all of the substructures for the current step.
 	 */
@@ -209,8 +211,6 @@ public class FemExecutor {
 			SubstructureExecutor exe = executors.get(mdl);
 			exe.abort();
 		}
-		watcher.setQuit(true);
-		watcherThrd.interrupt();
 		return result;
 	}
 

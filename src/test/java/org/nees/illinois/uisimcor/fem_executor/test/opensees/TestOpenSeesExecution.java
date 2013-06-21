@@ -25,7 +25,6 @@ import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.TemplateDao;
 import org.nees.illinois.uisimcor.fem_executor.input.OpenSeesSG;
 import org.nees.illinois.uisimcor.fem_executor.input.WorkingDir;
-import org.nees.illinois.uisimcor.fem_executor.output.BinaryFileReader;
 import org.nees.illinois.uisimcor.fem_executor.output.DataFormatter;
 import org.nees.illinois.uisimcor.fem_executor.process.ProcessManagement;
 import org.nees.illinois.uisimcor.fem_executor.process.QMessageT;
@@ -237,47 +236,6 @@ public class TestOpenSeesExecution {
 			log.debug("Comparing \n\t" + MtxUtils.list2String(actual.get(s))
 					+ " to \n\t" + expected.get(s));
 			cmp.compare(actual.get(s), expected.get(s));
-		}
-	}
-
-	/**
-	 * Compares the binary and text outputs of an OpenSees run.
-	 * @param bfilename
-	 *            Binary output file.
-	 * @param tfilename
-	 *            Text output file.
-	 */
-	@SuppressWarnings("unused")
-	private void compareBin2Text(final String bfilename, final String tfilename) {
-		WorkingDir wd = new WorkingDir(workDir, configDir);
-		wd.setSubstructureCfg(sdao);
-		List<List<Double>> expected = null;
-		try {
-			expected = readTxtOutput(PathUtils.append(wd.getWorkDir(),
-					tfilename));
-		} catch (OutputFileException e) {
-			Assert.fail(PathUtils.append(wd.getWorkDir(), tfilename)
-					+ " cannot be read");
-		}
-		for (int s = 0; s < numberOfSteps; s++) {
-			String stepfilename = PathUtils.append(wd.getWorkDir(),
-					stepFileName(s, bfilename));
-			printDoubleBytes(expected.get(s), s);
-			BinaryFileReader bfr = new BinaryFileReader(stepfilename,
-					sdao.getTotalDofs());
-			List<Double> actual = null;
-			try {
-				actual = bfr.read();
-			} catch (OutputFileException e) {
-				log.error("Binary read failed for \"" + stepfilename
-						+ "\" because ", e);
-				Assert.fail();
-			}
-			final double cmpTolerance = 0.001;
-			CompareLists<Double> cmp = new CompareLists<Double>(cmpTolerance);
-			log.debug("Comparing \n\t" + MtxUtils.list2String(actual)
-					+ " to \n\t" + expected.get(s));
-			cmp.compare(actual, expected.get(s));
 		}
 	}
 
@@ -584,19 +542,6 @@ public class TestOpenSeesExecution {
 			log.debug("Executing simulation style " + t);
 			runTemplate(t);
 		}
-	}
-
-	/**
-	 * Compare the text and binary outputs of an OpenSees run.
-	 */
-	@Test
-	public final void verifyBinaryOutput() {
-		// WorkingDir wd = new WorkingDir(workDir, configDir);
-		// wd.setSubstructureCfg(sdao);
-		// splitBinaryFile(PathUtils.append(wd.getWorkDir(), "tmp_disp.bin"));
-		// compareBin2Text("tmp_disp.bin", "tmp_disp.txt");
-		// splitBinaryFile(PathUtils.append(wd.getWorkDir(), "tmp_forc.bin"));
-		// compareBin2Text("tmp_forc.bin", "tmp_forc.txt");
 	}
 
 	/**

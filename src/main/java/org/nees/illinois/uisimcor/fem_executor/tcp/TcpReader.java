@@ -93,7 +93,7 @@ public class TcpReader extends Thread implements AbortableI {
 		while (isQuit() == false) {
 			read();
 		}
-		log.info("Stopped reading to " + link.getRemoteHost());
+		log.info("Stopped reading from " + link.getRemoteHost());
 		try {
 			link.getSocket().close();
 		} catch (IOException e) {
@@ -124,19 +124,29 @@ public class TcpReader extends Thread implements AbortableI {
 					e);
 			return null;
 		}
-		if(number < 0) {
+		if (number < 0) {
 			log.info("Stream closed remotely");
 			setQuit(true);
 			this.interrupt();
 		}
 		return number;
 	}
+
 	/**
 	 * Read a data record and put into the doubles queue.
 	 */
 	private void read() {
-		double size = readNumber();
-		if(size < 1.0) {
+		double size;
+		try {
+			size = readNumber();
+		} catch (NullPointerException e) {
+			if (isQuit()) {
+				log.debug("Ignore this because we are shutting down");
+				return;
+			}
+			throw e;
+		}
+		if (size < 1.0) {
 			log.error("Size is zero");
 			return;
 		}

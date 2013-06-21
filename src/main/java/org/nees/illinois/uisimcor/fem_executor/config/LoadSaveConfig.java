@@ -228,10 +228,11 @@ public class LoadSaveConfig {
 						+ "\" not recognized for " + name, e);
 			}
 		}
+		final IntegerDecoder id = new IntegerDecoder();
 		str = props.getProperty(name + ".tcp.port.disp");
-		int dport = Integer.parseInt(str);
+		int dport = id.parse(str);
 		str = props.getProperty(name + ".tcp.port.forc");
-		int fport = Integer.parseInt(str);
+		int fport = id.parse(str);
 
 		SubstructureDao result = new SubstructureDao(address, dim, fem,
 				sfiles, nodes, wfiles,dport,fport);

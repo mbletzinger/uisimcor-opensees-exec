@@ -60,6 +60,7 @@ public class TestFemExecutor {
 	@Test
 	public final void testRunFakeSubstructures() {
 		FemExecutor fexec = new FemExecutor(configDir, workDir);
+
 		for (String c : configFiles) {
 			fexec.loadConfig(c);
 			// Replace OpenSees with fake script
@@ -67,7 +68,8 @@ public class TestFemExecutor {
 					.put(FemProgramType.OPENSEES, femProg);
 			Collection<SubstructureDao> mdlCfgs = fexec.getConfig()
 					.getSubstructCfgs().values();
-			fexec.setup();
+			Assert.assertTrue(fexec.setup());
+			Assert.assertTrue(fexec.startSimulation());
 			for (SubstructureDao mCfg : mdlCfgs) {
 				loadExecutor(fexec, mCfg);
 			}
@@ -131,8 +133,9 @@ public class TestFemExecutor {
 		String command = PathUtils.cleanPath(u.getPath());
 		File cmdF = new File(command);
 		cmdF.setExecutable(true);
-		TemplateDao tdao = new TemplateDao("step_template.tcl", "init_template.tcl");
-		femProg = new ProgramDao(command, FemProgramType.OPENSEES,tdao);
+		TemplateDao tdao = new TemplateDao("step_template.tcl",
+				"init_template.tcl");
+		femProg = new ProgramDao(command, FemProgramType.OPENSEES, tdao);
 		if (WindowsPerlBatchCreator.isWindows()) {
 			WindowsPerlBatchCreator wpbc = new WindowsPerlBatchCreator(workDir,
 					femProg);
