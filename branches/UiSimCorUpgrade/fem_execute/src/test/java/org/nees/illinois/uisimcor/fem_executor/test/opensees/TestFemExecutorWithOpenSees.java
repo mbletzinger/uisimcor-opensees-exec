@@ -72,7 +72,8 @@ public class TestFemExecutorWithOpenSees {
 					.put(FemProgramType.OPENSEES, femProg);
 			Collection<SubstructureDao> mdlCfgs = fexec.getConfig()
 					.getSubstructCfgs().values();
-			fexec.setup();
+			Assert.assertTrue(fexec.setup());
+			Assert.assertTrue(fexec.startSimulation());
 			for (int s = 1; s < numberOfSteps; s++) {
 				for (SubstructureDao mCfg : mdlCfgs) {
 					loadExecutor(fexec, mCfg, s);
