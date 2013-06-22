@@ -28,7 +28,7 @@ import ch.qos.logback.classic.Level;
  * Test the output logging of a an FEM execution run.
  * @author Michael Bletzinger
  */
-@Test(groups = { "response" })
+@Test(groups = { "tcp" })
 public class TestTcpMonitors {
 	/**
 	 * Command to execute for testing the response processing.
