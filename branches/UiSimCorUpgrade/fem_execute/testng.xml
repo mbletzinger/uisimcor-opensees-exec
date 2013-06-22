@@ -7,11 +7,8 @@
 		<groups>
 			<dependencies>
 				<group
-					name="exchange"
-					depends-on="data.*" />
-				<group
 					name="process"
-					depends-on="exchange.*" />
+					depends-on="data.*" />
 				<group
 					name="execute"
 					depends-on="process.*" />
@@ -42,7 +39,7 @@
 			<class
 				name="org.nees.illinois.uisimcor.fem_executor.test.TestDofIndexMagic" />
 			<class
-				name="org.nees.illinois.uisimcor.fem_executor.test.TestStdinExchange" />
+				name="org.nees.illinois.uisimcor.fem_executor.test.TestTcpMonitors" />
 			<class
 				name="org.nees.illinois.uisimcor.fem_executor.test.TestProcessManagement" />
 		</classes>
