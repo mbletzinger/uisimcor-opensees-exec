@@ -141,7 +141,7 @@ public class TestTcpMonitors {
 		try {
 			dispListener = new TcpListener(params);
 		} catch (IOException e) {
-			log.error("Listiening on port " + port + " failed because ", e);
+			log.error("Listening on port " + port + " failed because ", e);
 			Assert.fail();
 		}
 		int fport = port + 1;
@@ -149,7 +149,7 @@ public class TestTcpMonitors {
 		try {
 			forceListener = new TcpListener(params);
 		} catch (IOException e) {
-			log.error("Listiening on port " + fport + " failed because ", e);
+			log.error("Listening on port " + fport + " failed because ", e);
 			Assert.fail();
 		}
 		dispListener.start();
@@ -192,7 +192,7 @@ public class TestTcpMonitors {
 		ProcessBuilder pb = new ProcessBuilder(cmd);
 		pb.directory(new File(workDir));
 		Process p = null;
-		log.debug("Starting process");
+		log.debug("Starting process [" + cmd[0] + " " + cmd[1] + " " + cmd[2] + " " + cmd[3]);
 		try {
 			p = pb.start();
 		} catch (IOException e) {
@@ -241,18 +241,18 @@ public class TestTcpMonitors {
 		try {
 			link = linkQ.poll(pollWait, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
-			log.error("Tired of waiting for link on port" + port);
+			log.error("Tired of waiting for link on port " + port);
 			Assert.fail();
 		}
 		TcpReader result = null;
 		if (link == null) {
-			log.error("Tired of waiting for link on port" + port);
+			log.error("Tired of waiting for link on port " + port);
 			Assert.fail();
 		}
 		try {
 			result = new TcpReader(link);
 		} catch (IOException e) {
-			log.error("Tired of waiting for link on port" + port);
+			log.error("Tired of waiting for link on port " + port);
 			Assert.fail();
 		}
 		result.start();
