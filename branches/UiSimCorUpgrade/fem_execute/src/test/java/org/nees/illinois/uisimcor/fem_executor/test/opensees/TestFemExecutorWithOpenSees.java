@@ -14,7 +14,7 @@ import org.nees.illinois.uisimcor.fem_executor.config.types.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.utils.FileWithContentDelete;
 import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
-import org.nees.illinois.uisimcor.fem_executor.utils.WindowsPerlBatchCreator;
+import org.nees.illinois.uisimcor.fem_executor.utils.WindowsProgramDaoCreator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
@@ -156,8 +156,8 @@ public class TestFemExecutorWithOpenSees {
 		TemplateDao tdao = new TemplateDao("step_template.tcl",
 				"init_template.tcl");
 		femProg = new ProgramDao(command, FemProgramType.OPENSEES, tdao);
-		if (WindowsPerlBatchCreator.isWindows()) {
-			WindowsPerlBatchCreator wpbc = new WindowsPerlBatchCreator(workDir,
+		if (WindowsProgramDaoCreator.isWindows()) {
+			WindowsProgramDaoCreator wpbc = new WindowsProgramDaoCreator(workDir,
 					femProg);
 			femProg = wpbc.getBatchConfig();
 		}

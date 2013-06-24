@@ -5,13 +5,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.nees.illinois.uisimcor.fem_executor.config.dao.ProgramDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Class to wrap a Perl test script into a batch file so that it can be used as
- * an executable. I love windows.
+ * Class to wrap a test perl script into a windows batch file.
  * @author Michael Bletzinger
  */
 public class WindowsPerlBatchCreator {
@@ -25,13 +23,10 @@ public class WindowsPerlBatchCreator {
 	}
 
 	/**
-	 * Configuration of the batch file.
-	 */
-	private final ProgramDao batchConfig;
-	/**
 	 * Name of the batch file.
 	 */
 	private final String batchFilename;
+
 	/**
 	 * Folder for the batch file.
 	 */
@@ -44,26 +39,17 @@ public class WindowsPerlBatchCreator {
 			.getLogger(WindowsPerlBatchCreator.class);
 
 	/**
-	 * Constructor.
+	 * @param cmd
+	 *            Path to perl script.
 	 * @param folder
-	 *            Folder for the batch script.
-	 * @param prog
-	 *            Configuration of program to be wrapped.
+	 *            Folder containing script.
 	 */
-	public WindowsPerlBatchCreator(final String folder, final ProgramDao prog) {
-		String batchContent = "perl \"" + prog.getExecutablePath() + "\" %1";
-		this.batchFilename = prog.getExecutablePath().replace(".pl", ".bat");
+	public WindowsPerlBatchCreator(final String cmd, final String folder) {
+		super();
+		String batchContent = "perl \"" + cmd + "\" %1";
+		this.batchFilename = cmd.replace(".pl", ".bat");
 		this.batchFolder = folder;
-		batchConfig = new ProgramDao(batchFilename, prog.getProgram(),
-				prog.getTemplateDao());
 		writeBatchFile(batchContent);
-	}
-
-	/**
-	 * @return the batchConfig
-	 */
-	public final ProgramDao getBatchConfig() {
-		return batchConfig;
 	}
 
 	/**

@@ -13,6 +13,7 @@ import org.nees.illinois.uisimcor.fem_executor.process.QMessageType;
 import org.nees.illinois.uisimcor.fem_executor.response.ResponseMonitor;
 import org.nees.illinois.uisimcor.fem_executor.utils.FileWithContentDelete;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
+import org.nees.illinois.uisimcor.fem_executor.utils.WindowsPerlBatchCreator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterClass;
@@ -93,6 +94,10 @@ public class TestProcessManagement {
 		pmCommand = PathUtils.cleanPath(u.getPath());
 		File cmdF = new File(pmCommand);
 		cmdF.setExecutable(true);
+		if (WindowsPerlBatchCreator.isWindows()) {
+			WindowsPerlBatchCreator wpbc = new WindowsPerlBatchCreator(pmCommand,workDir);
+			pmCommand = wpbc.getBatchFilename();
+		}
 		workDir = PathUtils.append(System.getProperty("user.dir"),
 				"process_managment");
 		File workDirF = new File(workDir);
