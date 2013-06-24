@@ -3,7 +3,7 @@ package org.nees.illinois.uisimcor.fem_executor.test;
 import java.io.IOException;
 import java.net.URL;
 
-import org.nees.illinois.uisimcor.fem_executor.process.ProcessResponse;
+import org.nees.illinois.uisimcor.fem_executor.response.ProcessResponse;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,9 +49,9 @@ public class TestProcessResponse {
 		final int milliWait = 100;
 		final String testName = "printerTest";
 		ProcessResponse errPr = new ProcessResponse(Level.ERROR,
-				p.getErrorStream(), milliWait, testName);
+				p.getErrorStream(), milliWait, testName, null);
 		ProcessResponse stoutPr = new ProcessResponse(Level.DEBUG,
-				p.getInputStream(), milliWait, testName);
+				p.getInputStream(), milliWait, testName, null);
 		Thread errThrd = new Thread(errPr);
 		Thread stoutThrd = new Thread(stoutPr);
 		log.debug("Starting threads");

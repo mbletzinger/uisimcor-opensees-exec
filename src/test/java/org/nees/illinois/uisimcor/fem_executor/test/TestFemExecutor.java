@@ -62,6 +62,7 @@ public class TestFemExecutor {
 		FemExecutor fexec = new FemExecutor(configDir, workDir);
 
 		for (String c : configFiles) {
+			log.debug("Loading configuration for " + c);
 			fexec.loadConfig(c);
 			// Replace OpenSees with fake script
 			fexec.getConfig().getFemProgramParameters()
@@ -70,35 +71,47 @@ public class TestFemExecutor {
 					.getSubstructCfgs().values();
 			Assert.assertTrue(fexec.setup());
 			Assert.assertTrue(fexec.startSimulation());
-			for (SubstructureDao mCfg : mdlCfgs) {
-				loadExecutor(fexec, mCfg);
-			}
-			fexec.execute();
-			int count = 0;
-			final int tiredOfWaiting = 50;
-			while (fexec.isDone() == false) {
-				final int interval = 200;
-				try {
-					Thread.sleep(interval);
-				} catch (InterruptedException e) {
-					log.debug("Sleeping...");
+			final int numSteps = 12;
+			for (int s = 1; s < numSteps; s++) {
+				log.debug("Loading displacements for " + c);
+				for (SubstructureDao mCfg : mdlCfgs) {
+					loadExecutor(fexec, mCfg,s);
 				}
-				if (count > tiredOfWaiting) {
-					fexec.finish();
-					Assert.fail("Execution has hung for some reason");
+				fexec.setStep(s);
+				log.debug("Executing for " + c + " at step " + s);
+				fexec.execute();
+				int count = 0;
+				final int tiredOfWaiting = 20;
+				log.debug("Waiting for done for " + c);
+				while (fexec.isDone() == false) {
+					final int interval = 200;
+					try {
+						Thread.sleep(interval);
+					} catch (InterruptedException e) {
+						log.debug("Sleeping...");
+					}
+					if (count > tiredOfWaiting) {
+						log.error("Tired of waiting for " + c);
+						fexec.finish();
+						Assert.fail("Execution has hung for some reason");
+					}
+					count++;
 				}
-			}
-			Collection<String> mdls = fexec.getConfig().getSubstructCfgs()
-					.keySet();
-			for (String m : mdls) {
-				double[] vals = fexec.getDisplacements(m);
-				final int numberOfDofs = fexec.getConfig().getSubstructCfgs()
-						.get(m).getTotalDofs(); // UI-SimCor vector size.
-				log.debug("Displacements for " + m + " are "
-						+ MtxUtils.array2String(vals));
-				Assert.assertEquals(vals.length, numberOfDofs);
-				vals = fexec.getForces(m);
-				Assert.assertEquals(vals.length, numberOfDofs);
+				Collection<String> mdls = fexec.getConfig().getSubstructCfgs()
+						.keySet();
+				log.debug("Getting displacements and finishing for " + c);
+				for (String m : mdls) {
+					double[] vals = fexec.getDisplacements(m);
+					final int numberOfDofs = fexec.getConfig()
+							.getSubstructCfgs().get(m).getTotalDofs(); // UI-SimCor
+																		// vector
+																		// size.
+					log.debug("Displacements for " + m + " are "
+							+ MtxUtils.array2String(vals));
+					Assert.assertEquals(vals.length, numberOfDofs);
+					vals = fexec.getForces(m);
+					Assert.assertEquals(vals.length, numberOfDofs);
+				}
 			}
 			fexec.finish();
 		}
@@ -112,9 +125,9 @@ public class TestFemExecutor {
 	 *            Configuration for the substructure.
 	 */
 	private void loadExecutor(final FemExecutor fexec,
-			final SubstructureDao subCfg) {
-		final double[] disp = { 0.00023e-4, 0.00004e-5, 0.00023e-4, 0.00004e-5,
-				0.00023e-4, 0.00004e-5 };
+			final SubstructureDao subCfg, final int step) {
+		final double[] disp = { 0.00023e-4 * step, 0.00004e-5 * step, 0.00023e-4 * step, 0.00004e-5 * step,
+				0.00023e-4 * step, 0.00004e-5 * step };
 		fexec.setDisplacements(subCfg.getAddress(), disp);
 	}
 

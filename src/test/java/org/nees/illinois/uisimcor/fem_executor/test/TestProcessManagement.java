@@ -10,6 +10,7 @@ import org.junit.Assert;
 import org.nees.illinois.uisimcor.fem_executor.process.ProcessManagement;
 import org.nees.illinois.uisimcor.fem_executor.process.QMessageT;
 import org.nees.illinois.uisimcor.fem_executor.process.QMessageType;
+import org.nees.illinois.uisimcor.fem_executor.response.ResponseMonitor;
 import org.nees.illinois.uisimcor.fem_executor.utils.FileWithContentDelete;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
@@ -57,7 +58,9 @@ public class TestProcessManagement {
 			Assert.fail(pmCommand + " \" failed to start");
 		}
 		BlockingQueue<QMessageT<String>> commands = pm.getStdinQ();
-		BlockingQueue<String> responses = pm.addResponseListener().getSteps();
+		ResponseMonitor rm = new ResponseMonitor();
+		BlockingQueue<String> responses =rm.getSteps();
+		pm.getStoutPr().addObserver(rm);
 		final int lastStep = 11;
 		for (int s = 1; s < lastStep; s++) {
 			commands.add(new QMessageT<String>(QMessageType.Command,"Execute Step " + s));

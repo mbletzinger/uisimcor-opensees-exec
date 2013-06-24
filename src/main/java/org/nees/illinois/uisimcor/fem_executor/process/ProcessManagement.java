@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
+import org.nees.illinois.uisimcor.fem_executor.response.OpenSeesErrorFilter;
+import org.nees.illinois.uisimcor.fem_executor.response.ProcessResponse;
+import org.nees.illinois.uisimcor.fem_executor.response.StepFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +22,20 @@ import ch.qos.logback.classic.Level;
  * @author Michael Bletzinger
  */
 public class ProcessManagement {
+	/**
+	 * @return the STDERR response.
+	 */
+	public final ProcessResponse getErrPr() {
+		return errPr;
+	}
+
+	/**
+	 * @return the STDOUT response.
+	 */
+	public final ProcessResponse getStoutPr() {
+		return stoutPr;
+	}
+
 	/**
 	 * Argument list for the command.
 	 */
@@ -53,11 +70,6 @@ public class ProcessManagement {
 	 * STDIN management for the process.
 	 */
 	private Thread exchangeThrd;
-
-	/**
-	 * The value returned by the executed command.
-	 */
-	private int exitValue;
 
 	/**
 	 * Interval for the {@link ProcessResponse ProcessResponse} threads to wait
@@ -145,16 +157,6 @@ public class ProcessManagement {
 	}
 
 	/**
-	 * Returns a response monitor whose queue receives step strings.
-	 * @return monitor instance.
-	 */
-	public final ResponseMonitor addResponseListener() {
-		ResponseMonitor result = new ResponseMonitor();
-		stoutPr.addObserver(result);
-		return result;
-	}
-
-	/**
 	 * Assemble the command and its arguments.
 	 * @return The full command string.
 	 */
@@ -235,10 +237,16 @@ public class ProcessManagement {
 	}
 
 	/**
-	 * @return the exitValue
+	 * @return True if the process has stopped running.
 	 */
-	public final int getExitValue() {
-		return exitValue;
+	public final boolean hasExited() {
+		try {
+			process.exitValue();
+		} catch (IllegalThreadStateException e) {
+			log.debug("Still running.");
+			return false;
+		}
+		return true;
 	}
 
 	/**
@@ -313,9 +321,9 @@ public class ProcessManagement {
 		process = pb.start();
 		log.debug("Creating threads");
 		errPr = new ProcessResponse(Level.ERROR, process.getErrorStream(),
-				listenerWaitInterval, processName);
+				listenerWaitInterval, processName, new OpenSeesErrorFilter());
 		stoutPr = new ProcessResponse(Level.DEBUG, process.getInputStream(),
-				listenerWaitInterval, processName);
+				listenerWaitInterval, processName, new StepFilter());
 		exchange = new StdInExchange(waitInMillSecs, process.getOutputStream());
 		errThrd = new Thread(errPr);
 		stoutThrd = new Thread(stoutPr);

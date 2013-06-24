@@ -27,6 +27,49 @@ import ch.qos.logback.core.util.StatusPrinter;
  */
 public class FemExecutor {
 
+	/**
+	 * Reloads the logback.xml file for logging.
+	 * @param logfile
+	 *            Path to logback configuration file.
+	 */
+	public static void configureLog(final String logfile) {
+		LoggerContext context = (LoggerContext) LoggerFactory
+				.getILoggerFactory();
+
+		try {
+			JoranConfigurator configurator = new JoranConfigurator();
+			configurator.setContext(context);
+			// Call context.reset() to clear any previous configuration, e.g.
+			// default
+			// configuration. For multi-step configuration, omit calling
+			// context.reset().
+			context.reset();
+			configurator.doConfigure(logfile);
+		} catch (JoranException je) {
+			StatusPrinter.printInCaseOfErrorsOrWarnings(context);
+		}
+	}
+
+	/**
+	 * Instance containing all of the configuration parameters.
+	 */
+	private FemExecutorConfig config;
+
+	/**
+	 * Path to the root directory of the configurations.
+	 */
+	private final String configRootDir;
+
+	/**
+	 * Map of displacement targets for each substructure.
+	 */
+	private final Map<String, List<Double>> displacementsMap = new HashMap<String, List<Double>>();
+
+	/**
+	 * Map of substructure FEM executors.
+	 */
+	private final Map<String, SubstructureExecutor> executors = new HashMap<String, SubstructureExecutor>();
+
 	// /**
 	// * Test function to see if the executor works in the given OS environment.
 	// * @param args
@@ -57,34 +100,19 @@ public class FemExecutor {
 	 **/
 	private final Logger log = LoggerFactory.getLogger(FemExecutor.class);
 	/**
-	 * Instance containing all of the configuration parameters.
+	 * Flag indicating that the simulation is running.
 	 */
-	private FemExecutorConfig config;
-
-	/**
-	 * Path to the root directory of the configurations.
-	 */
-	private final String configRootDir;
-
-	/**
-	 * Folder to store temporary files during model execution.
-	 */
-	private final String workDir;
-
-	/**
-	 * Map of displacement targets for each substructure.
-	 */
-	private final Map<String, List<Double>> displacementsMap = new HashMap<String, List<Double>>();
-
-	/**
-	 * Map of substructure FEM executors.
-	 */
-	private final Map<String, SubstructureExecutor> executors = new HashMap<String, SubstructureExecutor>();
+	private boolean running = false;
 
 	/**
 	 * Current step.
 	 */
 	private int step;
+
+	/**
+	 * Folder to store temporary files during model execution.
+	 */
+	private final String workDir;
 
 	/**
 	 * @param configDir
@@ -95,6 +123,207 @@ public class FemExecutor {
 	public FemExecutor(final String configDir, final String workDir) {
 		this.configRootDir = configDir;
 		this.workDir = workDir;
+	}
+
+	/**
+	 * Converts array into list.
+	 * @param array
+	 *            double array
+	 * @return Double List
+	 */
+	private List<Double> double2List(final double[] array) {
+		List<Double> result = new ArrayList<Double>();
+		for (double n : array) {
+			result.add(new Double(n));
+		}
+		return result;
+	}
+
+	/**
+	 * Start execution of all of the substructures for the current step.
+	 */
+	public final void execute() {
+		log.debug("Execute was called");
+		for (String mdl : executors.keySet()) {
+			SubstructureExecutor exe = executors.get(mdl);
+			exe.startStep(getStep(),
+					MtxUtils.list2Array(displacementsMap.get(mdl)));
+		}
+	}
+
+	/**
+	 * Abort the execution.
+	 * @return True if the abort has completed.
+	 */
+	public final boolean finish() {
+		log.debug("Finish was called");
+		boolean result = true;
+		for (String mdl : executors.keySet()) {
+			SubstructureExecutor exe = executors.get(mdl);
+			exe.abort();
+		}
+		setRunning(false);
+		return result;
+	}
+
+	/**
+	 * @return the config
+	 */
+	public final FemExecutorConfig getConfig() {
+		return config;
+	}
+
+	/**
+	 * @return the configRootDir
+	 */
+	public final String getConfigRootDir() {
+		return configRootDir;
+	}
+
+	/**
+	 * Get the displacement response for a substructure.
+	 * @param address
+	 *            Substructure id.
+	 * @return Displacement data.
+	 */
+	public final double[] getDisplacements(final String address) {
+		return executors.get(address).getDisplacements();
+	}
+
+	/**
+	 * @return the displacementsMap
+	 */
+	public final Map<String, List<Double>> getDisplacementsMap() {
+		return displacementsMap;
+	}
+
+	/**
+	 * @return the executors
+	 */
+	public final Map<String, SubstructureExecutor> getExecutors() {
+		return executors;
+	}
+
+	/**
+	 * Get the force response for a substructure.
+	 * @param address
+	 *            Substructure id.
+	 * @return Force data.
+	 */
+	public final double[] getForces(final String address) {
+		return executors.get(address).getForces();
+	}
+
+	/**
+	 * @return the step
+	 */
+	public final int getStep() {
+		return step;
+	}
+
+	/**
+	 * @return the workDir
+	 */
+	public final String getWorkDir() {
+		return workDir;
+	}
+
+	/**
+	 * Check to see if all of the substructures have finished.
+	 * @return True if everything is done.
+	 */
+	public final boolean isDone() {
+		log.debug("isDone was called");
+		boolean result = true;
+		for (String mdl : executors.keySet()) {
+			SubstructureExecutor exe = executors.get(mdl);
+			try {
+				// log.debug("Checking " + mdl);
+				result = result && exe.stepIsDone();
+			} catch (OutputFileException e) {
+				log.error("Step command for " + mdl + " failed because", e);
+			}
+		}
+//		final int matlabWait = 200;
+//		try {
+//			log.debug("Waiting to return");
+//			Thread.sleep(matlabWait);
+//		} catch (InterruptedException e) {
+//			log.debug("HEY who woke me up?");
+//		}
+		return result;
+	}
+
+	/**
+	 * @return the running
+	 */
+	public final boolean isRunning() {
+		return running;
+	}
+
+	/**
+	 * Load the configuration parameters for executing the FEM substructures.
+	 * @param configFile
+	 *            Name of the configuration file.
+	 */
+	public final void loadConfig(final String configFile) {
+		LoadSaveConfig lsc = new LoadSaveConfig();
+		lsc.setConfigFilePath(configFile);
+		lsc.load(configRootDir);
+		config = lsc.getFemConfig();
+	}
+
+	/**
+	 * I'm alive function for debugging.
+	 * @return Config Directory
+	 */
+	public final String ping() {
+		log.debug("I'm here \"" + workDir + "\"");
+		return configRootDir;
+	}
+
+	/**
+	 * @param config
+	 *            the config to set
+	 */
+	public final void setConfig(final FemExecutorConfig config) {
+		this.config = config;
+	}
+
+	/**
+	 * Set the displacement targets for a substructure. Note that the matrix
+	 * includes all 6 displacements DOFs regardless of which of them are
+	 * effective. The executor uses the effective DOFs configuration parameter
+	 * to select which values to use from the matrix. ( See the function
+	 * <em>addEffectiveDofs</em> {@link SubstructureDao here}).
+	 * @param address
+	 *            Substructure id.
+	 * @param displacements
+	 *            Matrix of displacements. Size of the matrix is (# of control
+	 *            nodes) x 6.
+	 */
+	public final void setDisplacements(final String address,
+			final double[] displacements) {
+		List<Double> data = double2List(displacements);
+		log.debug("Set disp for \"" + address + "\" to " + data);
+		displacementsMap.put(address, data);
+	}
+
+	/**
+	 * @param running
+	 *            the running to set
+	 */
+	public final void setRunning(final boolean running) {
+		this.running = running;
+	}
+
+	/**
+	 * @param step
+	 *            the step to set
+	 */
+	public final void setStep(final int step) {
+		log.debug("Step was set to " + step);
+		this.step = step;
 	}
 
 	/**
@@ -128,182 +357,7 @@ public class FemExecutor {
 			SubstructureExecutor exe = executors.get(mdl);
 			result = result && exe.startSimulation();
 		}
-		return result;
-	}
-	/**
-	 * Start execution of all of the substructures for the current step.
-	 */
-	public final void execute() {
-
-		for (String mdl : executors.keySet()) {
-			SubstructureExecutor exe = executors.get(mdl);
-			exe.startStep(getStep(),
-					MtxUtils.list2Array(displacementsMap.get(mdl)));
-		}
-	}
-
-	/**
-	 * @return the config
-	 */
-	public final FemExecutorConfig getConfig() {
-		return config;
-	}
-
-	/**
-	 * @return the configRootDir
-	 */
-	public final String getConfigRootDir() {
-		return configRootDir;
-	}
-
-	/**
-	 * Get the displacement response for a substructure.
-	 * @param address
-	 *            Substructure id.
-	 * @return Displacement data.
-	 */
-	public final double[] getDisplacements(final String address) {
-		return executors.get(address).getDisplacements();
-	}
-
-	/**
-	 * Get the force response for a substructure.
-	 * @param address
-	 *            Substructure id.
-	 * @return Force data.
-	 */
-	public final double[] getForces(final String address) {
-		return executors.get(address).getForces();
-	}
-
-	/**
-	 * @return the step
-	 */
-	public final int getStep() {
-		return step;
-	}
-
-	/**
-	 * Check to see if all of the substructures have finished.
-	 * @return True if everything is done.
-	 */
-	public final boolean isDone() {
-		boolean result = true;
-		for (String mdl : executors.keySet()) {
-			SubstructureExecutor exe = executors.get(mdl);
-			try {
-				// log.debug("Checking " + mdl);
-				result = result && exe.stepIsDone();
-			} catch (OutputFileException e) {
-				log.error("Step command for " + mdl + " failed because", e);
-			}
-		}
-		return result;
-	}
-
-	/**
-	 * Abort the execution.
-	 * @return True if the abort has completed.
-	 */
-	public final boolean finish() {
-		boolean result = true;
-		for (String mdl : executors.keySet()) {
-			SubstructureExecutor exe = executors.get(mdl);
-			exe.abort();
-		}
-		return result;
-	}
-
-	/**
-	 * Load the configuration parameters for executing the FEM substructures.
-	 * @param configFile
-	 *            Name of the configuration file.
-	 */
-	public final void loadConfig(final String configFile) {
-		LoadSaveConfig lsc = new LoadSaveConfig();
-		lsc.setConfigFilePath(configFile);
-		lsc.load(configRootDir);
-		config = lsc.getFemConfig();
-	}
-
-	/**
-	 * @param config
-	 *            the config to set
-	 */
-	public final void setConfig(final FemExecutorConfig config) {
-		this.config = config;
-	}
-
-	/**
-	 * Set the displacement targets for a substructure. Note that the matrix
-	 * includes all 6 displacements DOFs regardless of which of them are
-	 * effective. The executor uses the effective DOFs configuration parameter
-	 * to select which values to use from the matrix. ( See the function
-	 * <em>addEffectiveDofs</em> {@link SubstructureDao here}).
-	 * @param address
-	 *            Substructure id.
-	 * @param displacements
-	 *            Matrix of displacements. Size of the matrix is (# of control
-	 *            nodes) x 6.
-	 */
-	public final void setDisplacements(final String address,
-			final double[] displacements) {
-		List<Double> data = double2List(displacements);
-		log.debug("Set disp for \"" + address + "\" to " + data);
-		displacementsMap.put(address, data);
-	}
-
-	/**
-	 * @param step
-	 *            the step to set
-	 */
-	public final void setStep(final int step) {
-		this.step = step;
-	}
-
-	/**
-	 * I'm alive function for debugging.
-	 * @return Config Directory
-	 */
-	public final String ping() {
-		log.debug("I'm here \"" + workDir + "\"");
-		return configRootDir;
-	}
-
-	/**
-	 * Reloads the logback.xml file for logging.
-	 * @param logfile
-	 *            Path to logback configuration file.
-	 */
-	public static void configureLog(final String logfile) {
-		LoggerContext context = (LoggerContext) LoggerFactory
-				.getILoggerFactory();
-
-		try {
-			JoranConfigurator configurator = new JoranConfigurator();
-			configurator.setContext(context);
-			// Call context.reset() to clear any previous configuration, e.g.
-			// default
-			// configuration. For multi-step configuration, omit calling
-			// context.reset().
-			context.reset();
-			configurator.doConfigure(logfile);
-		} catch (JoranException je) {
-			StatusPrinter.printInCaseOfErrorsOrWarnings(context);
-		}
-	}
-
-	/**
-	 * Converts array into list.
-	 * @param array
-	 *            double array
-	 * @return Double List
-	 */
-	private List<Double> double2List(final double[] array) {
-		List<Double> result = new ArrayList<Double>();
-		for (double n : array) {
-			result.add(new Double(n));
-		}
+		setRunning(true);
 		return result;
 	}
 }
