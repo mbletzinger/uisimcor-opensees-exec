@@ -25,6 +25,9 @@ import org.slf4j.LoggerFactory;
  * @author Michael Bletzinger
  */
 public class SubstructureExecutor {
+	private boolean displacementsAreHere = false;
+	private boolean forcesAreHere = false;
+
 	/**
 	 * Program configuration to run.
 	 */
@@ -47,7 +50,7 @@ public class SubstructureExecutor {
 	/**
 	 * Wait interval for checking thread for done. Default is 2 seconds
 	 */
-	private int waitInMillisecs = defaultWait;
+	private int waitInMillisecs = defaultWait / 10;
 
 	/**
 	 * Working directory for FEM execution.
@@ -77,7 +80,7 @@ public class SubstructureExecutor {
 	/**
 	 * Number of counts until reset.
 	 */
-	private final int maxCnt = 20;
+	private final int maxCnt = 5;
 
 	/**
 	 * Listener for the displacements socket.
@@ -244,6 +247,8 @@ public class SubstructureExecutor {
 		pm.getStdinQ().add(
 				new QMessageT<String>(QMessageType.Command, stepCmnd));
 		debugCnt = 0;
+		displacementsAreHere = false;
+		forcesAreHere = false;
 	}
 
 	/**
@@ -254,25 +259,40 @@ public class SubstructureExecutor {
 	 *             If force values are missing,
 	 */
 	public final boolean stepIsDone() throws OutputFileException {
-		BlockingQueue<List<Double>> responses = dispReader.getDoublesQ();
-		rawDisp = responses.poll();
-		if (rawDisp == null) {
-			if (debugCnt == maxCnt) {
-				debugCnt = 0;
-				log.debug("Still waiting for " + pm.getCmd());
+		if (displacementsAreHere == false) {
+			BlockingQueue<List<Double>> responses = dispReader.getDoublesQ();
+			rawDisp = responses.poll();
+			if (rawDisp == null) {
+				if (debugCnt == maxCnt) {
+					debugCnt = 0;
+					log.debug("Still waiting for displacements from "
+							+ scfg.getAddress());
+				} else {
+					debugCnt++;
+				}
 			} else {
-				debugCnt++;
+				log.debug("Raw Displacements " + MtxUtils.list2String(rawDisp));
+				displacementsAreHere = true;
 			}
-			return false;
 		}
-		log.debug("Raw Displacements " + MtxUtils.list2String(rawDisp));
-		responses = forceReader.getDoublesQ();
-		rawForce = responses.poll();
-		if (rawForce == null) {
-			throw new OutputFileException("Force values are missing");
+		if (forcesAreHere == false) {
+			BlockingQueue<List<Double>> responses = forceReader.getDoublesQ();
+			rawForce = responses.poll();
+			if (rawForce == null) {
+				if (debugCnt == maxCnt) {
+					debugCnt = 0;
+					log.debug("Still waiting for forces from "
+							+ scfg.getAddress());
+				} else {
+					debugCnt++;
+				}
+				return false;
+			} else {
+				log.debug("Raw Forces " + MtxUtils.list2String(rawForce));
+				forcesAreHere = true;
+			}
 		}
-		log.debug("Raw Forces " + MtxUtils.list2String(rawForce));
-		return true;
+		return displacementsAreHere && forcesAreHere;
 	}
 
 	/**

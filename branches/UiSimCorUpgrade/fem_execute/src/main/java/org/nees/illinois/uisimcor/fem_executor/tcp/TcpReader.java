@@ -151,7 +151,7 @@ public class TcpReader extends Thread implements AbortableI {
 			return;
 		}
 		long sizei = Math.round(size);
-		log.debug("Reading " + sizei + " numbers");
+//		log.debug("Reading " + sizei + " numbers");
 		List<Double> list = new ArrayList<Double>();
 		for (int n = 0; n < sizei; n++) {
 			try {
@@ -172,9 +172,9 @@ public class TcpReader extends Thread implements AbortableI {
 				return;
 			}
 		}
-		log.debug("Read " + list + " record");
 		try {
 			doublesQ.put(list);
+			log.debug("Read " + list + " record");
 		} catch (InterruptedException e) {
 			log.debug("Queue put was interrupted");
 		}

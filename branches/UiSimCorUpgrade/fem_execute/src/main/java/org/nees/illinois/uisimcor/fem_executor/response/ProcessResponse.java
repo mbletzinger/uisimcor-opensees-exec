@@ -1,13 +1,12 @@
-package org.nees.illinois.uisimcor.fem_executor.process;
+package org.nees.illinois.uisimcor.fem_executor.response;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Observable;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import org.nees.illinois.uisimcor.fem_executor.process.AbortableI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,10 +25,6 @@ public class ProcessResponse extends Observable implements AbortableI {
 		this.output += output;
 	}
 
-	/**
-	 * Pattern for the observable function.
-	 */
-	private final Pattern regex = Pattern.compile("step\\s+([0-9]+)");
 	/**
 	 * Quit flag for {@link AbortableI abort} interface.
 	 */
@@ -58,6 +53,10 @@ public class ProcessResponse extends Observable implements AbortableI {
 	 * Stream that we are listening to.
 	 */
 	private final InputStream strm;
+	/**
+	 * Filter for observations.
+	 */
+	private final ResponseFilterI filter;
 
 	/**
 	 * Constructor.
@@ -69,14 +68,18 @@ public class ProcessResponse extends Observable implements AbortableI {
 	 *            Interval to wait between read requests.
 	 * @param processName
 	 *            Name of the process. Used as a label for logging messages.
+	 * @param filter
+	 *            Filter for observations.  Use null if no filter is needed.
 	 */
 	public ProcessResponse(final Level level, final InputStream strm,
-			final int millSecWait, final String processName) {
+			final int millSecWait, final String processName,
+			final ResponseFilterI filter) {
 		super();
 		this.level = level;
 		this.strm = strm;
 		this.millSecWait = millSecWait;
 		this.processName = processName;
+		this.filter = filter;
 	}
 
 	/**
@@ -103,13 +106,9 @@ public class ProcessResponse extends Observable implements AbortableI {
 				if (reader.ready()) {
 					cbuf = reader.readLine();
 					// log.debug("read \"" + cbuf + "\"");
-					if (cbuf.contains("#:")) {
-						Matcher match = regex.matcher(cbuf);
-						match.find();
-						String step = match.group(1);
-						// log.debug("Time to notify");
+					if (filter != null && filter.filter(cbuf)) {
 						setChanged();
-						notifyObservers(step);
+						notifyObservers(filter.get());
 					}
 					writeLog(cbuf);
 					appendOutput(cbuf + "\n");

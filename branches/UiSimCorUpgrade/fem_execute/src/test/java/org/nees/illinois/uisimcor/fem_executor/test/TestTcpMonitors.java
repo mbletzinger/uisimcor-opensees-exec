@@ -8,7 +8,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
-import org.nees.illinois.uisimcor.fem_executor.process.ProcessResponse;
+import org.nees.illinois.uisimcor.fem_executor.response.ProcessResponse;
 import org.nees.illinois.uisimcor.fem_executor.tcp.TcpLinkDto;
 import org.nees.illinois.uisimcor.fem_executor.tcp.TcpListener;
 import org.nees.illinois.uisimcor.fem_executor.tcp.TcpParameters;
@@ -202,9 +202,9 @@ public class TestTcpMonitors {
 		String testName = "Output Test";
 		final int milliWait = 100;
 		errPr = new ProcessResponse(Level.ERROR, p.getErrorStream(), milliWait,
-				testName);
+				testName, null);
 		stoutPr = new ProcessResponse(Level.DEBUG, p.getInputStream(),
-				milliWait, testName);
+				milliWait, testName, null);
 		errThrd = new Thread(errPr);
 		stoutThrd = new Thread(stoutPr);
 		log.debug("Starting threads");

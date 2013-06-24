@@ -29,25 +29,6 @@ import org.slf4j.LoggerFactory;
  */
 public class LoadSaveConfig {
 	/**
-	 * @return the femConfig
-	 */
-	public final FemExecutorConfig getFemConfig() {
-		return femConfig;
-	}
-
-	/**
-	 * @param femConfig
-	 *            the femConfig to set
-	 */
-	public final void setFemConfig(final FemExecutorConfig femConfig) {
-		this.femConfig = femConfig;
-	}
-
-	/**
-	 * FEM Executor Configuration.
-	 */
-	private FemExecutorConfig femConfig;
-	/**
 	 * Path to configuration file.
 	 */
 	private String configFilePath;
@@ -68,6 +49,12 @@ public class LoadSaveConfig {
 	 */
 	private final EncodeDecodeList<String, StringDecoder> eoStringList = new EncodeDecodeList<String, StringDecoder>(
 			new StringDecoder());
+
+	/**
+	 * FEM Executor Configuration.
+	 */
+	private FemExecutorConfig femConfig;
+
 	/**
 	 * Logger.
 	 **/
@@ -76,12 +63,17 @@ public class LoadSaveConfig {
 	 * Properties for storing configuration data for a substructure.
 	 */
 	private Properties props;
-
 	/**
 	 * @return the configFilePath
 	 */
 	public final String getConfigFilePath() {
 		return configFilePath;
+	}
+	/**
+	 * @return the femConfig
+	 */
+	public final FemExecutorConfig getFemConfig() {
+		return femConfig;
 	}
 
 	/**
@@ -122,18 +114,6 @@ public class LoadSaveConfig {
 			SubstructureDao cfg = loadSubStructure(n);
 			femConfig.getSubstructCfgs().put(n, cfg);
 		}
-	}
-
-	/**
-	 * Save a set of FEM program parameters.
-	 * @param progCfg
-	 *            FEM program parameters set
-	 */
-	private void saveFemProgram(final ProgramDao progCfg) {
-		FemProgramType ptype = progCfg.getProgram();
-		props.put(ptype + ".path.executable", progCfg.getExecutablePath());
-		props.put(ptype + ".file.template.step", progCfg.getTemplateDao().getStepTemplateFile());
-		props.put(ptype + ".file.template.init", progCfg.getTemplateDao().getInitTemplateFile());
 	}
 
 	/**
@@ -289,6 +269,18 @@ public class LoadSaveConfig {
 	}
 
 	/**
+	 * Save a set of FEM program parameters.
+	 * @param progCfg
+	 *            FEM program parameters set
+	 */
+	private void saveFemProgram(final ProgramDao progCfg) {
+		FemProgramType ptype = progCfg.getProgram();
+		props.put(ptype + ".path.executable", progCfg.getExecutablePath());
+		props.put(ptype + ".file.template.step", progCfg.getTemplateDao().getStepTemplateFile());
+		props.put(ptype + ".file.template.init", progCfg.getTemplateDao().getInitTemplateFile());
+	}
+
+	/**
 	 * Save a configuration for a substructure.
 	 * @param name
 	 *            Name of substructure.
@@ -321,5 +313,13 @@ public class LoadSaveConfig {
 	 */
 	public final void setConfigFilePath(final String configFilePath) {
 		this.configFilePath = configFilePath;
+	}
+
+	/**
+	 * @param femConfig
+	 *            the femConfig to set
+	 */
+	public final void setFemConfig(final FemExecutorConfig femConfig) {
+		this.femConfig = femConfig;
 	}
 }
