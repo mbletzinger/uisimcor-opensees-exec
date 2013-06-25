@@ -1,4 +1,4 @@
-package org.nees.illinois.uisimcor.fem_executor.utils;
+package org.nees.illinois.uisimcor.fem_executor.test.utils;
 
 import java.io.File;
 import java.io.FileWriter;

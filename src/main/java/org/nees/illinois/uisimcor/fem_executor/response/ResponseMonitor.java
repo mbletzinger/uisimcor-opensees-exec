@@ -21,12 +21,12 @@ private final Logger log = LoggerFactory.getLogger(ResponseMonitor.class);
 /**
  * Queue which transmits step strings.
  */
-	private final BlockingQueue<String> steps = new LinkedBlockingQueue<String>();
+	private final BlockingQueue<String> extracted = new LinkedBlockingQueue<String>();
 	/**
 		 * @return the steps
 		 */
-		public final BlockingQueue<String> getSteps() {
-			return steps;
+		public final BlockingQueue<String> getExtracted() {
+			return extracted;
 		}
 
 	@Override
@@ -37,7 +37,7 @@ private final Logger log = LoggerFactory.getLogger(ResponseMonitor.class);
 		}
 		String step = (String) arg;
 		try {
-			steps.put(step);
+			extracted.put(step);
 		} catch (InterruptedException e) {
 			log.debug("Interrupted");
 		}

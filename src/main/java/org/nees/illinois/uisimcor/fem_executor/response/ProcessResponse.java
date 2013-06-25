@@ -107,6 +107,7 @@ public class ProcessResponse extends Observable implements AbortableI {
 					cbuf = reader.readLine();
 					// log.debug("read \"" + cbuf + "\"");
 					if (filter != null && filter.filter(cbuf)) {
+						log.debug("Notifying about \"" +filter.get() + "\" for line \"" + cbuf + "\"" );
 						setChanged();
 						notifyObservers(filter.get());
 					}

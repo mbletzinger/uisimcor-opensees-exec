@@ -11,9 +11,9 @@ import org.nees.illinois.uisimcor.fem_executor.process.ProcessManagement;
 import org.nees.illinois.uisimcor.fem_executor.process.QMessageT;
 import org.nees.illinois.uisimcor.fem_executor.process.QMessageType;
 import org.nees.illinois.uisimcor.fem_executor.response.ResponseMonitor;
+import org.nees.illinois.uisimcor.fem_executor.test.utils.WindowsPerlBatchCreator;
 import org.nees.illinois.uisimcor.fem_executor.utils.FileWithContentDelete;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
-import org.nees.illinois.uisimcor.fem_executor.utils.WindowsPerlBatchCreator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterClass;
@@ -60,7 +60,7 @@ public class TestProcessManagement {
 		}
 		BlockingQueue<QMessageT<String>> commands = pm.getStdinQ();
 		ResponseMonitor rm = new ResponseMonitor();
-		BlockingQueue<String> responses =rm.getSteps();
+		BlockingQueue<String> responses =rm.getExtracted();
 		pm.getStoutPr().addObserver(rm);
 		final int lastStep = 11;
 		for (int s = 1; s < lastStep; s++) {
@@ -82,7 +82,7 @@ public class TestProcessManagement {
 					rsp.contains(Integer.toString(s)));
 		}
 		commands.add(new QMessageT<String>(QMessageType.Exit,"EXIT"));
-		pm.finish();
+		pm.abort();
 	}
 
 	/**

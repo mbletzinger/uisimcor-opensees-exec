@@ -19,6 +19,12 @@ public class OpenSeesErrorFilter implements ResponseFilterI {
 
 	@Override
 	public final boolean filter(final String response) {
+		if (response == null) {
+			return false;
+		}
+		if (response == "") {
+			return false;
+		}
 		if (response
 				.contains("Open System For Earthquake Engineering Simulation")) {
 			return false;
@@ -26,12 +32,18 @@ public class OpenSeesErrorFilter implements ResponseFilterI {
 		if (response.contains("Pacific Earthquake Engineering Research Center")) {
 			return false;
 		}
-		Matcher match = regex.matcher(response);
-		if (match.matches()) {
+		if (response.contains("Copyright")) {
 			return false;
 		}
-		extracted = response;
-		return true;
+		if (response.contains("All Rights Reserved")) {
+			return false;
+		}
+		Matcher match = regex.matcher(response);
+		if (match.find()) {
+			extracted = response;
+			return true;
+		}
+		return false;
 	}
 
 	@Override

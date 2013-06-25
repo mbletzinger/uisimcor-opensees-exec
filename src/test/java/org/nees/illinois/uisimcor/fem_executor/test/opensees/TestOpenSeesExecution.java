@@ -391,7 +391,7 @@ public class TestOpenSeesExecution {
 			log.debug("Interrupted for some reason.");
 		}
 		delaysDelays();
-		pm.finish();
+		pm.abort();
 	}
 
 	/**
