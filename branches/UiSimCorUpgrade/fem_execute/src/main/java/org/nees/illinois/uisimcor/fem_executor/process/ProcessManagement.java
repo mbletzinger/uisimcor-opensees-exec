@@ -122,21 +122,6 @@ public class ProcessManagement {
 	}
 
 	/**
-	 * Stop execution immediately.
-	 */
-	public final void abort() {
-		log.debug("Aborting");
-		process.destroy();
-		log.debug("Ending threads");
-		errPr.setQuit(true);
-		errThrd.interrupt();
-		stoutPr.setQuit(true);
-		stoutThrd.interrupt();
-		exchange.setQuit(true);
-		exchangeThrd.interrupt();
-	}
-
-	/**
 	 * Add an argument to the command.
 	 * @param arg
 	 *            Argument string.
@@ -189,7 +174,7 @@ public class ProcessManagement {
 	/**
 	 * Cleanup after the command has finished executing.
 	 */
-	public final void finish() {
+	public final void abort() {
 		process.destroy();
 
 		log.debug("Waiting for threads");

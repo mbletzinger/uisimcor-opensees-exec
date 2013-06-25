@@ -8,6 +8,9 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>FEM Executor</name>
 	<description>Java code to execute FEM models from MATLAB</description>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>

@@ -10,12 +10,12 @@ import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
 import org.nees.illinois.uisimcor.fem_executor.input.OpenSeesSG;
 import org.nees.illinois.uisimcor.fem_executor.input.ScriptGeneratorI;
 import org.nees.illinois.uisimcor.fem_executor.output.DataFormatter;
+import org.nees.illinois.uisimcor.fem_executor.response.ResponseMonitor;
 import org.nees.illinois.uisimcor.fem_executor.tcp.TcpLinkDto;
 import org.nees.illinois.uisimcor.fem_executor.tcp.TcpListener;
 import org.nees.illinois.uisimcor.fem_executor.tcp.TcpParameters;
 import org.nees.illinois.uisimcor.fem_executor.tcp.TcpReader;
 import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
-import org.nees.illinois.uisimcor.fem_executor.utils.OutputFileException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,9 +25,18 @@ import org.slf4j.LoggerFactory;
  * @author Michael Bletzinger
  */
 public class SubstructureExecutor {
-	private boolean displacementsAreHere = false;
-	private boolean forcesAreHere = false;
 
+	/**
+	 * @return the statuses
+	 */
+	public final FemStatus getStatuses() {
+		return statuses;
+	}
+
+	/**
+	 * Statuses for the substructure execution.
+	 */
+	private final FemStatus statuses = new FemStatus();
 	/**
 	 * Program configuration to run.
 	 */
@@ -108,6 +117,14 @@ public class SubstructureExecutor {
 	 * Read forces from reaction link.
 	 */
 	private TcpReader forceReader;
+	/**
+	 * Monitors STDOUT stream for step is done messages.
+	 */
+	private ResponseMonitor responseMonitor;
+	/**
+	 * Monitors STDERR stream for error messages.
+	 */
+	private ResponseMonitor errorMonitor;
 
 	/**
 	 * @param progCfg
@@ -215,6 +232,8 @@ public class SubstructureExecutor {
 			return false;
 		}
 		dispReader.start();
+//		dispListener.setQuit(true);
+//		dispListener.interrupt();
 		try {
 			link = forceListener.getConnections().poll(waitInMillisecs,
 					TimeUnit.MILLISECONDS);
@@ -232,6 +251,12 @@ public class SubstructureExecutor {
 			return false;
 		}
 		forceReader.start();
+//		forceListener.setQuit(true);
+//		forceListener.interrupt();
+		responseMonitor = new ResponseMonitor();
+		pm.getStoutPr().addObserver(responseMonitor);
+		errorMonitor = new ResponseMonitor();
+		pm.getErrPr().addObserver(errorMonitor);
 		return true;
 	}
 
@@ -247,52 +272,31 @@ public class SubstructureExecutor {
 		pm.getStdinQ().add(
 				new QMessageT<String>(QMessageType.Command, stepCmnd));
 		debugCnt = 0;
-		displacementsAreHere = false;
-		forcesAreHere = false;
+		statuses.newStep();
 	}
 
 	/**
 	 * Execution Polling function. Use this repeatedly inside a polling loop to
 	 * transition the process to new execution states.
 	 * @return True if the command has completed.
-	 * @throws OutputFileException
-	 *             If force values are missing,
 	 */
-	public final boolean stepIsDone() throws OutputFileException {
-		if (displacementsAreHere == false) {
-			BlockingQueue<List<Double>> responses = dispReader.getDoublesQ();
-			rawDisp = responses.poll();
-			if (rawDisp == null) {
-				if (debugCnt == maxCnt) {
-					debugCnt = 0;
-					log.debug("Still waiting for displacements from "
-							+ scfg.getAddress());
-				} else {
-					debugCnt++;
-				}
-			} else {
-				log.debug("Raw Displacements " + MtxUtils.list2String(rawDisp));
-				displacementsAreHere = true;
-			}
+	public final boolean stepIsDone() {
+		checkDisplacementResponse();
+		checkForceResponse();
+		checkIfProcessIsAlive();
+		checkCurrentStep();
+		checkForErrors();
+		if (statuses.isChanged()) {
+			log.info(scfg.getAddress() + " Is " + statuses.getStatus());
+			debugCnt = 0;
 		}
-		if (forcesAreHere == false) {
-			BlockingQueue<List<Double>> responses = forceReader.getDoublesQ();
-			rawForce = responses.poll();
-			if (rawForce == null) {
-				if (debugCnt == maxCnt) {
-					debugCnt = 0;
-					log.debug("Still waiting for forces from "
-							+ scfg.getAddress());
-				} else {
-					debugCnt++;
-				}
-				return false;
-			} else {
-				log.debug("Raw Forces " + MtxUtils.list2String(rawForce));
-				forcesAreHere = true;
-			}
+		if (debugCnt == maxCnt) {
+			debugCnt = 0;
+			log.info(scfg.getAddress() + " Is " + statuses.getStatus());
+		} else {
+			debugCnt++;
 		}
-		return displacementsAreHere && forcesAreHere;
+		return statuses.responsesHaveArrived();
 	}
 
 	/**
@@ -326,5 +330,78 @@ public class SubstructureExecutor {
 	public final double[] getForces() {
 		List<Double> result = dformat.filter(rawForce);
 		return MtxUtils.list2Array(result);
+	}
+
+	/**
+	 * Check the displacements queue and set the status.
+	 */
+	private void checkDisplacementResponse() {
+		if (statuses.isDisplacementsAreHere()) {
+			return;
+		}
+		BlockingQueue<List<Double>> responses = dispReader.getDoublesQ();
+		rawDisp = responses.poll();
+		if (rawDisp == null) {
+			return;
+		}
+		log.debug("Raw Displacements " + MtxUtils.list2String(rawDisp));
+		statuses.setDisplacementsAreHere(true);
+	}
+
+	/**
+	 * Check the forces queue and set the status.
+	 */
+	private void checkForceResponse() {
+		if (statuses.isForcesAreHere()) {
+			return;
+		}
+		BlockingQueue<List<Double>> responses = forceReader.getDoublesQ();
+		rawForce = responses.poll();
+		if (rawForce == null) {
+			return;
+		}
+		log.debug("Raw Forces " + MtxUtils.list2String(rawForce));
+		statuses.setForcesAreHere(true);
+	}
+
+	/**
+	 * Determine if the process has quit by querying the exit value.
+	 */
+	private void checkIfProcessIsAlive() {
+		if (statuses.isFemProcessHasDied()) {
+			return;
+		}
+		boolean result = pm.hasExited();
+		statuses.setFemProcessHasDied(result);
+	}
+
+	/**
+	 * Determine if the process has responded via STDOUT that the current step
+	 * is finished.
+	 */
+	private void checkCurrentStep() {
+		if (statuses.isCurrentStepHasExecuted()) {
+			return;
+		}
+		String step = responseMonitor.getExtracted().poll();
+		if (step == null) {
+			return;
+		}
+		statuses.setCurrentStepHasExecuted(true);
+		statuses.setLastExecutedStep(step);
+	}
+
+	/**
+	 * Determine if the process has sent any errors via SDTERR.
+	 */
+	private void checkForErrors() {
+		if(statuses.isFemProcessHasDied()) {
+			return;
+		}
+		String error = errorMonitor.getExtracted().poll();
+		if (error != null) {
+			statuses.setFemProcessHasErrors(true);
+			log.error(error);
+		}
 	}
 }

@@ -12,7 +12,6 @@ import org.nees.illinois.uisimcor.fem_executor.config.types.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.input.WorkingDir;
 import org.nees.illinois.uisimcor.fem_executor.process.SubstructureExecutor;
 import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
-import org.nees.illinois.uisimcor.fem_executor.utils.OutputFileException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -233,27 +232,36 @@ public class FemExecutor {
 	 * @return True if everything is done.
 	 */
 	public final boolean isDone() {
-		log.debug("isDone was called");
 		boolean result = true;
 		for (String mdl : executors.keySet()) {
 			SubstructureExecutor exe = executors.get(mdl);
-			try {
-				// log.debug("Checking " + mdl);
-				result = result && exe.stepIsDone();
-			} catch (OutputFileException e) {
-				log.error("Step command for " + mdl + " failed because", e);
-			}
+			result = result && exe.stepIsDone();
 		}
-//		final int matlabWait = 200;
-//		try {
-//			log.debug("Waiting to return");
-//			Thread.sleep(matlabWait);
-//		} catch (InterruptedException e) {
-//			log.debug("HEY who woke me up?");
-//		}
+		// final int matlabWait = 200;
+		// try {
+		// log.debug("Waiting to return");
+		// Thread.sleep(matlabWait);
+		// } catch (InterruptedException e) {
+		// log.debug("HEY who woke me up?");
+		// }
 		return result;
 	}
 
+	/**
+	 * Check if all of the substructures are running.
+	 * @return True if one of them has died.
+	 */
+	public final boolean simulationHasProblems() {
+		boolean result = false;
+		for (String mdl : executors.keySet()) {
+			SubstructureExecutor exe = executors.get(mdl);
+			if(exe.getStatuses().isFemProcessHasErrors()) {
+				log.error(mdl + " is no longer running");
+					result = true;
+			}
+		}
+		return result;
+	}
 	/**
 	 * @return the running
 	 */
