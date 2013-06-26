@@ -307,8 +307,7 @@ public class FemExecutor {
 	 * @param address
 	 *            Substructure id.
 	 * @param displacements
-	 *            Matrix of displacements. Size of the matrix is (# of control
-	 *            nodes) x 6.
+	 *            array of displacements. Size of the matrix is number of effective DOFs  x 1.
 	 */
 	public final void setDisplacements(final String address,
 			final double[] displacements) {

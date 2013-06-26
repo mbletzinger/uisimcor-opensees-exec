@@ -184,14 +184,11 @@ public class OpenSeesSG implements ScriptGeneratorI {
 				+ doubleArray2String(displacements));
 		for (Integer n : substructureCfg.getNodeSequence()) {
 			List<DispDof> edofs = substructureCfg.getEffectiveDofs(n);
-			for (DispDof d : dim.dofs()) {
-				double val = 0.0;
-				if (edofs.contains(d)) {
-					val = displacements[cnt];
+			for (DispDof d : edofs) {
+					double val = displacements[cnt];
 					cnt++;
 					result += "sp " + n + " " + magic.index(d) + " "
 							+ format.format(val) + "\n";
-				}
 			}
 		}
 		return result;

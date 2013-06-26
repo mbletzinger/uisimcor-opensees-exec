@@ -51,7 +51,10 @@ public class DataFormatter {
 				try {
 					log.debug("Adding data at local index " + d + " nodeCount "
 							+ nodeCount + " numDofs "
-							+ openseesMagic.numberOfDofsPerNode() + " index "
+							+ openseesMagic.numberOfDofsPerNode()
+							+ " root index " + openseesMagic.index(d)
+							+ "\n\tcalculated index " + nodeCount
+							* openseesMagic.numberOfDofsPerNode()
 							+ openseesMagic.index(d));
 					result.add(data.get(nodeCount
 							* openseesMagic.numberOfDofsPerNode()
