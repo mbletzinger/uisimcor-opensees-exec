@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
  * step.
  * @author Michael Bletzinger
  */
-public class SubstructureExecutor {
+public class DynamicExecution {
 
 	/**
 	 * @return the statuses
@@ -51,7 +51,7 @@ public class SubstructureExecutor {
 	 * Logger.
 	 **/
 	private final Logger log = LoggerFactory
-			.getLogger(SubstructureExecutor.class);
+			.getLogger(DynamicExecution.class);
 	/**
 	 * {@link ProcessManagement Wrapper} around command line executor.
 	 */
@@ -136,7 +136,7 @@ public class SubstructureExecutor {
 	 * @param workDir
 	 *            Directory to store temporary files.
 	 */
-	public SubstructureExecutor(final ProgramDao progCfg,
+	public DynamicExecution(final ProgramDao progCfg,
 			final SubstructureDao scfg, final String configDir,
 			final String workDir) {
 		this.workDir = workDir;
