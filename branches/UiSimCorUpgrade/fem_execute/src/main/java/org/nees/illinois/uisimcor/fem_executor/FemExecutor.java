@@ -10,7 +10,7 @@ import org.nees.illinois.uisimcor.fem_executor.config.dao.ProgramDao;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
 import org.nees.illinois.uisimcor.fem_executor.config.types.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.input.WorkingDir;
-import org.nees.illinois.uisimcor.fem_executor.process.SubstructureExecutor;
+import org.nees.illinois.uisimcor.fem_executor.process.DynamicExecution;
 import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +67,7 @@ public class FemExecutor {
 	/**
 	 * Map of substructure FEM executors.
 	 */
-	private final Map<String, SubstructureExecutor> executors = new HashMap<String, SubstructureExecutor>();
+	private final Map<String, DynamicExecution> executors = new HashMap<String, DynamicExecution>();
 
 	// /**
 	// * Test function to see if the executor works in the given OS environment.
@@ -144,7 +144,7 @@ public class FemExecutor {
 	public final void execute() {
 		log.debug("Execute was called");
 		for (String mdl : executors.keySet()) {
-			SubstructureExecutor exe = executors.get(mdl);
+			DynamicExecution exe = executors.get(mdl);
 			exe.startStep(getStep(),
 					MtxUtils.list2Array(displacementsMap.get(mdl)));
 		}
@@ -158,7 +158,7 @@ public class FemExecutor {
 		log.debug("Finish was called");
 		boolean result = true;
 		for (String mdl : executors.keySet()) {
-			SubstructureExecutor exe = executors.get(mdl);
+			DynamicExecution exe = executors.get(mdl);
 			exe.abort();
 		}
 		setRunning(false);
@@ -199,7 +199,7 @@ public class FemExecutor {
 	/**
 	 * @return the executors
 	 */
-	public final Map<String, SubstructureExecutor> getExecutors() {
+	public final Map<String, DynamicExecution> getExecutors() {
 		return executors;
 	}
 
@@ -234,7 +234,7 @@ public class FemExecutor {
 	public final boolean isDone() {
 		boolean result = true;
 		for (String mdl : executors.keySet()) {
-			SubstructureExecutor exe = executors.get(mdl);
+			DynamicExecution exe = executors.get(mdl);
 			result = result && exe.stepIsDone();
 		}
 		// final int matlabWait = 200;
@@ -254,7 +254,7 @@ public class FemExecutor {
 	public final boolean simulationHasProblems() {
 		boolean result = false;
 		for (String mdl : executors.keySet()) {
-			SubstructureExecutor exe = executors.get(mdl);
+			DynamicExecution exe = executors.get(mdl);
 			if(exe.getStatuses().isFemProcessHasErrors()) {
 				log.error(mdl + " is no longer running");
 					result = true;
@@ -346,7 +346,7 @@ public class FemExecutor {
 			SubstructureDao scfg = config.getSubstructCfgs().get(fsc);
 			wd.setSubstructureCfg(scfg);
 			wd.createWorkDir();
-			SubstructureExecutor exe = new SubstructureExecutor(progCfg, scfg,
+			DynamicExecution exe = new DynamicExecution(progCfg, scfg,
 					configRootDir, wd.getWorkDir());
 			result = result && exe.setup();
 			executors.put(fsc, exe);
@@ -361,7 +361,7 @@ public class FemExecutor {
 	public final boolean startSimulation() {
 		boolean result = true;
 		for (String mdl : executors.keySet()) {
-			SubstructureExecutor exe = executors.get(mdl);
+			DynamicExecution exe = executors.get(mdl);
 			result = result && exe.startSimulation();
 		}
 		setRunning(true);
