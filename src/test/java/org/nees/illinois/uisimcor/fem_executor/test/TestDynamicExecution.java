@@ -28,7 +28,7 @@ import org.testng.annotations.Test;
  * @author Michael Bletzinger
  */
 @Test(groups = { "execute" })
-public class TestFemExecutor {
+public class TestDynamicExecution {
 	/**
 	 * Configuration containing the fake OpenSees.
 	 */
@@ -40,7 +40,7 @@ public class TestFemExecutor {
 	/**
 	 * Logger.
 	 **/
-	private final Logger log = LoggerFactory.getLogger(TestFemExecutor.class);
+	private final Logger log = LoggerFactory.getLogger(TestDynamicExecution.class);
 	/**
 	 * List of test configurations.
 	 */
