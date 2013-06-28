@@ -8,9 +8,12 @@ import java.io.PrintWriter;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.ProgramDao;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
 import org.nees.illinois.uisimcor.fem_executor.output.OutputFileParser;
+import org.nees.illinois.uisimcor.fem_executor.utils.LogMessageWithCounter;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Level;
 
 /**
  * Class to execute an FEM program to statically analyze a substructure at one
@@ -36,10 +39,11 @@ public class StaticExecution extends SubstructureExecutor {
 	 * Logger.
 	 **/
 	private final Logger log = LoggerFactory.getLogger(StaticExecution.class);
+
 	/**
-	 * Flag indicating that output files need to be parsed after execution.
+	 * Logger with counter to down-scale the message frequency.
 	 */
-	private boolean processOutputFiles = true;
+	private final LogMessageWithCounter logC = new LogMessageWithCounter(10, log, Level.DEBUG);
 
 	/**
 	 * @param progCfg
@@ -74,6 +78,7 @@ public class StaticExecution extends SubstructureExecutor {
 		}
 		File f = new File(dispOutFile);
 		if (f.canRead() == false) {
+			logC.log("\"" + dispOutFile + "\" does not exist yet");
 			return;
 		}
 		if (f.length() > 0) {
@@ -81,7 +86,9 @@ public class StaticExecution extends SubstructureExecutor {
 			ofp.parseDataFile(dispOutFile);
 			setRawDisp(ofp.getArchive());
 			statuses.setDisplacementsAreHere(true);
+			f.delete();
 		}
+		logC.log("\"" + dispOutFile + "\" has nothing in it yet");
 	}
 
 	@Override
@@ -92,6 +99,7 @@ public class StaticExecution extends SubstructureExecutor {
 		}
 		File f = new File(forceOutFile);
 		if (f.canRead() == false) {
+			logC.log("\"" + forceOutFile + "\" does not exist yet");
 			return;
 		}
 		if (f.length() > 0) {
@@ -99,7 +107,9 @@ public class StaticExecution extends SubstructureExecutor {
 			ofp.parseDataFile(forceOutFile);
 			setRawForce(ofp.getArchive());
 			statuses.setForcesAreHere(true);
+			f.delete();
 		}
+		logC.log("\"" + forceOutFile + "\" has nothing in it yet");
 	}
 
 	/**
@@ -107,13 +117,6 @@ public class StaticExecution extends SubstructureExecutor {
 	 */
 	public final String getFilename() {
 		return filename;
-	}
-
-	/**
-	 * @return the processOutputFiles
-	 */
-	public final boolean isProcessOutputFiles() {
-		return processOutputFiles;
 	}
 
 	@Override
@@ -130,13 +133,6 @@ public class StaticExecution extends SubstructureExecutor {
 		this.filename = filename;
 	}
 
-	/**
-	 * @param processOutputFiles
-	 *            the processOutputFiles to set
-	 */
-	public final void setProcessOutputFiles(final boolean processOutputFiles) {
-		this.processOutputFiles = processOutputFiles;
-	}
 
 	@Override
 	public final boolean setup() {

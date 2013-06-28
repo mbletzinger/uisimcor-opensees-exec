@@ -1,5 +1,8 @@
 package org.nees.illinois.uisimcor.fem_executor.execute;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Collection of status flags for an FEM process.
  * @author Michael Bletzinger
@@ -34,6 +37,10 @@ public class FemStatus {
 	 * The last step that has been executed by the FEM process so far.
 	 */
 	private String lastExecutedStep;
+	/**
+	 * Logger.
+	 **/
+	private final Logger log = LoggerFactory.getLogger(FemStatus.class);
 
 	/**
 	 * @return the lastExecutedStep
@@ -64,6 +71,7 @@ public class FemStatus {
 		if (forcesAreHere == false) {
 			return "Waiting for Forces";
 		}
+		log.debug("Status: " + dump());
 		return "I'm Confused";
 	}
 
@@ -181,5 +189,16 @@ public class FemStatus {
 	public final void setLastExecutedStep(final String lastExecutedStep) {
 		this.lastExecutedStep = lastExecutedStep;
 		changed = true;
+	}
+
+	public final String dump() {
+		String result = (currentStepHasExecuted ? "[StepDone]"
+				: "[StepStillExecuting]");
+		result += (displacementsAreHere ? "[DisplacementsHere]"
+				: "[DisplacementsMissing]");
+		result += (forcesAreHere ? "[ForcesHere]" : "[ForcesMissing]");
+		result += (femProcessHasDied ? "[Dead]" : "[Running]");
+		result += (femProcessHasErrors ? "[Errors]" : "[Clean]");
+		return result;
 	}
 }
