@@ -7,6 +7,13 @@ package org.nees.illinois.uisimcor.fem_executor.config.dao;
  */
 public class TemplateDao {
 	/**
+	 * @return the runTemplateFile
+	 */
+	public final String getRunTemplateFile() {
+		return runTemplateFile;
+	}
+
+	/**
 	 * Template file for initializing an FEM analysis.
 	 */
 	private final String initTemplateFile;
@@ -16,14 +23,23 @@ public class TemplateDao {
 	private final String stepTemplateFile;
 
 	/**
+	 * Template file to run a one step analysis.
+	 */
+	private final String runTemplateFile;
+
+	/**
 	 * @param stepTemplateFile
 	 *            Template file to execute a step in the FEM process.
 	 * @param initTemplateFile
 	 *            Template file for initializing an FEM analysis.
+	 * @param runTemplateFile
+	 *            Template file for doing a one step analysis.
 	 */
-	public TemplateDao(final String stepTemplateFile, final String initTemplateFile) {
+	public TemplateDao(final String stepTemplateFile,
+			final String initTemplateFile, final String runTemplateFile) {
 		this.stepTemplateFile = stepTemplateFile;
 		this.initTemplateFile = initTemplateFile;
+		this.runTemplateFile = runTemplateFile;
 	}
 
 	/**

@@ -175,6 +175,9 @@ public class ProcessManagement {
 	 * Cleanup after the command has finished executing.
 	 */
 	public final void abort() {
+		if(process == null) { //Obviously we are not running.
+			return;
+		}
 		process.destroy();
 
 		log.debug("Waiting for threads");

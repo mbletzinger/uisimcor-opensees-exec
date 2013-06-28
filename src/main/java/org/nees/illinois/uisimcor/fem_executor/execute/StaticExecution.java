@@ -1,14 +1,13 @@
 package org.nees.illinois.uisimcor.fem_executor.execute;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.util.List;
+import java.io.PrintWriter;
 
-import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
-import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
-import org.nees.illinois.uisimcor.fem_executor.input.FemInputFile;
-import org.nees.illinois.uisimcor.fem_executor.output.DataPad;
-import org.nees.illinois.uisimcor.fem_executor.output.OutputFileParsingTask;
-import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
+import org.nees.illinois.uisimcor.fem_executor.config.dao.ProgramDao;
+import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
+import org.nees.illinois.uisimcor.fem_executor.output.OutputFileParser;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,106 +17,89 @@ import org.slf4j.LoggerFactory;
  * step.
  * @author Michael Bletzinger
  */
-public class StaticExecution {
-	/**
-	 * Program configuration to run.
-	 */
-	private FemProgramConfig command;
+public class StaticExecution extends SubstructureExecutor {
 
 	/**
-	 * Current execution state.
+	 * Output file for displacements.
 	 */
-	private ExecutionState current = ExecutionState.NotStarted;
-
-	/**
-	 * default wait.
-	 */
-	private final int defaultWait = 2000;
-
+	private final String dispOutFile;
 	/**
 	 * Filename as first argument.
 	 */
 	private String filename;
 	/**
+	 * Output file for forces.
+	 */
+	private final String forceOutFile;
+
+	/**
 	 * Logger.
 	 **/
-	private final Logger log = LoggerFactory
-			.getLogger(StaticExecution.class);
-	/**
-	 * {@link ProcessManagement Wrapper} around command line executor.
-	 */
-	private ProcessManagement pm;
+	private final Logger log = LoggerFactory.getLogger(StaticExecution.class);
 	/**
 	 * Flag indicating that output files need to be parsed after execution.
 	 */
 	private boolean processOutputFiles = true;
-	/**
-	 * Wait interval for checking thread for done. Default is 2 seconds
-	 */
-	private int waitInMillisecs = defaultWait;
-
-	/**
-	 * Working directory for FEM execution.
-	 */
-	private final String workDir;
-	/**
-	 * Output file {@link OutputFileParsingTask parser} for displacements.
-	 */
-	private final OutputFileParsingTask ofptDisp;
-	/**
-	 * Output file {@link OutputFileParsingTask parser} for forces.
-	 */
-	private final OutputFileParsingTask ofptForce;
-	/**
-	 * FEM execution input.
-	 */
-	private final FemInputFile input;
-	/**
-	 * Reformat the output for UI-SimCor.
-	 */
-	private final DataPad pad;
 
 	/**
 	 * @param progCfg
 	 *            FEM program configuration parameters.
-	 * @param input
-	 *            FEM program input.
 	 * @param scfg
 	 *            Configuration for the substructure.
+	 * @param configDir
+	 *            Directory containing templates and configuration files..
+	 * @param workDir
+	 *            Directory to store temporary files.
 	 */
-	public StaticExecution(final FemProgramConfig progCfg,
-			final FemInputFile input, final SubstructureConfig scfg) {
-		this.workDir = input.getWorkDir();
-		this.command = progCfg;
-		this.input = input;
-		this.ofptDisp = new OutputFileParsingTask(PathUtils.append(workDir,
-				"tmp_disp.out"));
-		this.ofptForce = new OutputFileParsingTask(PathUtils.append(workDir,
-				"tmp_forc.out"));
-		this.filename = input.getInputFileName();
-		this.pad = new DataPad(scfg);
+	public StaticExecution(final ProgramDao progCfg,
+			final SubstructureDao scfg, final String configDir,
+			final String workDir) {
+		super(progCfg, scfg, configDir, workDir);
+		dispOutFile = PathUtils.append(workDir, "tmp_disp.out");
+		forceOutFile = PathUtils.append(workDir, "tmp_forc.out");
+		filename = "run.tcl";
 
 	}
 
-	/**
-	 * @return the command
-	 */
-	public final FemProgramConfig getCommand() {
-		return command;
+	@Override
+	public final void abort() {
+		getFem().abort();
 	}
 
-	/**
-	 * @return the current
-	 */
-	public final ExecutionState getCurrent() {
-		return current;
+	@Override
+	protected final void checkDisplacementResponse() {
+		FemStatus statuses = getStatuses();
+		if (statuses.isFemProcessHasDied() == false) {
+			return;
+		}
+		File f = new File(dispOutFile);
+		if (f.canRead() == false) {
+			return;
+		}
+		if (f.length() > 0) {
+			OutputFileParser ofp = new OutputFileParser();
+			ofp.parseDataFile(dispOutFile);
+			setRawDisp(ofp.getArchive());
+			statuses.setDisplacementsAreHere(true);
+		}
 	}
 
-	/**
-	 * @return the defaultWait
-	 */
-	public final int getDefaultWait() {
-		return defaultWait;
+	@Override
+	protected final void checkForceResponse() {
+		FemStatus statuses = getStatuses();
+		if (statuses.isFemProcessHasDied() == false) {
+			return;
+		}
+		File f = new File(forceOutFile);
+		if (f.canRead() == false) {
+			return;
+		}
+		if (f.length() > 0) {
+			OutputFileParser ofp = new OutputFileParser();
+			ofp.parseDataFile(forceOutFile);
+			setRawForce(ofp.getArchive());
+			statuses.setForcesAreHere(true);
+		}
 	}
 
 	/**
@@ -128,39 +110,16 @@ public class StaticExecution {
 	}
 
 	/**
-	 * @return the pm
-	 */
-	public final ProcessManagement getPm() {
-		return pm;
-	}
-
-	/**
-	 * @return the waitInMillisecs
-	 */
-	public final int getWaitInMillisecs() {
-		return waitInMillisecs;
-	}
-
-	/**
-	 * @return the workDir
-	 */
-	public final String getWorkDir() {
-		return workDir;
-	}
-
-	/**
 	 * @return the processOutputFiles
 	 */
 	public final boolean isProcessOutputFiles() {
 		return processOutputFiles;
 	}
 
-	/**
-	 * @param command
-	 *            the command to set
-	 */
-	public final void setCommand(final FemProgramConfig command) {
-		this.command = command;
+	@Override
+	public final boolean iveGotProblems() {
+		FemStatus statuses = getStatuses();
+		return statuses.isFemProcessHasErrors();
 	}
 
 	/**
@@ -179,120 +138,45 @@ public class StaticExecution {
 		this.processOutputFiles = processOutputFiles;
 	}
 
-	/**
-	 * @param waitInMillisecs
-	 *            the waitInMillisecs to set
-	 */
-	public final void setWaitInMillisecs(final int waitInMillisecs) {
-		this.waitInMillisecs = waitInMillisecs;
+	@Override
+	public final boolean setup() {
+		return true;
+	}
+
+	@Override
+	public final boolean startSimulation() {
+		return true;
+	}
+
+	@Override
+	public final void startStep(final int step, final double[] displacements) {
+		String run = getScriptGen().generateRun(step, displacements);
+		writeInputFile(run);
+		ProcessExecution fem = getFem();
+		fem.getProcess().addArg(filename);
+		fem.start();
 	}
 
 	/**
-	 * Create the {@link ProcessManagement ProcessManagement} instance and start
-	 * it.
-	 * @param step
-	 *            Current step.
-	 * @param displacements
-	 *            Current displacement target.
-	 * @return the {@link ProcessManagement ProcessManagement} instance
+	 * Write the input file content to a file.
+	 * @param content
+	 *            The content.
 	 */
-	public final ProcessManagement start(final int step,
-			final double[] displacements) {
-		input.generate(step, displacements); // this may need to go in its own
-												// thread later.
-		pm = new ProcessManagement(command.getExecutablePath(), input
-				.getSubstructureCfg().getAddress(), waitInMillisecs);
-		pm.addArg(filename);
-		pm.setWorkDir(workDir);
+	private void writeInputFile(final String content) {
+		String inputFilePath = PathUtils.append(getWorkDir(), filename);
+		File inputF = new File(inputFilePath);
+		if (inputF.exists()) {
+			inputF.delete();
+		}
+		PrintWriter os = null;
 		try {
-			pm.startExecute();
-			current = ExecutionState.Executing;
-			return pm;
+			os = new PrintWriter(new FileWriter(inputFilePath));
 		} catch (IOException e) {
-			log.debug(pm.getCmd() + " failed to start", e);
+			log.error("Run file \"" + inputFilePath
+					+ "\" cannot be created because ", e);
+			return;
 		}
-		return null;
-	}
-
-	/**
-	 * Execution Polling function. Use this repeatedly inside a polling loop to
-	 * transition the process to new execution states.
-	 * @return True if the command has completed.
-	 */
-	public final boolean isDone() {
-		boolean result = false;
-		if (current.equals(ExecutionState.Executing)) {
-			boolean done = pm.isDone();
-			if (done) {
-				current = ExecutionState.ExecutionFinished;
-			}
-		}
-		if (current.equals(ExecutionState.ExecutionFinished)) {
-			if (processOutputFiles) {
-				Thread thrd1 = new Thread(ofptDisp);
-				Thread thrd2 = new Thread(ofptForce);
-				log.debug("Starting parsing threads");
-				thrd1.start();
-				thrd2.start();
-				current = ExecutionState.ProcessingOutputFiles;
-			} else {
-				current = ExecutionState.Finished;
-			}
-		}
-		if (current.equals(ExecutionState.ProcessingOutputFiles)) {
-			boolean done = ofptDisp.isDone() && ofptForce.isDone();
-			if (done) {
-				current = ExecutionState.Finished;
-			}
-		}
-
-		if (current.equals(ExecutionState.Finished)
-				|| current.equals(ExecutionState.NotStarted)) {
-			result = true;
-		}
-		log.debug("Current state is " + current);
-		return result;
-	}
-
-	/**
-	 * Abort the execution.
-	 * @return True if the abort has completed.
-	 */
-	public final boolean abort() {
-		boolean result = false;
-		if (current.equals(ExecutionState.Executing)) {
-			pm.abort();
-			result = true;
-		}
-		if (current.equals(ExecutionState.ProcessingOutputFiles)) {
-			boolean done = ofptDisp.isDone() && ofptForce.isDone();
-			if (done) {
-				current = ExecutionState.Finished;
-				result = true;
-			}
-		}
-		if (current.equals(ExecutionState.Finished)) {
-			result = true;
-		}
-		log.debug("Current state is " + current);
-		return result;
-	}
-
-	/**
-	 * Return the displacements data set.
-	 * @return double matrix
-	 */
-	public final double[] getDisplacements() {
-		List<Double> result = pad.filter(ofptDisp.getData());
-		return MtxUtils.list2Array(result);
-	}
-
-	/**
-	 * Return the forces data set.
-	 * @return double matrix
-	 */
-	public final double[] getForces() {
-		List<Double> result = pad.filter(ofptForce.getData());
-		return MtxUtils.list2Array(result);
+		os.print(content);
+		os.close();
 	}
 }

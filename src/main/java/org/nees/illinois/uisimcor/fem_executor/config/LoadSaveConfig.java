@@ -131,7 +131,11 @@ public class LoadSaveConfig {
 		if (initT == null) {
 			return null;
 		}
-		TemplateDao tdao = new TemplateDao(stepT, initT);
+		String runT = props.getProperty(ptype + ".file.template.run");
+		if (runT == null) {
+			return null;
+		}
+		TemplateDao tdao = new TemplateDao(stepT, initT, runT);
 		String executable = props.getProperty(ptype + ".path.executable");
 		if (executable == null) {
 			return null;
@@ -278,6 +282,7 @@ public class LoadSaveConfig {
 		props.put(ptype + ".path.executable", progCfg.getExecutablePath());
 		props.put(ptype + ".file.template.step", progCfg.getTemplateDao().getStepTemplateFile());
 		props.put(ptype + ".file.template.init", progCfg.getTemplateDao().getInitTemplateFile());
+		props.put(ptype + ".file.template.run", progCfg.getTemplateDao().getRunTemplateFile());
 	}
 
 	/**
