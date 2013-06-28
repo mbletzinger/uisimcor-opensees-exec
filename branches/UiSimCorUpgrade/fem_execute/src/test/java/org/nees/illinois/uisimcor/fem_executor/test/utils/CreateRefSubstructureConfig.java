@@ -1,4 +1,4 @@
-package org.nees.illinois.uisimcor.fem_executor.test;
+package org.nees.illinois.uisimcor.fem_executor.test.utils;
 
 import java.util.ArrayList;
 import java.util.List;

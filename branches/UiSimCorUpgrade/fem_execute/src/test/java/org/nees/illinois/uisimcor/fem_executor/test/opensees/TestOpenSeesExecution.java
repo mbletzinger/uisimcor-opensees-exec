@@ -152,6 +152,7 @@ public class TestOpenSeesExecution {
 	@BeforeClass
 	public final void beforeClass() {
 		String stepT = "step_template.tcl";
+		String runT = "run_template.tcl";
 		URL u = ClassLoader.getSystemResource("openseescfg/" + stepT);
 		String cf = PathUtils.cleanPath(u.getPath());
 		configDir = PathUtils.parent(cf);
@@ -168,10 +169,10 @@ public class TestOpenSeesExecution {
 		command = PathUtils.cleanPath(u.getPath());
 		File cmdF = new File(command);
 		cmdF.setExecutable(true);
-		templates.put("Text", new TemplateDao(stepT, "txt_init_template.tcl"));
+		templates.put("Text", new TemplateDao(stepT, "txt_init_template.tcl",runT));
 		// templates
-		// .put("Binary", new TemplateDao(stepT, "bin_init_template.tcl"));
-		templates.put(tcpName, new TemplateDao(stepT, "tcp_init_template.tcl"));
+		// .put("Binary", new TemplateDao(stepT, "bin_init_template.tcl",runT));
+		templates.put(tcpName, new TemplateDao(stepT, "tcp_init_template.tcl",runT));
 		LoadSaveConfig lscfg = new LoadSaveConfig();
 		lscfg.setConfigFilePath("OneSubstructureTestConfig.properties");
 		lscfg.load(configDir);

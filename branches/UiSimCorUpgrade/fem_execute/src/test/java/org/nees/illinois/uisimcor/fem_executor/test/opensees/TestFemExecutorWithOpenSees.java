@@ -1,6 +1,5 @@
 package org.nees.illinois.uisimcor.fem_executor.test.opensees;
 
-import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -9,9 +8,8 @@ import java.util.List;
 import org.nees.illinois.uisimcor.fem_executor.FemExecutor;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.ProgramDao;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
-import org.nees.illinois.uisimcor.fem_executor.config.dao.TemplateDao;
 import org.nees.illinois.uisimcor.fem_executor.config.types.FemProgramType;
-import org.nees.illinois.uisimcor.fem_executor.test.utils.WindowsProgramDaoCreator;
+import org.nees.illinois.uisimcor.fem_executor.test.utils.CreateRefProgramConfig;
 import org.nees.illinois.uisimcor.fem_executor.utils.FileWithContentDelete;
 import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
@@ -63,54 +61,78 @@ public class TestFemExecutorWithOpenSees {
 	 * Run all of the test configuration through the FEM executor.
 	 */
 	@Test
-	public final void testRunFakeSubstructures() {
+	public final void testRunDynamic() {
 		FemExecutor fexec = new FemExecutor(configDir, workDir);
+		fexec.setDynamic(true);
 		for (String c : configFiles) {
-			fexec.loadConfig(c);
-			// Replace OpenSees with fake script
-			fexec.getConfig().getFemProgramParameters()
-					.put(FemProgramType.OPENSEES, femProg);
-			Collection<SubstructureDao> mdlCfgs = fexec.getConfig()
-					.getSubstructCfgs().values();
-			Assert.assertTrue(fexec.setup());
-			Assert.assertTrue(fexec.startSimulation());
-			for (int s = 1; s < numberOfSteps; s++) {
-				for (SubstructureDao mCfg : mdlCfgs) {
-					loadExecutor(fexec, mCfg, s);
-				}
-				fexec.execute();
-				int count = 0;
-				final int tiredOfWaiting = 100;
-				while (fexec.isDone() == false) {
-					final int interval = 500;
-					try {
-						Thread.sleep(interval);
-					} catch (InterruptedException e) {
-						log.debug("Sleeping...");
-					}
-					if (count > tiredOfWaiting) {
-						fexec.finish();
-						Assert.fail("Execution has hung for some reason");
-					}
-					count++;
-				}
-				Collection<String> mdls = fexec.getConfig().getSubstructCfgs()
-						.keySet();
-				for (String m : mdls) {
-					double[] vals = fexec.getDisplacements(m);
-					final int numberOfDofs = fexec.getConfig()
-							.getSubstructCfgs().get(m).getTotalDofs(); // UI-SimCor
-																		// vector
-																		// size.
-					log.debug("Displacements for " + m + " are "
-							+ MtxUtils.array2String(vals));
-					Assert.assertEquals(vals.length, numberOfDofs);
-					vals = fexec.getForces(m);
-					Assert.assertEquals(vals.length, numberOfDofs);
-				}
-			}
-			fexec.finish();
+			runSubstructure(fexec, c);
 		}
+	}
+
+	/**
+	 * Run all of the test configuration through the FEM executor.
+	 */
+	@Test
+	public final void testRunStatic() {
+		FemExecutor fexec = new FemExecutor(configDir, workDir);
+		fexec.setDynamic(false);
+		for (String c : configFiles) {
+			runSubstructure(fexec, c);
+		}
+	}
+
+	/**
+	 * Run the substructure through some steps.
+	 * @param fexec
+	 *            The executor.
+	 * @param c
+	 *            The configuration name.
+	 */
+	private void runSubstructure(final FemExecutor fexec, final String c) {
+		fexec.loadConfig(c);
+		// Replace OpenSees with fake script
+		fexec.getConfig().getFemProgramParameters()
+				.put(FemProgramType.OPENSEES, femProg);
+		Collection<SubstructureDao> mdlCfgs = fexec.getConfig()
+				.getSubstructCfgs().values();
+		Assert.assertTrue(fexec.setup());
+		Assert.assertTrue(fexec.startSimulation());
+		for (int s = 1; s < numberOfSteps; s++) {
+			for (SubstructureDao mCfg : mdlCfgs) {
+				loadExecutor(fexec, mCfg, s);
+			}
+			fexec.execute();
+			int count = 0;
+			final int tiredOfWaiting = 100;
+			while (fexec.isDone() == false) {
+				final int interval = 500;
+				try {
+					Thread.sleep(interval);
+				} catch (InterruptedException e) {
+					log.debug("Sleeping...");
+				}
+				if (count > tiredOfWaiting) {
+					fexec.finish();
+					Assert.fail("Execution has hung for some reason");
+				}
+				count++;
+			}
+			Collection<String> mdls = fexec.getConfig().getSubstructCfgs()
+					.keySet();
+			for (String m : mdls) {
+				double[] vals = fexec.getDisplacements(m);
+				final int numberOfDofs = fexec.getConfig().getSubstructCfgs()
+						.get(m).getTotalDofs(); // UI-SimCor
+												// vector
+												// size.
+				log.debug("Displacements for " + m + " are "
+						+ MtxUtils.array2String(vals));
+				Assert.assertEquals(vals.length, numberOfDofs);
+				vals = fexec.getForces(m);
+				Assert.assertEquals(vals.length, numberOfDofs);
+			}
+		}
+		fexec.finish();
 	}
 
 	/**
@@ -151,16 +173,9 @@ public class TestFemExecutorWithOpenSees {
 		}
 		u = ClassLoader.getSystemResource(exe);
 		String command = PathUtils.cleanPath(u.getPath());
-		File cmdF = new File(command);
-		cmdF.setExecutable(true);
-		TemplateDao tdao = new TemplateDao("step_template.tcl",
-				"init_template.tcl");
-		femProg = new ProgramDao(command, FemProgramType.OPENSEES, tdao);
-		if (WindowsProgramDaoCreator.isWindows()) {
-			WindowsProgramDaoCreator wpbc = new WindowsProgramDaoCreator(workDir,
-					femProg);
-			femProg = wpbc.getBatchConfig();
-		}
+		CreateRefProgramConfig crpcfg = new CreateRefProgramConfig(command);
+		crpcfg.checkExecutable();
+		femProg = crpcfg.getConfig();
 
 		String[] configFileNames = { "OneSubstructureTestConfig",
 				"TwoSubstructureTestConfig", "ThreeSubstructureTestConfig" };

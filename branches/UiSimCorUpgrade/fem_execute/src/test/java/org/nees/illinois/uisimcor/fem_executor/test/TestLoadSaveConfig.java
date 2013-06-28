@@ -9,9 +9,10 @@ import org.nees.illinois.uisimcor.fem_executor.FemExecutorConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.LoadSaveConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.ProgramDao;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
-import org.nees.illinois.uisimcor.fem_executor.config.dao.TemplateDao;
 import org.nees.illinois.uisimcor.fem_executor.config.types.DispDof;
 import org.nees.illinois.uisimcor.fem_executor.config.types.FemProgramType;
+import org.nees.illinois.uisimcor.fem_executor.test.utils.CreateRefProgramConfig;
+import org.nees.illinois.uisimcor.fem_executor.test.utils.CreateRefSubstructureConfig;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,9 +100,8 @@ public class TestLoadSaveConfig {
 		configRefFolder = pathF.getParent();
 		final int noSubstructures = 3;
 		femCfg = new FemExecutorConfig("/home/mbletzin/Tmp");
-		TemplateDao tdao = new TemplateDao("step_template.tcl", "init_template.tcl");
-		ProgramDao femProg = new ProgramDao("C:/Tcl/bin/OpenSees", FemProgramType.OPENSEES, tdao);
-		femCfg.getFemProgramParameters().put(FemProgramType.OPENSEES, femProg);
+		CreateRefProgramConfig crpcfg = new CreateRefProgramConfig("C:/Tcl/bin/OpenSees");
+		femCfg.getFemProgramParameters().put(FemProgramType.OPENSEES, crpcfg.getConfig());
 		for (int i = 1; i < noSubstructures + 1; i++) {
 			String address = "MDL-0" + i;
 			CreateRefSubstructureConfig cfgR = new CreateRefSubstructureConfig(address);
