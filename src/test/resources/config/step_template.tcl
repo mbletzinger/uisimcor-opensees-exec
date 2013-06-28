@@ -1,4 +1,4 @@
-pattern Plain ${StepNumber}	Linear {
+pattern Plain ${StepNumber}	Constant {
 ${LoadPattern}
 }
 analyze 1
