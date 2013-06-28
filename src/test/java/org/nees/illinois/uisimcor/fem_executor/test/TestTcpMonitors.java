@@ -192,7 +192,8 @@ public class TestTcpMonitors {
 		ProcessBuilder pb = new ProcessBuilder(cmd);
 		pb.directory(new File(workDir));
 		Process p = null;
-		log.debug("Starting process [" + cmd[0] + " " + cmd[1] + " " + cmd[2] + " " + cmd[3]);
+		final int three = 3;
+		log.debug("Starting process [" + cmd[0] + " " + cmd[1] + " " + cmd[2] + " " + cmd[three]);
 		try {
 			p = pb.start();
 		} catch (IOException e) {

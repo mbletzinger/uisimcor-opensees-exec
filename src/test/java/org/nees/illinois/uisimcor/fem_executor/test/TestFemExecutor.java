@@ -11,6 +11,7 @@ import org.nees.illinois.uisimcor.fem_executor.config.dao.ProgramDao;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.TemplateDao;
 import org.nees.illinois.uisimcor.fem_executor.config.types.FemProgramType;
+import org.nees.illinois.uisimcor.fem_executor.test.utils.CreateRefProgramConfig;
 import org.nees.illinois.uisimcor.fem_executor.test.utils.WindowsProgramDaoCreator;
 import org.nees.illinois.uisimcor.fem_executor.utils.FileWithContentDelete;
 import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
@@ -144,16 +145,9 @@ public class TestFemExecutor {
 				"fem_execute");
 		u = ClassLoader.getSystemResource("OpenSeesEmulator.pl");
 		String command = PathUtils.cleanPath(u.getPath());
-		File cmdF = new File(command);
-		cmdF.setExecutable(true);
-		TemplateDao tdao = new TemplateDao("step_template.tcl",
-				"init_template.tcl");
-		femProg = new ProgramDao(command, FemProgramType.OPENSEES, tdao);
-		if (WindowsProgramDaoCreator.isWindows()) {
-			WindowsProgramDaoCreator wpbc = new WindowsProgramDaoCreator(workDir,
-					femProg);
-			femProg = wpbc.getBatchConfig();
-		}
+		CreateRefProgramConfig crpcfg = new CreateRefProgramConfig(command);
+		crpcfg.checkExecutable();
+		femProg = crpcfg.windowsWrap(workDir);
 
 		String[] configFileNames = { "OneSubstructureTestConfig",
 				"TwoSubstructureTestConfig", "ThreeSubstructureTestConfig" };
