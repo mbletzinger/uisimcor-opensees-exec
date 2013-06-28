@@ -21,4 +21,13 @@ public interface ScriptGeneratorI {
 	 */
 	String generateStep(final int step, final double[] displacements);
 
+	/**
+	 * Create script commands to execute a one step analysis.
+	 * @param step
+	 *            Step number
+	 * @param displacements
+	 *            Displacements associated with the step.
+	 * @return Run script.
+	 */
+	String generateRun(final int step, final double[] displacements);
 }

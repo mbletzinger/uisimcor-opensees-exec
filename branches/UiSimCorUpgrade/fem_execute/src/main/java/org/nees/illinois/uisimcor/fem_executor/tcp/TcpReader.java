@@ -87,6 +87,9 @@ public class TcpReader extends Thread implements AbortableI {
 	 */
 	@Override
 	public final void run() {
+		if(isQuit()) {
+			return; // We don't exist
+		}
 		log.info("Listening to " + link.getRemoteHost());
 		double junk = readNumber();
 		log.debug("Clearing initial junk " + junk);

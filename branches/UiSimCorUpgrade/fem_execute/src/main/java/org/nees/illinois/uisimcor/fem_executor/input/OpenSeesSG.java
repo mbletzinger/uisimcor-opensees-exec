@@ -42,11 +42,35 @@ public class OpenSeesSG implements ScriptGeneratorI {
 	/**
 	 * token name.
 	 */
+	private final String nodeListToken = "NodeList";
+	/**
+	 * token name.
+	 */
 	private final String sourcedFilesToken = "SourcedFiles";
+
+	/**
+	 * Template for the step execution script.
+	 */
+	private final String stepTemplate;
+
+	/**
+	 * Template for the run once script.
+	 */
+	private final String runTemplate;
+
+	/**
+	 * Substructure configuration parameters.
+	 */
+	private final SubstructureDao substructureCfg;
+
 	/**
 	 * Filenames for all of the templates used.
 	 */
 	private final TemplateDao templateFiles;
+	/**
+	 * Map of tokens to substitute in templates.
+	 */
+	private final Map<String, String> tokenMap = new HashMap<String, String>();
 
 	/**
 	 * Constructor.
@@ -65,6 +89,8 @@ public class OpenSeesSG implements ScriptGeneratorI {
 		this.templateFiles = templateFiles;
 		this.stepTemplate = setTemplate(PathUtils.append(configDir,
 				this.templateFiles.getStepTemplateFile()));
+		this.runTemplate = setTemplate(PathUtils.append(configDir,
+				this.templateFiles.getRunTemplateFile()));
 		String sourced = "";
 		for (String f : this.substructureCfg.getSourcedFilenames()) {
 			sourced += "source " + f + "\n";
@@ -80,28 +106,28 @@ public class OpenSeesSG implements ScriptGeneratorI {
 			first = false;
 		}
 		tokenMap.put(nodeListToken, nodes);
-		tokenMap.put("DispPort", Integer.toString(substructureCfg.getDispPort()));
-		tokenMap.put("ForcePort", Integer.toString(substructureCfg.getForcePort()));
+		tokenMap.put("DispPort",
+				Integer.toString(substructureCfg.getDispPort()));
+		tokenMap.put("ForcePort",
+				Integer.toString(substructureCfg.getForcePort()));
 	}
 
 	/**
-	 * token name.
+	 * Converts double array to a string for logger messages.
+	 * @param array
+	 *            array to convert.
+	 * @return resulting string.
 	 */
-	private final String nodeListToken = "NodeList";
-
-	/**
-	 * Substructure configuration parameters.
-	 */
-	private final SubstructureDao substructureCfg;
-	/**
-	 * Map of tokens to substitute in run.tcl template.
-	 */
-	private final Map<String, String> tokenMap = new HashMap<String, String>();
-
-	/**
-	 * Template for the step execution script.
-	 */
-	private final String stepTemplate;
+	private String doubleArray2String(final double[] array) {
+		String result = "[";
+		boolean first = true;
+		for (double n : array) {
+			result += (first ? "" : ",") + n;
+			first = false;
+		}
+		result += "]";
+		return result;
+	}
 
 	@Override
 	public final String generateInit() {
@@ -112,6 +138,59 @@ public class OpenSeesSG implements ScriptGeneratorI {
 		}
 		log.debug("Generated Init for  " + substructureCfg.getAddress() + " ["
 				+ result + "]");
+		return result;
+	}
+
+	/**
+	 * Generates the load pattern for a step.
+	 * @param displacements
+	 *            Displacements for the step.
+	 * @return Load pattern string.
+	 * @throws IllegalParameterException
+	 *             For improper effective DOFs.
+	 */
+	private String generateLoadPattern(final double[] displacements)
+			throws IllegalParameterException {
+		String result = "";
+		int cnt = 0;
+		DimensionType dim = substructureCfg.getDimension();
+		DofIndexMagic magic = new DofIndexMagic(dim, true, false);
+		log.debug("Encoding Substructure " + substructureCfg + " with "
+				+ doubleArray2String(displacements));
+		for (Integer n : substructureCfg.getNodeSequence()) {
+			List<DispDof> edofs = substructureCfg.getEffectiveDofs(n);
+			for (DispDof d : edofs) {
+				double val = displacements[cnt];
+				cnt++;
+				result += "sp " + n + " " + magic.index(d) + " "
+						+ format.format(val) + "\n";
+			}
+		}
+		return result;
+	}
+
+	@Override
+	public final String generateRun(final int step, final double[] displacements) {
+		final String stepK = "StepNumber";
+		final String loadK = "LoadPattern";
+		final int openSeesUpperBound = 99000;
+		tokenMap.put("Step", Integer.toString(step));
+		String result = runTemplate.replaceAll("\\$\\{" + stepK + "\\}",
+				Integer.toString(openSeesUpperBound + step));
+		for (String k : tokenMap.keySet()) {
+			result = result.replaceAll("\\$\\{" + k + "\\}", tokenMap.get(k));
+		}
+		String load;
+		try {
+			load = generateLoadPattern(displacements);
+		} catch (IllegalParameterException e) {
+			log.error("Could not create displacement command for "
+					+ substructureCfg.getAddress() + " because ", e);
+			return null;
+		}
+		result = result.replaceAll("\\$\\{" + loadK + "\\}", load);
+		log.debug("Generated run step for  " + substructureCfg.getAddress()
+				+ " [" + result + "]");
 		return result;
 	}
 
@@ -163,51 +242,6 @@ public class OpenSeesSG implements ScriptGeneratorI {
 					e);
 			System.exit(1);
 		}
-		return result;
-	}
-
-	/**
-	 * Generates the load pattern for a step.
-	 * @param displacements
-	 *            Displacements for the step.
-	 * @return Load pattern string.
-	 * @throws IllegalParameterException
-	 *             For improper effective DOFs.
-	 */
-	private String generateLoadPattern(final double[] displacements)
-			throws IllegalParameterException {
-		String result = "";
-		int cnt = 0;
-		DimensionType dim = substructureCfg.getDimension();
-		DofIndexMagic magic = new DofIndexMagic(dim, true, false);
-		log.debug("Encoding Substructure " + substructureCfg + " with "
-				+ doubleArray2String(displacements));
-		for (Integer n : substructureCfg.getNodeSequence()) {
-			List<DispDof> edofs = substructureCfg.getEffectiveDofs(n);
-			for (DispDof d : edofs) {
-					double val = displacements[cnt];
-					cnt++;
-					result += "sp " + n + " " + magic.index(d) + " "
-							+ format.format(val) + "\n";
-			}
-		}
-		return result;
-	}
-
-	/**
-	 * Converts double array to a string for logger messages.
-	 * @param array
-	 *            array to convert.
-	 * @return resulting string.
-	 */
-	private String doubleArray2String(final double[] array) {
-		String result = "[";
-		boolean first = true;
-		for (double n : array) {
-			result += (first ? "" : ",") + n;
-			first = false;
-		}
-		result += "]";
 		return result;
 	}
 }

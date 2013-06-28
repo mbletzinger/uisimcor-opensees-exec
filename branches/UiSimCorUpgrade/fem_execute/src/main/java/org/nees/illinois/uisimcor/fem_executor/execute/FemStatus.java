@@ -1,4 +1,4 @@
-package org.nees.illinois.uisimcor.fem_executor.process;
+package org.nees.illinois.uisimcor.fem_executor.execute;
 
 /**
  * Collection of status flags for an FEM process.
