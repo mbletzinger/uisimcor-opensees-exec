@@ -1,19 +1,17 @@
 package org.nees.illinois.uisimcor.fem_executor.test;
 
-import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import org.nees.illinois.uisimcor.fem_executor.FemExecutor;
-import org.nees.illinois.uisimcor.fem_executor.config.FemProgramConfig;
-import org.nees.illinois.uisimcor.fem_executor.config.FemProgramType;
-import org.nees.illinois.uisimcor.fem_executor.config.SubstructureConfig;
-import org.nees.illinois.uisimcor.fem_executor.process.DoubleMatrix;
-import org.nees.illinois.uisimcor.fem_executor.process.FileWithContentDelete;
+import org.nees.illinois.uisimcor.fem_executor.config.dao.ProgramDao;
+import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
+import org.nees.illinois.uisimcor.fem_executor.config.types.FemProgramType;
+import org.nees.illinois.uisimcor.fem_executor.test.utils.CreateRefProgramConfig;
+import org.nees.illinois.uisimcor.fem_executor.utils.FileWithContentDelete;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
-import org.nees.illinois.uisimcor.fem_executor.utils.WindowsPerlBatchCreator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
@@ -25,12 +23,12 @@ import org.testng.annotations.Test;
  * Test the operation of the FEM executor.
  * @author Michael Bletzinger
  */
-@Test(groups = { "execute" })
-public class TestFemExecutor {
+@Test(groups = { "execute_static" })
+public class TestStaticExecution {
 	/**
 	 * Configuration containing the fake OpenSees.
 	 */
-	private FemProgramConfig femProg;
+	private ProgramDao femProg;
 	/**
 	 * Directory containing the configuration files for the test.
 	 */
@@ -38,7 +36,7 @@ public class TestFemExecutor {
 	/**
 	 * Logger.
 	 **/
-	private final Logger log = LoggerFactory.getLogger(TestFemExecutor.class);
+	private final Logger log = LoggerFactory.getLogger(TestStaticExecution.class);
 	/**
 	 * List of test configurations.
 	 */
@@ -54,15 +52,16 @@ public class TestFemExecutor {
 	@Test
 	public final void testRunFakeSubstructures() {
 		FemExecutor fexec = new FemExecutor(configDir, workDir);
+		fexec.setDynamic(false);
 		for (String c : configFiles) {
 			fexec.loadConfig(c);
 			// Replace OpenSees with fake script
 			fexec.getConfig().getFemProgramParameters()
 					.put(FemProgramType.OPENSEES, femProg);
-			Collection<SubstructureConfig> mdlCfgs = fexec.getConfig()
+			Collection<SubstructureDao> mdlCfgs = fexec.getConfig()
 					.getSubstructCfgs().values();
 			fexec.setup();
-			for (SubstructureConfig mCfg : mdlCfgs) {
+			for (SubstructureDao mCfg : mdlCfgs) {
 				loadExecutor(fexec, mCfg);
 			}
 			fexec.execute();
@@ -76,7 +75,7 @@ public class TestFemExecutor {
 					log.debug("Sleeping...");
 				}
 				if (count > tiredOfWaiting) {
-					fexec.abort();
+					fexec.finish();
 					Assert.fail("Execution has hung for some reason");
 				}
 			}
@@ -90,6 +89,7 @@ public class TestFemExecutor {
 				vals = fexec.getForces(m);
 				Assert.assertEquals(vals.length, numberOfDofs);
 			}
+			fexec.finish();
 		}
 	}
 
@@ -101,7 +101,7 @@ public class TestFemExecutor {
 	 *            Configuration for the substructure.
 	 */
 	private void loadExecutor(final FemExecutor fexec,
-			final SubstructureConfig subCfg) {
+			final SubstructureDao subCfg) {
 		final double[] disp = { 0.00023e-4, 0.00004e-5, 0.00023e-4, 0.00004e-5,
 				0.00023e-4, 0.00004e-5 };
 		fexec.setDisplacements(subCfg.getAddress(), disp);
@@ -117,16 +117,11 @@ public class TestFemExecutor {
 		configDir = PathUtils.parent(cf);
 		workDir = PathUtils.append(System.getProperty("user.dir"),
 				"fem_execute");
-		u = ClassLoader.getSystemResource("OpenSeesEmulator.pl");
+		u = ClassLoader.getSystemResource("OpenSeesStaticEmulator.pl");
 		String command = PathUtils.cleanPath(u.getPath());
-		File cmdF = new File(command);
-		cmdF.setExecutable(true);
-		femProg = new FemProgramConfig(FemProgramType.OPENSEES, command,
-				"StaticAnalysisEnv.tcl");
-		if(WindowsPerlBatchCreator.isWindows()) {
-			WindowsPerlBatchCreator wpbc = new WindowsPerlBatchCreator(workDir, femProg);
-			femProg = wpbc.getBatchConfig();
-		}
+		CreateRefProgramConfig crpcfg = new CreateRefProgramConfig(command);
+		crpcfg.checkExecutable();
+		femProg = crpcfg.windowsWrap(workDir);
 
 		String[] configFileNames = { "OneSubstructureTestConfig",
 				"TwoSubstructureTestConfig", "ThreeSubstructureTestConfig" };

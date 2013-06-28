@@ -24,7 +24,7 @@ import org.testng.annotations.Test;
  * Test the operation of the FEM executor.
  * @author Michael Bletzinger
  */
-@Test(groups = { "execute" })
+@Test(groups = { "execute_dynamic" })
 public class TestDynamicExecution {
 	/**
 	 * Configuration containing the fake OpenSees.
@@ -59,6 +59,7 @@ public class TestDynamicExecution {
 	@Test
 	public final void testRunFakeSubstructures() {
 		FemExecutor fexec = new FemExecutor(configDir, workDir);
+		fexec.setDynamic(true);
 
 		for (String c : configFiles) {
 			log.debug("Loading configuration for " + c);
@@ -144,7 +145,7 @@ public class TestDynamicExecution {
 		configDir = PathUtils.parent(cf);
 		workDir = PathUtils.append(System.getProperty("user.dir"),
 				"fem_execute");
-		u = ClassLoader.getSystemResource("OpenSeesEmulator.pl");
+		u = ClassLoader.getSystemResource("OpenSeesDynamicEmulator.pl");
 		String command = PathUtils.cleanPath(u.getPath());
 		CreateRefProgramConfig crpcfg = new CreateRefProgramConfig(command);
 		crpcfg.checkExecutable();
