@@ -1,6 +1,5 @@
 package org.nees.illinois.uisimcor.fem_executor.test;
 
-import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -9,10 +8,8 @@ import java.util.List;
 import org.nees.illinois.uisimcor.fem_executor.FemExecutor;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.ProgramDao;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
-import org.nees.illinois.uisimcor.fem_executor.config.dao.TemplateDao;
 import org.nees.illinois.uisimcor.fem_executor.config.types.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.test.utils.CreateRefProgramConfig;
-import org.nees.illinois.uisimcor.fem_executor.test.utils.WindowsProgramDaoCreator;
 import org.nees.illinois.uisimcor.fem_executor.utils.FileWithContentDelete;
 import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
@@ -40,7 +37,8 @@ public class TestDynamicExecution {
 	/**
 	 * Logger.
 	 **/
-	private final Logger log = LoggerFactory.getLogger(TestDynamicExecution.class);
+	private final Logger log = LoggerFactory
+			.getLogger(TestDynamicExecution.class);
 	/**
 	 * List of test configurations.
 	 */
@@ -76,7 +74,7 @@ public class TestDynamicExecution {
 			for (int s = 1; s < numSteps; s++) {
 				log.debug("Loading displacements for " + c);
 				for (SubstructureDao mCfg : mdlCfgs) {
-					loadExecutor(fexec, mCfg,s);
+					loadExecutor(fexec, mCfg, s);
 				}
 				fexec.setStep(s);
 				log.debug("Executing for " + c + " at step " + s);
@@ -124,11 +122,14 @@ public class TestDynamicExecution {
 	 *            Executor.
 	 * @param subCfg
 	 *            Configuration for the substructure.
+	 * @param step
+	 *            Current step number.
 	 */
 	private void loadExecutor(final FemExecutor fexec,
 			final SubstructureDao subCfg, final int step) {
-		final double[] disp = { 0.00023e-4 * step, 0.00004e-5 * step, 0.00023e-4 * step, 0.00004e-5 * step,
-				0.00023e-4 * step, 0.00004e-5 * step };
+		final double[] disp = { 0.00023e-4 * step, 0.00004e-5 * step,
+				0.00023e-4 * step, 0.00004e-5 * step, 0.00023e-4 * step,
+				0.00004e-5 * step };
 		fexec.setDisplacements(subCfg.getAddress(), disp);
 	}
 
