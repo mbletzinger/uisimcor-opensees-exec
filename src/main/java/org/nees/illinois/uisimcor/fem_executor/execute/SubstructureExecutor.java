@@ -77,16 +77,18 @@ public abstract class SubstructureExecutor {
 	 *            Directory containing templates and configuration files..
 	 * @param workDir
 	 *            Directory to store temporary files.
+	 * @param dynamic
+	 * Use STDIN for dynamic analysis.
 	 */
 	public SubstructureExecutor(final ProgramDao progCfg,
 			final SubstructureDao scfg, final String configDir,
-			final String workDir) {
+			final String workDir, final boolean dynamic) {
 		final int halfSecond = 500;
 		this.waitInMillisecs = halfSecond;
 		this.workDir = workDir;
 		this.dformat = new DataFormatter(scfg);
 		this.scfg = scfg;
-		this.fem = new ProcessExecution(progCfg, workDir, waitInMillisecs);
+		this.fem = new ProcessExecution(progCfg, workDir, waitInMillisecs, dynamic);
 		this.scriptGen = new OpenSeesSG(configDir, scfg,
 				progCfg.getTemplateDao());
 	}

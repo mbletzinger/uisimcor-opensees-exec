@@ -7,8 +7,11 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import org.nees.illinois.uisimcor.fem_executor.utils.LogMessageWithCounter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Level;
 
 /**
  * Class which sends command strings to the FEM process and returns responses.
@@ -45,15 +48,15 @@ public class StdInExchange implements AbortableI {
 	 * STDIN for the FEM process where the commands are written to.
 	 */
 	private final PrintWriter strm;
-
 	/**
-	 * Count for debug messages during a poll.
-	 */
-	private int pollCount = 0;
-	/**
-	 * Number of times to log a polling message.
+	 * Logger count.
 	 */
 	private final int pollPrintWait = 20;
+	/**
+	 * Logger with a count for filtering repetitive messages.
+	 */
+	private LogMessageWithCounter logC = new LogMessageWithCounter(
+			pollPrintWait, log, Level.DEBUG);
 
 	/**
 	 * @param queueCheckInterval
@@ -119,14 +122,7 @@ public class StdInExchange implements AbortableI {
 	 * @return True if a command was read.
 	 */
 	private boolean waitForCommand() {
-		if (pollCount > pollPrintWait) {
-			pollCount = 0;
-		} else {
-			pollCount++;
-		}
-		if (pollCount == 0) {
-			log.debug("Waiting for command");
-		}
+		logC.log("Waiting for command");
 		try {
 			command = stdinQ.poll(queueCheckInterval, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {

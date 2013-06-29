@@ -58,7 +58,7 @@ public class StaticExecution extends SubstructureExecutor {
 	public StaticExecution(final ProgramDao progCfg,
 			final SubstructureDao scfg, final String configDir,
 			final String workDir) {
-		super(progCfg, scfg, configDir, workDir);
+		super(progCfg, scfg, configDir, workDir, false);
 		dispOutFile = PathUtils.append(workDir, "tmp_disp.out");
 		forceOutFile = PathUtils.append(workDir, "tmp_forc.out");
 		filename = "run.tcl";
@@ -82,6 +82,7 @@ public class StaticExecution extends SubstructureExecutor {
 			return;
 		}
 		if (f.length() > 0) {
+			getFem().getProcess().abort();
 			OutputFileParser ofp = new OutputFileParser();
 			ofp.parseDataFile(dispOutFile);
 			setRawDisp(ofp.getArchive());

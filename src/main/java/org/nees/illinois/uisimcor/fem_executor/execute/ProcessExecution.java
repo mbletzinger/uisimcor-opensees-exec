@@ -3,7 +3,7 @@ package org.nees.illinois.uisimcor.fem_executor.execute;
 import java.io.IOException;
 
 import org.nees.illinois.uisimcor.fem_executor.config.dao.ProgramDao;
-import org.nees.illinois.uisimcor.fem_executor.process.ProcessManagement;
+import org.nees.illinois.uisimcor.fem_executor.process.ProcessManagementWithStdin;
 import org.nees.illinois.uisimcor.fem_executor.response.ResponseMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,9 +29,9 @@ public class ProcessExecution {
 	private final Logger log = LoggerFactory.getLogger(ProcessExecution.class);
 
 	/**
-	 * {@link ProcessManagement Wrapper} around command line executor.
+	 * {@link ProcessManagementWithStdin Wrapper} around command line executor.
 	 */
-	private final ProcessManagement process;
+	private final ProcessManagementWithStdin process;
 
 	/**
 	 * Monitors STDOUT stream for step is done messages.
@@ -45,13 +45,17 @@ public class ProcessExecution {
 	 *            Directory to run the process in.
 	 * @param waitInMillisecs
 	 *            Number of milliseconds to wait between response polling.
+	 * @param dynamic
+	 *            Set if using dynamic execution.
 	 */
 	public ProcessExecution(final ProgramDao command, final String workDir,
-			final int waitInMillisecs) {
+			final int waitInMillisecs, final boolean dynamic) {
 		this.command = command;
-		this.process = new ProcessManagement(command.getExecutablePath(), command
-				.getProgram().toString(), waitInMillisecs);
+		this.process = new ProcessManagementWithStdin(command.getExecutablePath(),
+				command.getProgram().toString(), waitInMillisecs);
 		process.setWorkDir(workDir);
+		process.setUseStdin(dynamic);
+
 	}
 
 	/**
@@ -118,7 +122,7 @@ public class ProcessExecution {
 	/**
 	 * @return the process
 	 */
-	public final ProcessManagement getProcess() {
+	public final ProcessManagementWithStdin getProcess() {
 		return process;
 	}
 
