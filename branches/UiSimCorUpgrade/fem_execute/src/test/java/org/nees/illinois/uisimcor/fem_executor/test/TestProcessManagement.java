@@ -7,7 +7,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
-import org.nees.illinois.uisimcor.fem_executor.process.ProcessManagement;
+import org.nees.illinois.uisimcor.fem_executor.process.ProcessManagementWithStdin;
 import org.nees.illinois.uisimcor.fem_executor.process.QMessageT;
 import org.nees.illinois.uisimcor.fem_executor.process.QMessageType;
 import org.nees.illinois.uisimcor.fem_executor.response.ResponseMonitor;
@@ -49,9 +49,10 @@ public class TestProcessManagement {
 		final int waitTime = 200;
 		final int pollCount = 6;
 		final int oneSec = 1000;
-		ProcessManagement pm = new ProcessManagement(pmCommand, "PM Test",
+		ProcessManagementWithStdin pm = new ProcessManagementWithStdin(pmCommand, "PM Test",
 				waitTime);
 		pm.setWorkDir(workDir);
+		pm.setUseStdin(true);
 		try {
 			pm.startExecute();
 		} catch (IOException e) {

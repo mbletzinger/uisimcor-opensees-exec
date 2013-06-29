@@ -227,7 +227,7 @@ public class OpenSeesSG implements ScriptGeneratorI {
 		File tfile = new File(file);
 		if (tfile.canRead() == false) {
 			log.error("Template file \"" + file + "\" cannot be read");
-			System.exit(1);
+			return null;
 		}
 		String result = "";
 		try {
@@ -240,7 +240,7 @@ public class OpenSeesSG implements ScriptGeneratorI {
 		} catch (Exception e) {
 			log.error("Template file \"" + file + "\" cannot be read because ",
 					e);
-			System.exit(1);
+			return null;
 		}
 		return result;
 	}

@@ -26,7 +26,7 @@ import org.nees.illinois.uisimcor.fem_executor.config.dao.TemplateDao;
 import org.nees.illinois.uisimcor.fem_executor.input.OpenSeesSG;
 import org.nees.illinois.uisimcor.fem_executor.input.WorkingDir;
 import org.nees.illinois.uisimcor.fem_executor.output.DataFormatter;
-import org.nees.illinois.uisimcor.fem_executor.process.ProcessManagement;
+import org.nees.illinois.uisimcor.fem_executor.process.ProcessManagementWithStdin;
 import org.nees.illinois.uisimcor.fem_executor.process.QMessageT;
 import org.nees.illinois.uisimcor.fem_executor.process.QMessageType;
 import org.nees.illinois.uisimcor.fem_executor.tcp.TcpLinkDto;
@@ -346,7 +346,7 @@ public class TestOpenSeesExecution {
 		wd.setSubstructureCfg(sdao);
 		wd.createWorkDir();
 		OpenSeesSG input = new OpenSeesSG(configDir, sdao, template);
-		ProcessManagement pm = new ProcessManagement(command, "PM Test",
+		ProcessManagementWithStdin pm = new ProcessManagementWithStdin(command, "PM Test",
 				waitTime);
 		pm.setWorkDir(wd.getWorkDir());
 		try {

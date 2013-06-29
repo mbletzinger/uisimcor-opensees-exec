@@ -62,7 +62,7 @@ public class DynamicExecution extends SubstructureExecutor {
 	public DynamicExecution(final ProgramDao progCfg,
 			final SubstructureDao scfg, final String configDir,
 			final String workDir) {
-		super(progCfg, scfg, configDir, workDir);
+		super(progCfg, scfg, configDir, workDir, true);
 	}
 
 	/**

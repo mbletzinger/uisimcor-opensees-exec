@@ -21,21 +21,7 @@ import ch.qos.logback.classic.Level;
  * ProcessBuilder} and {@link Process Process}.
  * @author Michael Bletzinger
  */
-public class ProcessManagement {
-	/**
-	 * @return the STDERR response.
-	 */
-	public final ProcessResponse getErrPr() {
-		return errPr;
-	}
-
-	/**
-	 * @return the STDOUT response.
-	 */
-	public final ProcessResponse getStoutPr() {
-		return stoutPr;
-	}
-
+public class ProcessManagementWithStdin {
 	/**
 	 * Argument list for the command.
 	 */
@@ -80,23 +66,31 @@ public class ProcessManagement {
 	/**
 	 * Logger.
 	 */
-	private final Logger log = LoggerFactory.getLogger(ProcessManagement.class);
+	private final Logger log = LoggerFactory.getLogger(ProcessManagementWithStdin.class);
+
 	/**
 	 * {@link Process Process} associated with the executing command.
 	 */
 	private Process process = null;
+
 	/**
 	 * Name used for log messages.
 	 */
 	private final String processName;
+
 	/**
 	 * Listener for output.
 	 */
 	private ProcessResponse stoutPr;
+
 	/**
 	 * Output reading thread.
 	 */
 	private Thread stoutThrd;
+	/**
+	 * Use STDIN for commands.
+	 */
+	private boolean useStdin = false;
 	/**
 	 * Interval to wait between thread checks.
 	 */
@@ -114,11 +108,37 @@ public class ProcessManagement {
 	 * @param waitInMillSecs
 	 *            Argument list for the command.
 	 */
-	public ProcessManagement(final String cmd, final String processName,
+	public ProcessManagementWithStdin(final String cmd, final String processName,
 			final int waitInMillSecs) {
 		this.cmd = checkWindowsCommand(cmd);
 		this.processName = processName;
 		this.waitInMillSecs = waitInMillSecs;
+	}
+
+	/**
+	 * Cleanup after the command has finished executing.
+	 */
+	public final void abort() {
+		if (process == null) { // Obviously we are not running.
+			return;
+		}
+		if (useStdin) {
+			exchange.setQuit(true);
+			exchangeThrd.interrupt();
+		}
+		process.destroy();
+
+		log.debug("Waiting for threads");
+		try {
+			Thread.sleep(waitInMillSecs);
+		} catch (InterruptedException e) {
+			log.debug("Sleeping...");
+		}
+		log.debug("Ending threads");
+		errPr.setQuit(true);
+		errThrd.interrupt();
+		stoutPr.setQuit(true);
+		stoutThrd.interrupt();
 	}
 
 	/**
@@ -172,30 +192,6 @@ public class ProcessManagement {
 	}
 
 	/**
-	 * Cleanup after the command has finished executing.
-	 */
-	public final void abort() {
-		if(process == null) { //Obviously we are not running.
-			return;
-		}
-		process.destroy();
-
-		log.debug("Waiting for threads");
-		try {
-			Thread.sleep(waitInMillSecs);
-		} catch (InterruptedException e) {
-			log.debug("Sleeping...");
-		}
-		log.debug("Ending threads");
-		errPr.setQuit(true);
-		errThrd.interrupt();
-		stoutPr.setQuit(true);
-		stoutThrd.interrupt();
-		exchange.setQuit(true);
-		exchangeThrd.interrupt();
-	}
-
-	/**
 	 * @return the command arguments.
 	 */
 	public final List<String> getArgs() {
@@ -225,16 +221,10 @@ public class ProcessManagement {
 	}
 
 	/**
-	 * @return True if the process has stopped running.
+	 * @return the STDERR response.
 	 */
-	public final boolean hasExited() {
-		try {
-			process.exitValue();
-		} catch (IllegalThreadStateException e) {
-			log.debug("Still running.");
-			return false;
-		}
-		return true;
+	public final ProcessResponse getErrPr() {
+		return errPr;
 	}
 
 	/**
@@ -252,6 +242,13 @@ public class ProcessManagement {
 	}
 
 	/**
+	 * @return the STDOUT response.
+	 */
+	public final ProcessResponse getStoutPr() {
+		return stoutPr;
+	}
+
+	/**
 	 * @return the waitInMillSecs
 	 */
 	public final int getWaitInMillSecs() {
@@ -266,11 +263,42 @@ public class ProcessManagement {
 	}
 
 	/**
+	 * @return True if the process has stopped running.
+	 */
+	public final boolean hasExited() {
+		if (process == null) {
+			return true;
+		}
+		try {
+			process.exitValue();
+		} catch (IllegalThreadStateException e) {
+			log.debug("Still running.");
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * @return the useStdin
+	 */
+	public final boolean isUseStdin() {
+		return useStdin;
+	}
+
+	/**
 	 * @param cmd
 	 *            the command to set
 	 */
 	public final void setCmd(final String cmd) {
 		this.cmd = checkWindowsCommand(cmd);
+	}
+
+	/**
+	 * @param useStdin
+	 *            the useStdin to set
+	 */
+	public final void setUseStdin(final boolean useStdin) {
+		this.useStdin = useStdin;
 	}
 
 	/**
@@ -312,13 +340,16 @@ public class ProcessManagement {
 				listenerWaitInterval, processName, new OpenSeesErrorFilter());
 		stoutPr = new ProcessResponse(Level.DEBUG, process.getInputStream(),
 				listenerWaitInterval, processName, new StepFilter());
-		exchange = new StdInExchange(waitInMillSecs, process.getOutputStream());
 		errThrd = new Thread(errPr);
 		stoutThrd = new Thread(stoutPr);
-		exchangeThrd = new Thread(exchange);
 		log.debug("Starting threads");
 		errThrd.start();
 		stoutThrd.start();
+		if (useStdin == false) {
+			return;
+		}
+		exchange = new StdInExchange(waitInMillSecs, process.getOutputStream());
+		exchangeThrd = new Thread(exchange);
 		exchangeThrd.start();
 	}
 }
