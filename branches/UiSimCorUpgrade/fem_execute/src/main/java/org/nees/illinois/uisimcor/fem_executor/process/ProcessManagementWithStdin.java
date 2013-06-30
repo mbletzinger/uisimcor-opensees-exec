@@ -1,52 +1,17 @@
 package org.nees.illinois.uisimcor.fem_executor.process;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
-import org.nees.illinois.uisimcor.fem_executor.response.OpenSeesErrorFilter;
 import org.nees.illinois.uisimcor.fem_executor.response.ProcessResponse;
-import org.nees.illinois.uisimcor.fem_executor.response.StepFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import ch.qos.logback.classic.Level;
 
 /**
- * Class to wrap some management threads around the {@link ProcessBuilder
- * ProcessBuilder} and {@link Process Process}.
+ * Class adds a queue to STDIN.
  * @author Michael Bletzinger
  */
-public class ProcessManagementWithStdin {
-	/**
-	 * Argument list for the command.
-	 */
-	private final List<String> args = new ArrayList<String>();
-
-	/**
-	 * Line command to execute.
-	 */
-	private String cmd;
-
-	/**
-	 * Environment variables for the command.
-	 */
-	private final Map<String, String> env = new HashMap<String, String>();
-
-	/**
-	 * Listener for error messages.
-	 */
-	private ProcessResponse errPr;
-
-	/**
-	 * Error reading thread.
-	 */
-	private Thread errThrd;
-
+public class ProcessManagementWithStdin implements ProcessManagmentI {
 	/**
 	 * Sends commands to the process and receive responses from the process.
 	 */
@@ -58,47 +23,9 @@ public class ProcessManagementWithStdin {
 	private Thread exchangeThrd;
 
 	/**
-	 * Interval for the {@link ProcessResponse ProcessResponse} threads to wait
-	 * before reading content.
+	 * The process.
 	 */
-	private final int listenerWaitInterval = 100;
-
-	/**
-	 * Logger.
-	 */
-	private final Logger log = LoggerFactory.getLogger(ProcessManagementWithStdin.class);
-
-	/**
-	 * {@link Process Process} associated with the executing command.
-	 */
-	private Process process = null;
-
-	/**
-	 * Name used for log messages.
-	 */
-	private final String processName;
-
-	/**
-	 * Listener for output.
-	 */
-	private ProcessResponse stoutPr;
-
-	/**
-	 * Output reading thread.
-	 */
-	private Thread stoutThrd;
-	/**
-	 * Use STDIN for commands.
-	 */
-	private boolean useStdin = false;
-	/**
-	 * Interval to wait between thread checks.
-	 */
-	private final int waitInMillSecs;
-	/**
-	 * Working directory for the execution.
-	 */
-	private String workDir = null;
+	private final ProcessManagement pm;
 
 	/**
 	 * @param cmd
@@ -108,130 +35,52 @@ public class ProcessManagementWithStdin {
 	 * @param waitInMillSecs
 	 *            Argument list for the command.
 	 */
-	public ProcessManagementWithStdin(final String cmd, final String processName,
-			final int waitInMillSecs) {
-		this.cmd = checkWindowsCommand(cmd);
-		this.processName = processName;
-		this.waitInMillSecs = waitInMillSecs;
+	public ProcessManagementWithStdin(final String cmd,
+			final String processName, final int waitInMillSecs) {
+		pm = new ProcessManagement(cmd, processName, waitInMillSecs);
 	}
 
 	/**
 	 * Cleanup after the command has finished executing.
 	 */
+	@Override
 	public final void abort() {
-		if (process == null) { // Obviously we are not running.
+		if (pm.getProcess() == null) { // Obviously we are not running.
 			return;
 		}
-		if (useStdin) {
-			exchange.setQuit(true);
-			exchangeThrd.interrupt();
-		}
-		process.destroy();
-
-		log.debug("Waiting for threads");
-		try {
-			Thread.sleep(waitInMillSecs);
-		} catch (InterruptedException e) {
-			log.debug("Sleeping...");
-		}
-		log.debug("Ending threads");
-		errPr.setQuit(true);
-		errThrd.interrupt();
-		stoutPr.setQuit(true);
-		stoutThrd.interrupt();
+		exchange.setQuit(true);
+		exchangeThrd.interrupt();
+		pm.abort();
 	}
 
-	/**
-	 * Add an argument to the command.
-	 * @param arg
-	 *            Argument string.
-	 */
+	@Override
 	public final void addArg(final String arg) {
-		args.add(arg);
+		pm.addArg(arg);
 	}
 
-	/**
-	 * Add a variable to the process environment.
-	 * @param name
-	 *            Name of the variable.
-	 * @param value
-	 *            Value string.
-	 */
+	@Override
 	public final void addEnv(final String name, final String value) {
-		env.put(name, value);
+		pm.addEnv(name, value);
 	}
 
-	/**
-	 * Assemble the command and its arguments.
-	 * @return The full command string.
-	 */
-	private String[] assemble() {
-		String[] result = new String[args.size() + 1];
-		result[0] = cmd;
-		int i = 1;
-		for (String a : args) {
-			result[i] = a;
-			i++;
-		}
-		return result;
-	}
-
-	/**
-	 * Wraps a command in quotes to protect spaces if the OS is Windows.
-	 * @param cmdIn
-	 *            Original command.
-	 * @return Wrapped command.
-	 */
-	private String checkWindowsCommand(final String cmdIn) {
-		String os = System.getProperty("os.name").toLowerCase();
-		if (os.contains("win") == false) {
-			return cmdIn;
-		}
-		String result = "\"" + cmdIn + "\"";
-		return result;
-	}
-
-	/**
-	 * @return the command arguments.
-	 */
+	@Override
 	public final List<String> getArgs() {
-		return args;
+		return pm.getArgs();
 	}
 
-	/**
-	 * @return the command.
-	 */
+	@Override
 	public final String getCmd() {
-		return cmd;
+		return pm.getCmd();
 	}
 
-	/**
-	 * @return the command environment.
-	 */
+	@Override
 	public final Map<String, String> getEnv() {
-		return env;
+		return pm.getEnv();
 	}
 
-	/**
-	 * Get the error from the command execution.
-	 * @return The current error.
-	 */
-	public final String getError() {
-		return errPr.getOutput();
-	}
-
-	/**
-	 * @return the STDERR response.
-	 */
+	@Override
 	public final ProcessResponse getErrPr() {
-		return errPr;
-	}
-
-	/**
-	 * @return the listenerWaitInterval
-	 */
-	public final int getListenerWaitInterval() {
-		return listenerWaitInterval;
+		return pm.getErrPr();
 	}
 
 	/**
@@ -241,72 +90,24 @@ public class ProcessManagementWithStdin {
 		return exchange.getStdinQ();
 	}
 
-	/**
-	 * @return the STDOUT response.
-	 */
+	@Override
 	public final ProcessResponse getStoutPr() {
-		return stoutPr;
+		return pm.getStoutPr();
 	}
 
-	/**
-	 * @return the waitInMillSecs
-	 */
-	public final int getWaitInMillSecs() {
-		return waitInMillSecs;
-	}
-
-	/**
-	 * @return the workDir
-	 */
+	@Override
 	public final String getWorkDir() {
-		return workDir;
+		return pm.getWorkDir();
 	}
 
-	/**
-	 * @return True if the process has stopped running.
-	 */
+	@Override
 	public final boolean hasExited() {
-		if (process == null) {
-			return true;
-		}
-		try {
-			process.exitValue();
-		} catch (IllegalThreadStateException e) {
-			log.debug("Still running.");
-			return false;
-		}
-		return true;
+		return pm.hasExited();
 	}
 
-	/**
-	 * @return the useStdin
-	 */
-	public final boolean isUseStdin() {
-		return useStdin;
-	}
-
-	/**
-	 * @param cmd
-	 *            the command to set
-	 */
-	public final void setCmd(final String cmd) {
-		this.cmd = checkWindowsCommand(cmd);
-	}
-
-	/**
-	 * @param useStdin
-	 *            the useStdin to set
-	 */
-	public final void setUseStdin(final boolean useStdin) {
-		this.useStdin = useStdin;
-	}
-
-	/**
-	 * @param workDir
-	 *            the workDir to set
-	 */
+	@Override
 	public final void setWorkDir(final String workDir) {
-		this.workDir = workDir;
+		pm.setWorkDir(workDir);
 	}
 
 	/**
@@ -315,40 +116,9 @@ public class ProcessManagementWithStdin {
 	 *             if the command fails to start.
 	 */
 	public final void startExecute() throws IOException {
-		String[] executeLine = assemble();
-		ProcessBuilder pb = new ProcessBuilder(executeLine);
-		if (workDir != null) {
-			File workDirF = new File(workDir);
-			if (workDirF.exists() == false) {
-				throw new IOException("Directory \"" + workDir
-						+ "\" does not exist");
-			}
-			if (workDirF.isDirectory() == false) {
-				throw new IOException("Directory \"" + workDir
-						+ "\" is not a directory");
-			}
-			log.debug("Setting the working directory to \""
-					+ workDirF.getAbsolutePath() + "\"");
-			pb.directory(workDirF);
-		}
-		pb.environment().putAll(env);
-
-		log.debug("Starting process");
-		process = pb.start();
-		log.debug("Creating threads");
-		errPr = new ProcessResponse(Level.ERROR, process.getErrorStream(),
-				listenerWaitInterval, processName, new OpenSeesErrorFilter());
-		stoutPr = new ProcessResponse(Level.DEBUG, process.getInputStream(),
-				listenerWaitInterval, processName, new StepFilter());
-		errThrd = new Thread(errPr);
-		stoutThrd = new Thread(stoutPr);
-		log.debug("Starting threads");
-		errThrd.start();
-		stoutThrd.start();
-		if (useStdin == false) {
-			return;
-		}
-		exchange = new StdInExchange(waitInMillSecs, process.getOutputStream());
+		pm.startExecute();
+		exchange = new StdInExchange(pm.getWaitInMillSecs(), pm.getProcess()
+				.getOutputStream());
 		exchangeThrd = new Thread(exchange);
 		exchangeThrd.start();
 	}

@@ -191,6 +191,9 @@ public class FemStatus {
 		changed = true;
 	}
 
+	/**
+	 * @return A string representation of the statuses.
+	 */
 	public final String dump() {
 		String result = (currentStepHasExecuted ? "[StepDone]"
 				: "[StepStillExecuting]");
