@@ -7,6 +7,8 @@ import java.io.PrintWriter;
 
 import org.nees.illinois.uisimcor.fem_executor.config.dao.ProgramDao;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
+import org.nees.illinois.uisimcor.fem_executor.input.OpenSeesSG;
+import org.nees.illinois.uisimcor.fem_executor.input.ScriptGeneratorI;
 import org.nees.illinois.uisimcor.fem_executor.output.OutputFileParser;
 import org.nees.illinois.uisimcor.fem_executor.utils.LogMessageWithCounter;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
@@ -20,8 +22,21 @@ import ch.qos.logback.classic.Level;
  * step.
  * @author Michael Bletzinger
  */
-public class StaticExecution extends SubstructureExecutor {
+public class StaticExecution implements SubstructureExecutorI {
 
+	/**
+	 * Response values.
+	 */
+	private final ResponseValues responseVals;
+
+	/**
+	 * FEM execution management.
+	 */
+	private final ProcessExecution exec;
+	/**
+	 * FEM execution script generator.
+	 */
+	private final ScriptGeneratorI scriptGen;
 	/**
 	 * Output file for displacements.
 	 */
@@ -34,6 +49,15 @@ public class StaticExecution extends SubstructureExecutor {
 	 * Output file for forces.
 	 */
 	private final String forceOutFile;
+	/**
+	 * Directory the process is executing in.
+	 */
+	private final String workDir;
+
+	/**
+	 * Configuration of the substructure.
+	 */
+	private final SubstructureDao scfg;
 
 	/**
 	 * Logger.
@@ -43,7 +67,8 @@ public class StaticExecution extends SubstructureExecutor {
 	/**
 	 * Logger with counter to down-scale the message frequency.
 	 */
-	private final LogMessageWithCounter logC = new LogMessageWithCounter(10, log, Level.DEBUG);
+	private final LogMessageWithCounter logC = new LogMessageWithCounter(10,
+			log, Level.DEBUG);
 
 	/**
 	 * @param progCfg
@@ -58,20 +83,27 @@ public class StaticExecution extends SubstructureExecutor {
 	public StaticExecution(final ProgramDao progCfg,
 			final SubstructureDao scfg, final String configDir,
 			final String workDir) {
-		super(progCfg, scfg, configDir, workDir, false);
-		dispOutFile = PathUtils.append(workDir, "tmp_disp.out");
-		forceOutFile = PathUtils.append(workDir, "tmp_forc.out");
-		filename = "run.tcl";
+		final int quarterSecond = 250;
+		this.exec = new ProcessExecution(progCfg, workDir, quarterSecond, false);
+		this.responseVals = new ResponseValues(scfg);
+		this.scriptGen = new OpenSeesSG(configDir, scfg, progCfg.getTemplateDao());
+		this.dispOutFile = PathUtils.append(workDir, "tmp_disp.out");
+		this.forceOutFile = PathUtils.append(workDir, "tmp_forc.out");
+		this.filename = "run.tcl";
+		this.workDir = workDir;
+		this.scfg = scfg;
 
 	}
 
 	@Override
 	public final void abort() {
-		getFem().abort();
+		exec.abort();
 	}
 
-	@Override
-	protected final void checkDisplacementResponse() {
+	/**
+	 * Check the displacement output file and set statuses.
+	 */
+	private void checkDisplacementResponse() {
 		FemStatus statuses = getStatuses();
 		if (statuses.isFemProcessHasDied() == false) {
 			return;
@@ -82,18 +114,20 @@ public class StaticExecution extends SubstructureExecutor {
 			return;
 		}
 		if (f.length() > 0) {
-			getFem().getProcess().abort();
+			abort();
 			OutputFileParser ofp = new OutputFileParser();
 			ofp.parseDataFile(dispOutFile);
-			setRawDisp(ofp.getArchive());
+			responseVals.setRawDisp(ofp.getArchive());
 			statuses.setDisplacementsAreHere(true);
 			f.delete();
 		}
 		logC.log("\"" + dispOutFile + "\" has nothing in it yet");
 	}
 
-	@Override
-	protected final void checkForceResponse() {
+	/**
+	 * Check the force output file and set statuses.
+	 */
+	private void checkForceResponse() {
 		FemStatus statuses = getStatuses();
 		if (statuses.isFemProcessHasDied() == false) {
 			return;
@@ -106,7 +140,7 @@ public class StaticExecution extends SubstructureExecutor {
 		if (f.length() > 0) {
 			OutputFileParser ofp = new OutputFileParser();
 			ofp.parseDataFile(forceOutFile);
-			setRawForce(ofp.getArchive());
+			responseVals.setRawForce(ofp.getArchive());
 			statuses.setForcesAreHere(true);
 			f.delete();
 		}
@@ -134,7 +168,6 @@ public class StaticExecution extends SubstructureExecutor {
 		this.filename = filename;
 	}
 
-
 	@Override
 	public final boolean setup() {
 		return true;
@@ -147,11 +180,10 @@ public class StaticExecution extends SubstructureExecutor {
 
 	@Override
 	public final void startStep(final int step, final double[] displacements) {
-		String run = getScriptGen().generateRun(step, displacements);
+		String run = scriptGen.generateRun(step, displacements);
 		writeInputFile(run);
-		ProcessExecution fem = getFem();
-		fem.getProcess().addArg(filename);
-		fem.start();
+		exec.getProcess().addArg(filename);
+		exec.start();
 	}
 
 	/**
@@ -160,7 +192,7 @@ public class StaticExecution extends SubstructureExecutor {
 	 *            The content.
 	 */
 	private void writeInputFile(final String content) {
-		String inputFilePath = PathUtils.append(getWorkDir(), filename);
+		String inputFilePath = PathUtils.append(workDir, filename);
 		File inputF = new File(inputFilePath);
 		if (inputF.exists()) {
 			inputF.delete();
@@ -175,5 +207,41 @@ public class StaticExecution extends SubstructureExecutor {
 		}
 		os.print(content);
 		os.close();
+	}
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * org.nees.illinois.uisimcor.fem_executor.execute.SubstructurerExecutorI
+	 * #stepIsDone()
+	 */
+	@Override
+	public final boolean stepIsDone() {
+		FemStatus statuses = exec.getStatuses();
+		checkDisplacementResponse();
+		checkForceResponse();
+		exec.checkIfProcessIsAlive(statuses);
+		exec.checkStepCompletion(statuses);
+		exec.checkForErrors(statuses);
+		if (statuses.isChanged()) {
+			log.info(scfg.getAddress() + " Is " + statuses.getStatus());
+			logC.reset();
+		}
+		logC.log(scfg.getAddress() + " Is " + statuses.getStatus());
+		return statuses.responsesHaveArrived();
+	}
+
+	@Override
+	public final double[] getDisplacements() {
+		return responseVals.getDisplacements();
+	}
+
+	@Override
+	public final double[] getForces() {
+		return responseVals.getForces();
+	}
+
+	@Override
+	public final FemStatus getStatuses() {
+		return exec.getStatuses();
 	}
 }

@@ -11,7 +11,7 @@ import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
 import org.nees.illinois.uisimcor.fem_executor.config.types.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.execute.DynamicExecution;
 import org.nees.illinois.uisimcor.fem_executor.execute.StaticExecution;
-import org.nees.illinois.uisimcor.fem_executor.execute.SubstructureExecutor;
+import org.nees.illinois.uisimcor.fem_executor.execute.SubstructureExecutorI;
 import org.nees.illinois.uisimcor.fem_executor.input.WorkingDir;
 import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
 import org.slf4j.Logger;
@@ -73,7 +73,7 @@ public class FemExecutor {
 	/**
 	 * Map of substructure Dynamic FEM executors.
 	 */
-	private final Map<String, SubstructureExecutor> dynamicExecutors = new HashMap<String, SubstructureExecutor>();
+	private final Map<String, SubstructureExecutorI> dynamicExecutors = new HashMap<String, SubstructureExecutorI>();
 
 	// /**
 	// * Test function to see if the executor works in the given OS environment.
@@ -113,7 +113,7 @@ public class FemExecutor {
 	/**
 	 * Map of substructure Static Evaluation FEM executors.
 	 */
-	private final Map<String, SubstructureExecutor> staticExecutors = new HashMap<String, SubstructureExecutor>();
+	private final Map<String, SubstructureExecutorI> staticExecutors = new HashMap<String, SubstructureExecutorI>();
 
 	/**
 	 * Current step.
@@ -154,9 +154,9 @@ public class FemExecutor {
 	 */
 	public final void execute() {
 		log.debug("Execute was called");
-		Map<String, SubstructureExecutor> executors = pickExecutors();
+		Map<String, SubstructureExecutorI> executors = pickExecutors();
 		for (String mdl : executors.keySet()) {
-			SubstructureExecutor exe = executors.get(mdl);
+			SubstructureExecutorI exe = executors.get(mdl);
 			exe.startStep(getStep(),
 					MtxUtils.list2Array(displacementsMap.get(mdl)));
 		}
@@ -169,9 +169,9 @@ public class FemExecutor {
 	public final boolean finish() {
 		log.debug("Finish was called");
 		boolean result = true;
-		Map<String, SubstructureExecutor> executors = pickExecutors();
+		Map<String, SubstructureExecutorI> executors = pickExecutors();
 		for (String mdl : executors.keySet()) {
-			SubstructureExecutor exe = dynamicExecutors.get(mdl);
+			SubstructureExecutorI exe = dynamicExecutors.get(mdl);
 			exe.abort();
 			exe = staticExecutors.get(mdl);
 			exe.abort();
@@ -201,7 +201,7 @@ public class FemExecutor {
 	 * @return Displacement data.
 	 */
 	public final double[] getDisplacements(final String address) {
-		Map<String, SubstructureExecutor> executors = pickExecutors();
+		Map<String, SubstructureExecutorI> executors = pickExecutors();
 		return executors.get(address).getDisplacements();
 	}
 
@@ -215,7 +215,7 @@ public class FemExecutor {
 	/**
 	 * @return the executors
 	 */
-	public final Map<String, SubstructureExecutor> getDynamicExecutors() {
+	public final Map<String, SubstructureExecutorI> getDynamicExecutors() {
 		return dynamicExecutors;
 	}
 
@@ -226,14 +226,14 @@ public class FemExecutor {
 	 * @return Force data.
 	 */
 	public final double[] getForces(final String address) {
-		Map<String, SubstructureExecutor> executors = pickExecutors();
+		Map<String, SubstructureExecutorI> executors = pickExecutors();
 		return executors.get(address).getForces();
 	}
 
 	/**
 	 * @return the staticExecutors
 	 */
-	public final Map<String, SubstructureExecutor> getStaticExecutors() {
+	public final Map<String, SubstructureExecutorI> getStaticExecutors() {
 		return staticExecutors;
 	}
 
@@ -257,9 +257,9 @@ public class FemExecutor {
 	 */
 	public final boolean isDone() {
 		boolean result = true;
-		Map<String, SubstructureExecutor> executors = pickExecutors();
+		Map<String, SubstructureExecutorI> executors = pickExecutors();
 		for (String mdl : executors.keySet()) {
-			SubstructureExecutor exe = executors.get(mdl);
+			SubstructureExecutorI exe = executors.get(mdl);
 			result = result && exe.stepIsDone();
 		}
 		// final int matlabWait = 200;
@@ -302,7 +302,7 @@ public class FemExecutor {
 	 * Choose an executor map based on the dynamic flag.
 	 * @return the map.
 	 */
-	private Map<String, SubstructureExecutor> pickExecutors() {
+	private Map<String, SubstructureExecutorI> pickExecutors() {
 		if (dynamic) {
 			return dynamicExecutors;
 		}
@@ -383,7 +383,7 @@ public class FemExecutor {
 			SubstructureDao scfg = config.getSubstructCfgs().get(fsc);
 			wd.setSubstructureCfg(scfg);
 			wd.createWorkDir();
-			SubstructureExecutor exe = new DynamicExecution(progCfg, scfg,
+			SubstructureExecutorI exe = new DynamicExecution(progCfg, scfg,
 					configRootDir, wd.getWorkDir());
 			result = result && exe.setup();
 			dynamicExecutors.put(fsc, exe);
@@ -401,9 +401,9 @@ public class FemExecutor {
 	 */
 	public final boolean simulationHasProblems() {
 		boolean result = false;
-		Map<String, SubstructureExecutor> executors = pickExecutors();
+		Map<String, SubstructureExecutorI> executors = pickExecutors();
 		for (String mdl : executors.keySet()) {
-			SubstructureExecutor exe = executors.get(mdl);
+			SubstructureExecutorI exe = executors.get(mdl);
 			if (exe.iveGotProblems()) {
 				log.error(mdl + " is no longer running");
 				result = true;
@@ -418,9 +418,9 @@ public class FemExecutor {
 	 */
 	public final boolean startSimulation() {
 		boolean result = true;
-		Map<String, SubstructureExecutor> executors = pickExecutors();
+		Map<String, SubstructureExecutorI> executors = pickExecutors();
 		for (String mdl : executors.keySet()) {
-			SubstructureExecutor exe = executors.get(mdl);
+			SubstructureExecutorI exe = executors.get(mdl);
 			result = result && exe.startSimulation();
 		}
 		setRunning(true);

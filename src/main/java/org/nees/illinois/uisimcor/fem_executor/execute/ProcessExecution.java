@@ -3,16 +3,26 @@ package org.nees.illinois.uisimcor.fem_executor.execute;
 import java.io.IOException;
 
 import org.nees.illinois.uisimcor.fem_executor.config.dao.ProgramDao;
+import org.nees.illinois.uisimcor.fem_executor.process.ProcessManagement;
 import org.nees.illinois.uisimcor.fem_executor.process.ProcessManagementWithStdin;
+import org.nees.illinois.uisimcor.fem_executor.process.ProcessManagmentI;
 import org.nees.illinois.uisimcor.fem_executor.response.ResponseMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Manages and monitors the execution of an FEM program.
+ * Manages and monitors the execution of an FEM program. Basically this adds
+ * observers to the {@link ResponseMonitor} owned by ({@link ProcessManagement}
+ * which detect state changes to the FEM process.
  * @author Michael Bletzinger
  */
 public class ProcessExecution {
+
+	/**
+	 * Statuses for the substructure execution.
+	 */
+	private final FemStatus statuses = new FemStatus();
+
 	/**
 	 * Program configuration to run.
 	 */
@@ -31,7 +41,7 @@ public class ProcessExecution {
 	/**
 	 * {@link ProcessManagementWithStdin Wrapper} around command line executor.
 	 */
-	private final ProcessManagementWithStdin process;
+	private final ProcessManagmentI process;
 
 	/**
 	 * Monitors STDOUT stream for step is done messages.
@@ -51,11 +61,15 @@ public class ProcessExecution {
 	public ProcessExecution(final ProgramDao command, final String workDir,
 			final int waitInMillisecs, final boolean dynamic) {
 		this.command = command;
-		this.process = new ProcessManagementWithStdin(command.getExecutablePath(),
-				command.getProgram().toString(), waitInMillisecs);
+		if (dynamic) {
+			this.process = new ProcessManagementWithStdin(
+					command.getExecutablePath(), command.getProgram()
+							.toString(), waitInMillisecs);
+		} else {
+			this.process = new ProcessManagement(command.getExecutablePath(),
+					command.getProgram().toString(), waitInMillisecs);
+		}
 		process.setWorkDir(workDir);
-		process.setUseStdin(dynamic);
-
 	}
 
 	/**
@@ -122,7 +136,7 @@ public class ProcessExecution {
 	/**
 	 * @return the process
 	 */
-	public final ProcessManagementWithStdin getProcess() {
+	public final ProcessManagmentI getProcess() {
 		return process;
 	}
 
@@ -143,4 +157,12 @@ public class ProcessExecution {
 		process.getErrPr().addObserver(errorMonitor);
 		return true;
 	}
+
+	/**
+	 * @return The execution statuses.
+	 */
+	public final FemStatus getStatuses() {
+		return statuses;
+	}
+
 }

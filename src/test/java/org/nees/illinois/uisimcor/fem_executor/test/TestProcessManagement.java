@@ -52,7 +52,6 @@ public class TestProcessManagement {
 		ProcessManagementWithStdin pm = new ProcessManagementWithStdin(pmCommand, "PM Test",
 				waitTime);
 		pm.setWorkDir(workDir);
-		pm.setUseStdin(true);
 		try {
 			pm.startExecute();
 		} catch (IOException e) {

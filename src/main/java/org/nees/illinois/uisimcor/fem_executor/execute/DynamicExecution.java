@@ -7,23 +7,42 @@ import java.util.concurrent.TimeUnit;
 
 import org.nees.illinois.uisimcor.fem_executor.config.dao.ProgramDao;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
+import org.nees.illinois.uisimcor.fem_executor.input.OpenSeesSG;
+import org.nees.illinois.uisimcor.fem_executor.input.ScriptGeneratorI;
+import org.nees.illinois.uisimcor.fem_executor.process.ProcessManagementWithStdin;
 import org.nees.illinois.uisimcor.fem_executor.process.QMessageT;
 import org.nees.illinois.uisimcor.fem_executor.process.QMessageType;
 import org.nees.illinois.uisimcor.fem_executor.tcp.TcpLinkDto;
 import org.nees.illinois.uisimcor.fem_executor.tcp.TcpListener;
 import org.nees.illinois.uisimcor.fem_executor.tcp.TcpParameters;
 import org.nees.illinois.uisimcor.fem_executor.tcp.TcpReader;
+import org.nees.illinois.uisimcor.fem_executor.utils.LogMessageWithCounter;
 import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Level;
 
 /**
  * Class to execute an FEM program to statically analyze a substructure at one
  * step.
  * @author Michael Bletzinger
  */
-public class DynamicExecution extends SubstructureExecutor {
+public class DynamicExecution implements SubstructureExecutorI {
 
+	/**
+	 * Response values.
+	 */
+	private final ResponseValues responseVals;
+
+	/**
+	 * FEM execution management.
+	 */
+	private final ProcessExecution exec;
+	/**
+	 * FEM execution script generator.
+	 */
+	private final ScriptGeneratorI scriptGen;
 	/**
 	 * Listener for the displacements socket.
 	 */
@@ -45,9 +64,19 @@ public class DynamicExecution extends SubstructureExecutor {
 	private TcpReader forceReader;
 
 	/**
+	 * Configuration of the substructure.
+	 */
+	private final SubstructureDao scfg;
+
+	/**
 	 * Logger.
 	 **/
 	private final Logger log = LoggerFactory.getLogger(DynamicExecution.class);
+	/**
+	 * Logger filtered by a counter.
+	 */
+	private final LogMessageWithCounter logC = new LogMessageWithCounter(20,
+			log, Level.INFO);
 
 	/**
 	 * @param progCfg
@@ -62,7 +91,12 @@ public class DynamicExecution extends SubstructureExecutor {
 	public DynamicExecution(final ProgramDao progCfg,
 			final SubstructureDao scfg, final String configDir,
 			final String workDir) {
-		super(progCfg, scfg, configDir, workDir, true);
+		final int quarterSecond = 250;
+		this.exec = new ProcessExecution(progCfg, workDir, quarterSecond, true);
+		this.scriptGen = new OpenSeesSG(configDir, scfg,
+				progCfg.getTemplateDao());
+		this.responseVals = new ResponseValues(scfg);
+		this.scfg = scfg;
 	}
 
 	/**
@@ -70,12 +104,12 @@ public class DynamicExecution extends SubstructureExecutor {
 	 */
 	@Override
 	public final void abort() {
-		getFem().abort();
+		exec.abort();
 		dispListener.setQuit(true);
 		forceListener.setQuit(true);
 		dispListener.interrupt();
 		forceListener.interrupt();
-		if(dispReader == null) {
+		if (dispReader == null) {
 			return; // We were not running dynamic.
 		}
 		dispReader.setQuit(true);
@@ -84,8 +118,10 @@ public class DynamicExecution extends SubstructureExecutor {
 		forceReader.interrupt();
 	}
 
-	@Override
-	protected final void checkDisplacementResponse() {
+	/**
+	 * Check the displacements queue and set the status.
+	 */
+	private void checkDisplacementResponse() {
 		FemStatus statuses = getStatuses();
 		if (statuses.isDisplacementsAreHere()) {
 			return;
@@ -97,15 +133,14 @@ public class DynamicExecution extends SubstructureExecutor {
 		}
 
 		log.debug("Raw Displacements " + MtxUtils.list2String(rawDisp));
-		setRawDisp(rawDisp);
+		responseVals.setRawDisp(rawDisp);
 		statuses.setDisplacementsAreHere(true);
 	}
 
 	/**
 	 * Check the forces queue and set the status.
 	 */
-	@Override
-	protected final void checkForceResponse() {
+	private void checkForceResponse() {
 		FemStatus statuses = getStatuses();
 		if (statuses.isForcesAreHere()) {
 			return;
@@ -116,7 +151,7 @@ public class DynamicExecution extends SubstructureExecutor {
 			return;
 		}
 		log.debug("Raw Forces " + MtxUtils.list2String(rawForce));
-		setRawForce(rawForce);
+		responseVals.setRawForce(rawForce);
 		statuses.setForcesAreHere(true);
 	}
 
@@ -124,9 +159,10 @@ public class DynamicExecution extends SubstructureExecutor {
 	 * Send the initial command to the FEM program.
 	 */
 	private void init() {
-		String init = getScriptGen().generateInit();
-		BlockingQueue<QMessageT<String>> stdinQ = getFem().getProcess()
-				.getStdinQ();
+		String init = scriptGen.generateInit();
+		ProcessManagementWithStdin execWStdin = (ProcessManagementWithStdin) exec
+				.getProcess();
+		BlockingQueue<QMessageT<String>> stdinQ = execWStdin.getStdinQ();
 		stdinQ.add(new QMessageT<String>(QMessageType.Command, init));
 		getStatuses().newStep();
 	}
@@ -139,7 +175,6 @@ public class DynamicExecution extends SubstructureExecutor {
 
 	@Override
 	public final boolean setup() {
-		SubstructureDao scfg = getScfg();
 		final int fiveSeconds = 5000;
 		try {
 			dispListener = new TcpListener(new TcpParameters(null, 0,
@@ -168,7 +203,7 @@ public class DynamicExecution extends SubstructureExecutor {
 	 */
 	@Override
 	public final boolean startSimulation() {
-		getFem().start();
+		exec.start();
 		init();
 		final int tenSeconds = 10;
 		TcpLinkDto link = null;
@@ -214,6 +249,7 @@ public class DynamicExecution extends SubstructureExecutor {
 		forceReader.start();
 		return true;
 	}
+
 	/**
 	 * Send the next step command to the FEM program.
 	 * @param step
@@ -222,10 +258,49 @@ public class DynamicExecution extends SubstructureExecutor {
 	 *            Current displacement target.
 	 */
 	public final void startStep(final int step, final double[] displacements) {
-		String stepCmnd = getScriptGen().generateStep(step, displacements);
-		BlockingQueue<QMessageT<String>> stdinQ = getFem().getProcess()
-				.getStdinQ();
+		String stepCmnd = scriptGen.generateStep(step, displacements);
+		ProcessManagementWithStdin execWStdin = (ProcessManagementWithStdin) exec
+				.getProcess();
+		BlockingQueue<QMessageT<String>> stdinQ = execWStdin.getStdinQ();
 		stdinQ.add(new QMessageT<String>(QMessageType.Command, stepCmnd));
 		getStatuses().newStep();
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * org.nees.illinois.uisimcor.fem_executor.execute.SubstructurerExecutorI
+	 * #stepIsDone()
+	 */
+	@Override
+	public final boolean stepIsDone() {
+		FemStatus statuses = exec.getStatuses();
+		checkDisplacementResponse();
+		checkForceResponse();
+		exec.checkIfProcessIsAlive(statuses);
+		exec.checkStepCompletion(statuses);
+		exec.checkForErrors(statuses);
+		if (statuses.isChanged()) {
+			log.info(scfg.getAddress() + " Is " + statuses.getStatus());
+			logC.reset();
+		}
+		logC.log(scfg.getAddress() + " Is " + statuses.getStatus());
+		return statuses.responsesHaveArrived();
+	}
+
+	@Override
+	public final double[] getDisplacements() {
+		return responseVals.getDisplacements();
+	}
+
+	@Override
+	public final double[] getForces() {
+		return responseVals.getForces();
+	}
+
+	@Override
+	public final FemStatus getStatuses() {
+		return exec.getStatuses();
+	}
+
 }
