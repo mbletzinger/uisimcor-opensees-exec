@@ -163,6 +163,8 @@ public class TestOpenSeesExecution {
 		String exe = null;
 		if (os.contains("mac")) {
 			exe = "bin/OpenSeesMacOSX";
+		} else if (os.contains("win")) {
+			exe = "bin/OpenSeesWin.exe";
 		} else {
 			Assert.fail("Don't have an OpenSees executable for your os");
 		}
@@ -170,10 +172,12 @@ public class TestOpenSeesExecution {
 		command = PathUtils.cleanPath(u.getPath());
 		File cmdF = new File(command);
 		cmdF.setExecutable(true);
-		templates.put("Text", new TemplateDao(stepT, "txt_init_template.tcl",runT));
+		templates.put("Text", new TemplateDao(stepT, "txt_init_template.tcl",
+				runT));
 		// templates
 		// .put("Binary", new TemplateDao(stepT, "bin_init_template.tcl",runT));
-		templates.put(tcpName, new TemplateDao(stepT, "tcp_init_template.tcl",runT));
+		templates.put(tcpName, new TemplateDao(stepT, "tcp_init_template.tcl",
+				runT));
 		LoadSaveConfig lscfg = new LoadSaveConfig();
 		lscfg.setConfigFilePath("OneSubstructureTestConfig.properties");
 		lscfg.load(configDir);
@@ -347,8 +351,8 @@ public class TestOpenSeesExecution {
 		wd.setSubstructureCfg(sdao);
 		wd.createWorkDir();
 		OpenSeesSG input = new OpenSeesSG(configDir, sdao, template);
-		ProcessManagementWithStdin pm = new ProcessManagementWithStdin(command, "PM Test",
-				waitTime);
+		ProcessManagementWithStdin pm = new ProcessManagementWithStdin(command,
+				"PM Test", waitTime);
 		pm.setWorkDir(wd.getWorkDir());
 		try {
 			pm.startExecute();

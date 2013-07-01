@@ -168,6 +168,8 @@ public class TestFemExecutorWithOpenSees {
 		String exe = null;
 		if (os.contains("mac")) {
 			exe = "bin/OpenSeesMacOSX";
+		} else if (os.contains("win")) {
+			exe = "bin/OpenSeesWin.exe";
 		} else {
 			Assert.fail("Don't have an OpenSees executable for your os");
 		}
