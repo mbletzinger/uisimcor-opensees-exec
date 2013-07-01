@@ -11,6 +11,7 @@ import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
 import org.nees.illinois.uisimcor.fem_executor.config.types.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.test.utils.CreateRefProgramConfig;
 import org.nees.illinois.uisimcor.fem_executor.utils.FileWithContentDelete;
+import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,8 +24,8 @@ import org.testng.annotations.Test;
  * Test the operation of the FEM executor.
  * @author Michael Bletzinger
  */
-@Test(groups = { "execute_static" })
-public class TestStaticExecution {
+@Test(groups = { "execute_dynamic" })
+public class TestFemExecutorExecution {
 	/**
 	 * Configuration containing the fake OpenSees.
 	 */
@@ -36,15 +37,21 @@ public class TestStaticExecution {
 	/**
 	 * Logger.
 	 **/
-	private final Logger log = LoggerFactory.getLogger(TestStaticExecution.class);
+	private final Logger log = LoggerFactory
+			.getLogger(TestFemExecutorExecution.class);
 	/**
 	 * List of test configurations.
 	 */
 	private List<String> configFiles = new ArrayList<String>();
 	/**
-	 * Directory to store tmp files during FEM execution.
+	 * Directory to store temporary files during FEM execution.
 	 */
 	private String workDir;
+	/**
+	 * Flag to indicate whether the generated files should be removed or not
+	 * after the tests are over.
+	 */
+	private boolean keepFiles = false;
 
 	/**
 	 * Run all of the test configuration through the FEM executor.
@@ -52,42 +59,58 @@ public class TestStaticExecution {
 	@Test
 	public final void testRunFakeSubstructures() {
 		FemExecutor fexec = new FemExecutor(configDir, workDir);
-		fexec.setDynamic(false);
+
 		for (String c : configFiles) {
+			log.debug("Loading configuration for " + c);
 			fexec.loadConfig(c);
 			// Replace OpenSees with fake script
 			fexec.getConfig().getFemProgramParameters()
 					.put(FemProgramType.OPENSEES, femProg);
 			Collection<SubstructureDao> mdlCfgs = fexec.getConfig()
 					.getSubstructCfgs().values();
-			fexec.setup();
-			for (SubstructureDao mCfg : mdlCfgs) {
-				loadExecutor(fexec, mCfg);
-			}
-			fexec.execute();
-			int count = 0;
-			final int tiredOfWaiting = 50;
-			while (fexec.isDone() == false) {
-				final int interval = 200;
-				try {
-					Thread.sleep(interval);
-				} catch (InterruptedException e) {
-					log.debug("Sleeping...");
+			Assert.assertTrue(fexec.setup());
+			Assert.assertTrue(fexec.startSimulation());
+			final int numSteps = 12;
+			for (int s = 1; s < numSteps; s++) {
+				log.debug("Loading displacements for " + c);
+				for (SubstructureDao mCfg : mdlCfgs) {
+					loadExecutor(fexec, mCfg, s);
 				}
-				if (count > tiredOfWaiting) {
-					fexec.finish();
-					Assert.fail("Execution has hung for some reason");
+				fexec.setStep(s);
+				log.debug("Executing for " + c + " at step " + s);
+				fexec.execute();
+				int count = 0;
+				final int tiredOfWaiting = 20;
+				log.debug("Waiting for done for " + c);
+				while (fexec.isDone() == false) {
+					final int interval = 200;
+					try {
+						Thread.sleep(interval);
+					} catch (InterruptedException e) {
+						log.debug("Sleeping...");
+					}
+					if (count > tiredOfWaiting) {
+						log.error("Tired of waiting for " + c);
+						fexec.finish();
+						Assert.fail("Execution has hung for some reason");
+					}
+					count++;
 				}
-			}
-			Collection<String> mdls = fexec.getConfig().getSubstructCfgs()
-					.keySet();
-			for (String m : mdls) {
-				double[] vals = fexec.getDisplacements(m);
-				final int numberOfDofs = fexec.getConfig().getSubstructCfgs().get(m).getTotalDofs(); // UI-SimCor vector size.
-				log.debug("Displacements for " + m + " are " + vals);
-				Assert.assertEquals(vals.length, numberOfDofs);
-				vals = fexec.getForces(m);
-				Assert.assertEquals(vals.length, numberOfDofs);
+				Collection<String> mdls = fexec.getConfig().getSubstructCfgs()
+						.keySet();
+				log.debug("Getting displacements and finishing for " + c);
+				for (String m : mdls) {
+					double[] vals = fexec.getDisplacements(m);
+					final int numberOfDofs = fexec.getConfig()
+							.getSubstructCfgs().get(m).getTotalDofs(); // UI-SimCor
+																		// vector
+																		// size.
+					log.debug("Displacements for " + m + " are "
+							+ MtxUtils.array2String(vals));
+					Assert.assertEquals(vals.length, numberOfDofs);
+					vals = fexec.getForces(m);
+					Assert.assertEquals(vals.length, numberOfDofs);
+				}
 			}
 			fexec.finish();
 		}
@@ -99,11 +122,14 @@ public class TestStaticExecution {
 	 *            Executor.
 	 * @param subCfg
 	 *            Configuration for the substructure.
+	 * @param step
+	 *            Current step number.
 	 */
 	private void loadExecutor(final FemExecutor fexec,
-			final SubstructureDao subCfg) {
-		final double[] disp = { 0.00023e-4, 0.00004e-5, 0.00023e-4, 0.00004e-5,
-				0.00023e-4, 0.00004e-5 };
+			final SubstructureDao subCfg, final int step) {
+		final double[] disp = { 0.00023e-4 * step, 0.00004e-5 * step,
+				0.00023e-4 * step, 0.00004e-5 * step, 0.00023e-4 * step,
+				0.00004e-5 * step };
 		fexec.setDisplacements(subCfg.getAddress(), disp);
 	}
 
@@ -112,12 +138,13 @@ public class TestStaticExecution {
 	 */
 	@BeforeClass
 	public final void beforeClass() {
-		URL u = ClassLoader.getSystemResource("config/ReferenceConfig.properties");
+		URL u = ClassLoader
+				.getSystemResource("config/ReferenceConfig.properties");
 		String cf = PathUtils.cleanPath(u.getPath());
 		configDir = PathUtils.parent(cf);
 		workDir = PathUtils.append(System.getProperty("user.dir"),
 				"fem_execute");
-		u = ClassLoader.getSystemResource("OpenSeesStaticEmulator.pl");
+		u = ClassLoader.getSystemResource("OpenSeesDynamicEmulator.pl");
 		String command = PathUtils.cleanPath(u.getPath());
 		CreateRefProgramConfig crpcfg = new CreateRefProgramConfig(command);
 		crpcfg.checkExecutable();
@@ -135,6 +162,9 @@ public class TestStaticExecution {
 	 */
 	@AfterTest
 	public final void afterTest() {
+		if (keepFiles) {
+			return;
+		}
 		FileWithContentDelete dir = new FileWithContentDelete(workDir);
 		boolean done = dir.delete();
 		if (done == false) {

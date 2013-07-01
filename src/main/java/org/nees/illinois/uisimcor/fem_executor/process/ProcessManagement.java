@@ -282,6 +282,7 @@ public class ProcessManagement implements ProcessManagmentI {
 	@Override
 	public final void startExecute() throws IOException {
 		String[] executeLine = assemble();
+		log.debug("Start execution in " + workDir);
 		ProcessBuilder pb = new ProcessBuilder(executeLine);
 		if (workDir != null) {
 			File workDirF = new File(workDir);

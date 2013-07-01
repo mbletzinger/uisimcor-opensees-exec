@@ -13,9 +13,6 @@
 					name="execute_dynamic"
 					depends-on="process.*" />
 				<group
-					name="execute_static"
-					depends-on="process.*" />
-				<group
 					name="data"
 					depends-on="input.*" />
 				<group
@@ -38,8 +35,7 @@
 				name="org.nees.illinois.uisimcor.fem_executor.test.TestLoadSaveConfig" />
 			<class
 				name="org.nees.illinois.uisimcor.fem_executor.test.TestInputCommandGeneration" />
-			<class name="org.nees.illinois.uisimcor.fem_executor.test.TestDynamicExecution" />
-			<class name="org.nees.illinois.uisimcor.fem_executor.test.TestStaticExecution" />
+			<class name="org.nees.illinois.uisimcor.fem_executor.test.TestFemExecutorExecution" />
 			<class
 				name="org.nees.illinois.uisimcor.fem_executor.test.TestDofIndexMagic" />
 			<class name="org.nees.illinois.uisimcor.fem_executor.test.TestTcpMonitors" />
