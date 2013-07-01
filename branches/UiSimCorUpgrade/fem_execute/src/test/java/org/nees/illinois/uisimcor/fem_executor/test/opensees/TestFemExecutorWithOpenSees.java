@@ -63,19 +63,6 @@ public class TestFemExecutorWithOpenSees {
 	@Test
 	public final void testRunDynamic() {
 		FemExecutor fexec = new FemExecutor(configDir, workDir);
-		fexec.setDynamic(true);
-		for (String c : configFiles) {
-			runSubstructure(fexec, c);
-		}
-	}
-
-	/**
-	 * Run all of the test configuration through the FEM executor.
-	 */
-	@Test
-	public final void testRunStatic() {
-		FemExecutor fexec = new FemExecutor(configDir, workDir);
-		fexec.setDynamic(false);
 		for (String c : configFiles) {
 			runSubstructure(fexec, c);
 		}

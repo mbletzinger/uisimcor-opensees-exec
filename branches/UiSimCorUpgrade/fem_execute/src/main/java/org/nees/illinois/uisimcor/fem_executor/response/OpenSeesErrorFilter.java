@@ -32,6 +32,18 @@ public class OpenSeesErrorFilter implements ResponseFilterI {
 		if (response.contains("Pacific Earthquake Engineering Research Center")) {
 			return false;
 		}
+		if (response.contains("SIMCOR")) {
+			return false;
+		}
+		if (response.contains("NICA")) {
+			return false;
+		}
+		if (response.contains("OpenSees Version")) {
+			return false;
+		}
+		if (response.contains("________________")) {
+			return false;
+		}
 		if (response.contains("Copyright")) {
 			return false;
 		}

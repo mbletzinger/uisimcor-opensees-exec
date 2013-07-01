@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
 import org.nees.illinois.uisimcor.fem_executor.response.ProcessResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Class adds a queue to STDIN.
@@ -26,6 +28,11 @@ public class ProcessManagementWithStdin implements ProcessManagmentI {
 	 * The process.
 	 */
 	private final ProcessManagement pm;
+	/**
+	 * Logger.
+	 **/
+	private final Logger log = LoggerFactory
+			.getLogger(ProcessManagementWithStdin.class);
 
 	/**
 	 * @param cmd
@@ -117,6 +124,7 @@ public class ProcessManagementWithStdin implements ProcessManagmentI {
 	 */
 	public final void startExecute() throws IOException {
 		pm.startExecute();
+		log.debug("Starting STDIN exchange in " + pm.getWorkDir());
 		exchange = new StdInExchange(pm.getWaitInMillSecs(), pm.getProcess()
 				.getOutputStream());
 		exchangeThrd = new Thread(exchange);
