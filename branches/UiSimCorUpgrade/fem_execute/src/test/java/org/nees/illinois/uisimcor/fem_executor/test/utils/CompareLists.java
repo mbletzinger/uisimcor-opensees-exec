@@ -13,7 +13,8 @@ import org.testng.Assert;
 public class CompareLists<Item> {
 	/**
 	 */
-	public final Double tolerance;
+	private final Double tolerance;
+
 	/**
 	 * Compare two list.
 	 * @param actual
@@ -24,26 +25,32 @@ public class CompareLists<Item> {
 	public final void compare(final List<Item> actual, final List<Item> expected) {
 		Assert.assertEquals(actual.size(), expected.size());
 		for (int e = 0; e < expected.size(); e++) {
-			if(expected.get(e) instanceof Double) {
+			if (expected.get(e) instanceof Double) {
 				Double a = (Double) actual.get(e);
 				Double ex = (Double) expected.get(e);
-				Assert.assertEquals(a, ex,tolerance,"At " + e
-						+ " out of " + expected.size());
+				Assert.assertEquals(a, ex, tolerance, "At " + e + " out of "
+						+ expected.size());
 			} else {
 				Assert.assertEquals(actual.get(e), expected.get(e), "At " + e
-						+ " out of " + expected.size());				
+						+ " out of " + expected.size());
 			}
 		}
 	}
+
 	/**
-	 *@param tolerance
-	 * Amount of error allowed between 2 doubles.
+	 * @param tolerance
+	 *            Amount of error allowed between 2 doubles.
 	 */
-	public CompareLists(Double tolerance) {
+	public CompareLists(final Double tolerance) {
 		this.tolerance = tolerance;
 	}
+
+	/**
+	 * Constructor.
+	 */
 	public CompareLists() {
-		this.tolerance = 0.0001;
+		final double defaultTolerance = 0.0001;
+		this.tolerance = defaultTolerance;
 	}
-	
+
 }

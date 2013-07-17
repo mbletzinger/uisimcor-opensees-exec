@@ -7,12 +7,12 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
+import org.nees.illinois.uisimcor.fem_executor.execute.FileWithContentDelete;
 import org.nees.illinois.uisimcor.fem_executor.process.ProcessManagementWithStdin;
 import org.nees.illinois.uisimcor.fem_executor.process.QMessageT;
 import org.nees.illinois.uisimcor.fem_executor.process.QMessageType;
 import org.nees.illinois.uisimcor.fem_executor.response.ResponseMonitor;
 import org.nees.illinois.uisimcor.fem_executor.test.utils.WindowsPerlBatchCreator;
-import org.nees.illinois.uisimcor.fem_executor.utils.FileWithContentDelete;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

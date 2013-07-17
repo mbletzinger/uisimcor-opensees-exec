@@ -23,11 +23,11 @@ import org.apache.commons.io.FileUtils;
 import org.nees.illinois.uisimcor.fem_executor.config.LoadSaveConfig;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.TemplateDao;
+import org.nees.illinois.uisimcor.fem_executor.execute.FileWithContentDelete;
 import org.nees.illinois.uisimcor.fem_executor.input.OpenSeesSG;
 import org.nees.illinois.uisimcor.fem_executor.input.WorkingDir;
 import org.nees.illinois.uisimcor.fem_executor.output.DataFormatter;
 import org.nees.illinois.uisimcor.fem_executor.process.ProcessManagementWithStdin;
-import org.nees.illinois.uisimcor.fem_executor.process.ProcessManagmentI;
 import org.nees.illinois.uisimcor.fem_executor.process.QMessageT;
 import org.nees.illinois.uisimcor.fem_executor.process.QMessageType;
 import org.nees.illinois.uisimcor.fem_executor.tcp.TcpLinkDto;
@@ -35,7 +35,6 @@ import org.nees.illinois.uisimcor.fem_executor.tcp.TcpListener;
 import org.nees.illinois.uisimcor.fem_executor.tcp.TcpParameters;
 import org.nees.illinois.uisimcor.fem_executor.tcp.TcpReader;
 import org.nees.illinois.uisimcor.fem_executor.test.utils.CompareLists;
-import org.nees.illinois.uisimcor.fem_executor.utils.FileWithContentDelete;
 import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
 import org.nees.illinois.uisimcor.fem_executor.utils.OutputFileException;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
@@ -226,8 +225,7 @@ public class TestOpenSeesExecution {
 	 */
 	private void compareTcp2Text(final String tfilename,
 			final List<List<Double>> actual) {
-		WorkingDir wd = new WorkingDir(workDir, configDir);
-		wd.setSubstructureCfg(sdao);
+		WorkingDir wd = new WorkingDir(workDir, sdao, configDir);
 		List<List<Double>> expected = null;
 		try {
 			expected = readTxtOutput(PathUtils.append(wd.getWorkDir(),
@@ -265,18 +263,18 @@ public class TestOpenSeesExecution {
 	 * @param step
 	 *            Current step.
 	 */
-	private void printDoubleBytes(final List<Double> doubles, final int step) {
-		String msg = "Step " + step + "[";
-		boolean first = true;
-		for (Double d : doubles) {
-
-			msg += (first ? "" : ",") + d + "=>"
-					+ Long.toHexString(Double.doubleToRawLongBits(d));
-			first = false;
-		}
-		msg += "]";
-		log.debug(msg);
-	}
+//	private void printDoubleBytes(final List<Double> doubles, final int step) {
+//		String msg = "Step " + step + "[";
+//		boolean first = true;
+//		for (Double d : doubles) {
+//
+//			msg += (first ? "" : ",") + d + "=>"
+//					+ Long.toHexString(Double.doubleToRawLongBits(d));
+//			first = false;
+//		}
+//		msg += "]";
+//		log.debug(msg);
+//	}
 
 	/**
 	 * Print a byte string representation and the double value of am array of
@@ -347,8 +345,7 @@ public class TestOpenSeesExecution {
 	private void runTemplate(final String name) {
 		final int waitTime = 200;
 		TemplateDao template = templates.get(name);
-		WorkingDir wd = new WorkingDir(workDir, configDir);
-		wd.setSubstructureCfg(sdao);
+		WorkingDir wd = new WorkingDir(workDir, sdao, configDir);
 		wd.createWorkDir();
 		OpenSeesSG input = new OpenSeesSG(configDir, sdao, template);
 		ProcessManagementWithStdin pm = new ProcessManagementWithStdin(command,

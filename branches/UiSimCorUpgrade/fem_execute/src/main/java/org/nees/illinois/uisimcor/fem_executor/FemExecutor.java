@@ -11,7 +11,6 @@ import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
 import org.nees.illinois.uisimcor.fem_executor.config.types.FemProgramType;
 import org.nees.illinois.uisimcor.fem_executor.execute.DynamicExecution;
 import org.nees.illinois.uisimcor.fem_executor.execute.SubstructureExecutorI;
-import org.nees.illinois.uisimcor.fem_executor.input.WorkingDir;
 import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -327,14 +326,11 @@ public class FemExecutor {
 	public final boolean setup() {
 		ProgramDao progCfg = config.getFemProgramParameters().get(
 				FemProgramType.OPENSEES);
-		WorkingDir wd = new WorkingDir(workDir, configRootDir);
 		boolean result = true;
 		for (String fsc : config.getSubstructCfgs().keySet()) {
 			SubstructureDao scfg = config.getSubstructCfgs().get(fsc);
-			wd.setSubstructureCfg(scfg);
-			wd.createWorkDir();
 			SubstructureExecutorI exe = new DynamicExecution(progCfg, scfg,
-					configRootDir, wd.getWorkDir());
+					configRootDir, workDir);
 			result = result && exe.setup();
 			executors.put(fsc, exe);
 		}
