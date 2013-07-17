@@ -160,6 +160,12 @@ public class OpenSeesSG implements ScriptGeneratorI {
 		for (Integer n : substructureCfg.getNodeSequence()) {
 			List<DispDof> edofs = substructureCfg.getEffectiveDofs(n);
 			for (DispDof d : edofs) {
+				if (cnt == displacements.length) {
+					log.error("Number of total effective DOFs exceeds the number of displacements available "
+							+ substructureCfg.getTotalDofs()
+							+ "  > "
+							+ displacements.length);
+				}
 				double val = displacements[cnt];
 				cnt++;
 				result += "sp " + n + " " + magic.index(d) + " "

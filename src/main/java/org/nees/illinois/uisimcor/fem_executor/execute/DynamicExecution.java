@@ -1,14 +1,19 @@
 package org.nees.illinois.uisimcor.fem_executor.execute;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import org.nees.illinois.uisimcor.fem_executor.archiving.DataArchive;
+import org.nees.illinois.uisimcor.fem_executor.archiving.HeaderArchive;
+import org.nees.illinois.uisimcor.fem_executor.archiving.TextArchive;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.ProgramDao;
 import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
 import org.nees.illinois.uisimcor.fem_executor.input.OpenSeesSG;
 import org.nees.illinois.uisimcor.fem_executor.input.ScriptGeneratorI;
+import org.nees.illinois.uisimcor.fem_executor.input.WorkingDir;
 import org.nees.illinois.uisimcor.fem_executor.process.ProcessManagementWithStdin;
 import org.nees.illinois.uisimcor.fem_executor.process.QMessageT;
 import org.nees.illinois.uisimcor.fem_executor.process.QMessageType;
@@ -18,6 +23,7 @@ import org.nees.illinois.uisimcor.fem_executor.tcp.TcpParameters;
 import org.nees.illinois.uisimcor.fem_executor.tcp.TcpReader;
 import org.nees.illinois.uisimcor.fem_executor.utils.LogMessageWithCounter;
 import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
+import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,6 +83,22 @@ public class DynamicExecution implements SubstructureExecutorI {
 	 */
 	private final LogMessageWithCounter logC = new LogMessageWithCounter(20,
 			log, Level.INFO);
+	/**
+	 * Forces archive.
+	 */
+	private final DataArchive farch;
+	/**
+	 * Displacements archive.
+	 */
+	private final DataArchive darch;
+	/**
+	 * Input string archive.
+	 */
+	private final TextArchive iarch;
+	/**
+	 * Current step.
+	 */
+	private int currentStep;
 
 	/**
 	 * @param progCfg
@@ -92,11 +114,25 @@ public class DynamicExecution implements SubstructureExecutorI {
 			final SubstructureDao scfg, final String configDir,
 			final String workDir) {
 		final int quarterSecond = 250;
-		this.exec = new ProcessExecution(progCfg, workDir, quarterSecond, true);
+		WorkingDir wd = new WorkingDir(workDir, scfg, configDir);
+		wd.createWorkDir();
+		this.exec = new ProcessExecution(progCfg, wd.getWorkDir(), quarterSecond, true);
 		this.scriptGen = new OpenSeesSG(configDir, scfg,
 				progCfg.getTemplateDao());
 		this.responseVals = new ResponseValues(scfg);
 		this.scfg = scfg;
+		SubstructureDir logDir = new SubstructureDir(workDir, scfg, "logDir");
+		logDir.createSubstructDir();
+		String darchPath = PathUtils.append(logDir.getSubstructDir(), "Displacements");
+		String farchPath = PathUtils.append(logDir.getSubstructDir(), "Forces");
+		HeaderArchive hd = new HeaderArchive(darchPath, scfg, false);
+		hd.write();
+		hd = new HeaderArchive(farchPath, scfg, true);
+		hd.write();
+		this.darch = new DataArchive(darchPath);
+		this.farch = new DataArchive(farchPath);
+		String ipath = PathUtils.append(logDir.getSubstructDir(), "Inputs");
+		this.iarch = new TextArchive(new File(ipath));
 	}
 
 	/**
@@ -160,6 +196,7 @@ public class DynamicExecution implements SubstructureExecutorI {
 	 */
 	private void init() {
 		String init = scriptGen.generateInit();
+		iarch.write(init);
 		ProcessManagementWithStdin execWStdin = (ProcessManagementWithStdin) exec
 				.getProcess();
 		BlockingQueue<QMessageT<String>> stdinQ = execWStdin.getStdinQ();
@@ -258,7 +295,9 @@ public class DynamicExecution implements SubstructureExecutorI {
 	 *            Current displacement target.
 	 */
 	public final void startStep(final int step, final double[] displacements) {
+		currentStep = step;
 		String stepCmnd = scriptGen.generateStep(step, displacements);
+		iarch.write(stepCmnd);
 		ProcessManagementWithStdin execWStdin = (ProcessManagementWithStdin) exec
 				.getProcess();
 		BlockingQueue<QMessageT<String>> stdinQ = execWStdin.getStdinQ();
@@ -285,7 +324,12 @@ public class DynamicExecution implements SubstructureExecutorI {
 			logC.reset();
 		}
 		logC.log(scfg.getAddress() + " Is " + statuses.getStatus());
-		return statuses.responsesHaveArrived();
+		boolean result = statuses.responsesHaveArrived();
+		if(result && (statuses.isFemProcessHasDied() == false)) {
+			darch.write(currentStep, getDisplacements());
+			farch.write(currentStep, getForces());
+		}
+		return result;
 	}
 
 	@Override

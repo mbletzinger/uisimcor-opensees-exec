@@ -3,10 +3,10 @@
  */
 package org.nees.illinois.uisimcor.fem_executor.input;
 
-import java.io.File;
 import java.io.IOException;
 
 import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
+import org.nees.illinois.uisimcor.fem_executor.execute.SubstructureDir;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,36 +23,32 @@ public class WorkingDir {
 	private final String configDir;
 
 	/**
+	 * Subdirectory creator.
+	 */
+	private final SubstructureDir subDir;
+
+	/**
 	 * Logger.
 	 **/
 	private final Logger log = LoggerFactory.getLogger(WorkingDir.class);
 
 	/**
-	 * Substructure configuration parameters.
-	 */
-	private SubstructureDao substructureCfg;
-
-	/**
-	 * Path to the working directory of the current substructure.
-	 */
-	private String workDir;
-
-	/**
-	 * Path to the root directory containing all of the processing files.
-	 */
-	private final String workDirRoot;
-
-	/**
 	 * Constructor.
-	 * @param workDirRoot
+	 * @param dirRoot
 	 *            Path to the root directory containing all of the processing
 	 *            files.
 	 * @param configDir
 	 *            Root of directory containing the model configuration files.
+	 * @param substructureCfg
+	 *            Substructure configuration parameters.
 	 */
-	public WorkingDir(final String workDirRoot, final String configDir) {
+	public WorkingDir(final String dirRoot, final SubstructureDao substructureCfg, final String configDir) {
 		this.configDir = configDir;
-		this.workDirRoot = workDirRoot;
+		this.subDir = new SubstructureDir(dirRoot, substructureCfg, "workDir");
+		log.debug("For substructure " + substructureCfg.getAddress()
+				+ " the workDir is \"" + subDir.getSubstructDir() + "\"");
+		log.debug("For substructure " + substructureCfg.getAddress()
+				+ " the configDir is \"" + this.configDir + "\"");
 	}
 
 	/**
@@ -60,40 +56,26 @@ public class WorkingDir {
 	 * files.
 	 */
 	public final void createWorkDir() {
-		if (workDir == null) {
-			log.error("Please set my substructure configuration using setSubstructureCfg before telling me to create a working directory......idiot");
-		}
-		File workDirF = new File(workDir);
-		if (workDirF.exists() && (workDirF.isDirectory() == false)) {
-			log.error("Cannot create working directory \"" + workDir + "\"");
-			return;
-		}
-		try {
-			workDirF.mkdirs();
-			log.debug("\"" + workDir + "\" was created");
-		} catch (Exception e) {
-			log.error("Cannot create working directory \"" + workDir
-					+ "\" because ", e);
-			return;
-		}
-
-		for (String f : substructureCfg.getSourcedFilenames()) {
+		subDir.createSubstructDir();
+		for (String f : subDir.getSubstructureCfg().getSourcedFilenames()) {
 			try {
-				PathUtils.cp(f, configDir, workDir);
+				PathUtils.cp(f, configDir, subDir.getSubstructDir());
 			} catch (IOException e) {
 				log.error(
 						"Cannot copy file \"" + PathUtils.append(configDir, f)
-								+ " \" to \"" + workDir + "\" because ", e);
+								+ " \" to \"" + subDir.getSubstructDir()
+								+ "\" because ", e);
 				return;
 			}
 		}
-		for (String f : substructureCfg.getWorkFiles()) {
+		for (String f : subDir.getSubstructureCfg().getWorkFiles()) {
 			try {
-				PathUtils.cp(f, configDir, workDir);
+				PathUtils.cp(f, configDir, subDir.getSubstructDir());
 			} catch (IOException e) {
 				log.error(
 						"Cannot copy file \"" + PathUtils.append(configDir, f)
-								+ " \" to \"" + workDir + "\" because ", e);
+								+ " \" to \"" + subDir.getSubstructDir()
+								+ "\" because ", e);
 				return;
 			}
 		}
@@ -105,41 +87,11 @@ public class WorkingDir {
 	public final String getConfigDir() {
 		return configDir;
 	}
-
-	/**
-	 * @return the substructureCfg
-	 */
-	public final SubstructureDao getSubstructureCfg() {
-		return substructureCfg;
-	}
-
 	/**
 	 * @return the workDir
 	 */
 	public final String getWorkDir() {
-		return workDir;
-	}
-
-	/**
-	 * @return the workDirRoot
-	 */
-	public final String getWorkDirRoot() {
-		return workDirRoot;
-	}
-
-	/**
-	 * @param substructureCfg
-	 *            the substructureCfg to set
-	 */
-	public final void setSubstructureCfg(final SubstructureDao substructureCfg) {
-		this.substructureCfg = substructureCfg;
-		this.workDir = PathUtils.append(workDirRoot,
-				substructureCfg.getAddress());
-
-		log.debug("For substructure " + substructureCfg.getAddress()
-				+ " the workDir is \"" + this.workDir + "\"");
-		log.debug("For substructure " + substructureCfg.getAddress()
-				+ " the configDir is \"" + this.configDir + "\"");
+		return subDir.getSubstructDir();
 	}
 
 }
