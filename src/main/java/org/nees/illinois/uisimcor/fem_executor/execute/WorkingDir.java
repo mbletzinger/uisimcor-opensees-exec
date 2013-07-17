@@ -1,12 +1,11 @@
 /**
  *
  */
-package org.nees.illinois.uisimcor.fem_executor.input;
+package org.nees.illinois.uisimcor.fem_executor.execute;
 
 import java.io.IOException;
 
 import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
-import org.nees.illinois.uisimcor.fem_executor.execute.SubstructureDir;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
