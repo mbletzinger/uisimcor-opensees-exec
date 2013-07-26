@@ -1,9 +1,8 @@
-package org.nees.illinois.uisimcor.fem_executor.execute;
+package org.nees.illinois.uisimcor.fem_executor.output;
 
 import java.util.List;
 
 import org.nees.illinois.uisimcor.fem_executor.config.dao.SubstructureDao;
-import org.nees.illinois.uisimcor.fem_executor.output.DataFormatter;
 import org.nees.illinois.uisimcor.fem_executor.utils.MtxUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

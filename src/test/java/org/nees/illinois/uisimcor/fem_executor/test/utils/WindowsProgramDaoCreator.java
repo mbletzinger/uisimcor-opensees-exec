@@ -28,7 +28,7 @@ public class WindowsProgramDaoCreator extends WindowsPerlBatchCreator {
 	public WindowsProgramDaoCreator(final String folder, final ProgramDao prog) {
 		super(prog.getExecutablePath(), folder);
 		batchConfig = new ProgramDao(getBatchFilename(), prog.getProgram(),
-				prog.getTemplateDao());
+				prog.getTemplateDao(), 0);
 	}
 
 	/**

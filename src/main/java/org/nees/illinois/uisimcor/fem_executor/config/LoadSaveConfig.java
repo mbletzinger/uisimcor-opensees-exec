@@ -18,6 +18,7 @@ import org.nees.illinois.uisimcor.fem_executor.config.dao.TemplateDao;
 import org.nees.illinois.uisimcor.fem_executor.config.types.DimensionType;
 import org.nees.illinois.uisimcor.fem_executor.config.types.DispDof;
 import org.nees.illinois.uisimcor.fem_executor.config.types.FemProgramType;
+import org.nees.illinois.uisimcor.fem_executor.utils.IllegalParameterException;
 import org.nees.illinois.uisimcor.fem_executor.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,12 +64,14 @@ public class LoadSaveConfig {
 	 * Properties for storing configuration data for a substructure.
 	 */
 	private Properties props;
+
 	/**
 	 * @return the configFilePath
 	 */
 	public final String getConfigFilePath() {
 		return configFilePath;
 	}
+
 	/**
 	 * @return the femConfig
 	 */
@@ -108,8 +111,15 @@ public class LoadSaveConfig {
 			}
 			femConfig.getFemProgramParameters().put(p, fProgCfg);
 		}
-		String str = props.getProperty("substructures");
-		String[] names = str.split(", ");
+		List<String> names;
+		try {
+			names = eoStringList.parse(props.getProperty("substructures"),
+					"substructures");
+		} catch (IllegalParameterException e) {
+			log.error(configFilePath
+					+ " has a substructures line that cannot be parsed");
+			return;
+		}
 		for (String n : names) {
 			SubstructureDao cfg = loadSubStructure(n);
 			femConfig.getSubstructCfgs().put(n, cfg);
@@ -123,24 +133,32 @@ public class LoadSaveConfig {
 	 * @return FEM program parameters set
 	 */
 	private ProgramDao loadFemProgram(final FemProgramType ptype) {
-		String stepT = props.getProperty(ptype + ".file.template.step");
+		StringDecoder decodeS = new StringDecoder();
+		IntegerDecoder decodeI = new IntegerDecoder();
+		String label = ptype + ".file.template.step";
+		String stepT = decodeS.parse(props.getProperty(label), label);
 		if (stepT == null) {
 			return null;
 		}
-		String initT = props.getProperty(ptype + ".file.template.init");
+		label = ptype + ".file.template.init";
+		String initT = decodeS.parse(props.getProperty(label), label);
 		if (initT == null) {
 			return null;
 		}
-		String runT = props.getProperty(ptype + ".file.template.run");
+		label = ptype + ".file.template.run";
+		String runT = decodeS.parse(props.getProperty(label), label);
 		if (runT == null) {
 			return null;
 		}
 		TemplateDao tdao = new TemplateDao(stepT, initT, runT);
-		String executable = props.getProperty(ptype + ".path.executable");
+		label = ptype + ".path.executable";
+		String executable = decodeS.parse(props.getProperty(label), label);
 		if (executable == null) {
 			return null;
 		}
-		ProgramDao result = new ProgramDao(executable, ptype, tdao);
+		label = ptype + ".step.record.index";
+		int index = decodeI.parse(props.getProperty(label), label);
+		ProgramDao result = new ProgramDao(executable, ptype, tdao, index);
 		return result;
 	}
 
@@ -151,89 +169,49 @@ public class LoadSaveConfig {
 	 * @return Configuration data.
 	 */
 	private SubstructureDao loadSubStructure(final String name) {
-		String address = name;
-		String str = props.getProperty(name + ".dimension");
-		DimensionType dim = null;
-		if (str == null) {
-			log.error("Dimension not found for " + name);
-		} else {
-			try {
-				dim = DimensionType.valueOf(str);
-			} catch (Exception e) {
-				log.error("Dimension \"" + str + "\" not recognized for "
-						+ name);
-			}
-		}
-		str = props.getProperty(name + ".control.nodes");
+		String label = name + ".dimension";
+		DimensionTypeDecoder decodeDim = new DimensionTypeDecoder();
+		DimensionType dim = decodeDim.parse(props.getProperty(label), label);
+		label = name + ".control.nodes";
 		List<Integer> nodes = null;
-		if (str == null) {
-			log.error("Control nodes not found for " + name);
-		} else {
-			try {
-				nodes = eoIntegerList.parse(str);
-			} catch (Exception e) {
-				log.error("Control node list \"" + str
-						+ "\" not recognized for " + name, e);
-			}
+		try {
+			nodes = eoIntegerList.parse(props.getProperty(label), label);
+		} catch (Exception e) {
+			log.error("Control node list not recognized for " + name, e);
 		}
-		str = props.getProperty(name + ".fem.program");
-		FemProgramType fem = null;
-		if (str == null) {
-			log.error("FEM program name not found for " + name);
-		} else {
-			try {
-				fem = FemProgramType.valueOf(str);
-			} catch (Exception e) {
-				log.error("FEM program \"" + str + "\" not recognized for "
-						+ name);
-			}
-		}
-		str = props.getProperty(name + ".work.files");
+		label = name + ".fem.program";
+		FemProgramTypeDecoder decodeF = new FemProgramTypeDecoder();
+		FemProgramType fem = decodeF.parse(props.getProperty(label), label);
+		label = name + ".work.files";
 		List<String> wfiles = null;
-		if (str == null) {
-			log.error("Work files not found for " + name);
-		} else {
-			try {
-				wfiles = eoStringList.parse(str);
-			} catch (Exception e) {
-				log.error("Work files list \"" + str
-						+ "\" not recognized for " + name, e);
-			}
+		try {
+			wfiles = eoStringList.parse(props.getProperty(label), label);
+		} catch (Exception e) {
+			log.error("Work files list not recognized for " + name, e);
 		}
-		str = props.getProperty(name + ".source.files");
+		label = name + ".source.files";
 		List<String> sfiles = null;
-		if (str == null) {
-			log.error("Work files not found for " + name);
-		} else {
-			try {
-				sfiles = eoStringList.parse(str);
-			} catch (Exception e) {
-				log.error("Source files list \"" + str
-						+ "\" not recognized for " + name, e);
-			}
+		try {
+			sfiles = eoStringList.parse(props.getProperty(label), label);
+		} catch (Exception e) {
+			log.error("Source files list not recognized for " + name, e);
 		}
 		final IntegerDecoder id = new IntegerDecoder();
-		str = props.getProperty(name + ".tcp.port.disp");
-		int dport = id.parse(str);
-		str = props.getProperty(name + ".tcp.port.forc");
-		int fport = id.parse(str);
+		label = name + ".tcp.port.disp";
+		int dport = id.parse(props.getProperty(label), label);
+		label = name + ".tcp.port.forc";
+		int fport = id.parse(props.getProperty(label), label);
 
-		SubstructureDao result = new SubstructureDao(address, dim, fem,
-				sfiles, nodes, wfiles,dport,fport);
+		SubstructureDao result = new SubstructureDao(name, dim, fem, sfiles,
+				nodes, wfiles, dport, fport);
 		for (Integer node : nodes) {
-			str = props.getProperty(name + ".effective.dofs." + node);
+			label = name + ".effective.dofs." + node;
 			List<DispDof> edofs = null;
-			if (str == null) {
-				log.error("Missing Effective DOFs for node " + node
-						+ " substructure " + address);
-				continue;
-			}
 			try {
-				edofs = eoDispDofList.parse(str);
+				edofs = eoDispDofList.parse(props.getProperty(label), label);
 				result.addEffectiveDofs(node, edofs);
 			} catch (Exception e) {
-				log.error("Effective DOF list \"" + str
-						+ "\" not recognized for node " + node
+				log.error("Effective DOF list not recognized for node " + node
 						+ " substructure " + name, e);
 			}
 		}
@@ -257,8 +235,7 @@ public class LoadSaveConfig {
 			first = false;
 		}
 		props.setProperty("substructures", str);
-		for (ProgramDao fpCfg : femConfig.getFemProgramParameters()
-				.values()) {
+		for (ProgramDao fpCfg : femConfig.getFemProgramParameters().values()) {
 			saveFemProgram(fpCfg);
 		}
 
@@ -280,9 +257,13 @@ public class LoadSaveConfig {
 	private void saveFemProgram(final ProgramDao progCfg) {
 		FemProgramType ptype = progCfg.getProgram();
 		props.put(ptype + ".path.executable", progCfg.getExecutablePath());
-		props.put(ptype + ".file.template.step", progCfg.getTemplateDao().getStepTemplateFile());
-		props.put(ptype + ".file.template.init", progCfg.getTemplateDao().getInitTemplateFile());
-		props.put(ptype + ".file.template.run", progCfg.getTemplateDao().getRunTemplateFile());
+		props.put(ptype + ".file.template.step", progCfg.getTemplateDao()
+				.getStepTemplateFile());
+		props.put(ptype + ".file.template.init", progCfg.getTemplateDao()
+				.getInitTemplateFile());
+		props.put(ptype + ".file.template.run", progCfg.getTemplateDao()
+				.getRunTemplateFile());
+		props.put(ptype + ".step.record.index", Integer.toString(progCfg.getStepRecordIndex()));
 	}
 
 	/**
@@ -305,11 +286,14 @@ public class LoadSaveConfig {
 					eoDispDofList.encode(config.getEffectiveDofs(node)));
 		}
 		props.setProperty(name + ".fem.program", config.getFemProgram().name());
-		props.setProperty(name + ".source.files", eoStringList.encode(config.getSourcedFilenames()));
+		props.setProperty(name + ".source.files",
+				eoStringList.encode(config.getSourcedFilenames()));
 		props.setProperty(name + ".work.files",
 				eoStringList.encode(config.getWorkFiles()));
-		props.setProperty(name + ".tcp.port.disp",Integer.toString(config.getDispPort()));
-		props.setProperty(name + ".tcp.port.forc",Integer.toString(config.getForcePort()));
+		props.setProperty(name + ".tcp.port.disp",
+				Integer.toString(config.getDispPort()));
+		props.setProperty(name + ".tcp.port.forc",
+				Integer.toString(config.getForcePort()));
 	}
 
 	/**

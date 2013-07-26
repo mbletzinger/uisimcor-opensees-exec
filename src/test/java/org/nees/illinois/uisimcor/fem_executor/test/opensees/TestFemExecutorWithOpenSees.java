@@ -162,7 +162,7 @@ public class TestFemExecutorWithOpenSees {
 		}
 		u = ClassLoader.getSystemResource(exe);
 		String command = PathUtils.cleanPath(u.getPath());
-		CreateRefProgramConfig crpcfg = new CreateRefProgramConfig(command);
+		CreateRefProgramConfig crpcfg = new CreateRefProgramConfig(command, 0);
 		crpcfg.checkExecutable();
 		femProg = crpcfg.getConfig();
 

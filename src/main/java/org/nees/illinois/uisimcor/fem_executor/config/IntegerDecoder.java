@@ -14,12 +14,16 @@ public class IntegerDecoder extends ParseElement<Integer> {
 	private final Logger log = LoggerFactory.getLogger(IntegerDecoder.class);
 
 	@Override
-	public final Integer parse(final String str) {
+	public final Integer parse(final String str, final String label) {
+		if (str == null) {
+			log.error("Integer missing for " + label);
+			return null;
+		}
 		Integer result = null;
 		try {
 			result = Integer.decode(str);
 		} catch (Exception e) {
-			log.error("\"" + str + "\" is not an Integer");
+			log.error("\"" + str + "\" at " + label + " is not an Integer");
 			return null;
 		}
 		return result;
