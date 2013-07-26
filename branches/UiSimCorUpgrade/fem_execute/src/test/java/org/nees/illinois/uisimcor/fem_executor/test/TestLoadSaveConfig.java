@@ -100,7 +100,7 @@ public class TestLoadSaveConfig {
 		configRefFolder = pathF.getParent();
 		final int noSubstructures = 3;
 		femCfg = new FemExecutorConfig("/home/mbletzin/Tmp");
-		CreateRefProgramConfig crpcfg = new CreateRefProgramConfig("C:/Tcl/bin/OpenSees");
+		CreateRefProgramConfig crpcfg = new CreateRefProgramConfig("C:/Tcl/bin/OpenSees", 0);
 		femCfg.getFemProgramParameters().put(FemProgramType.OPENSEES, crpcfg.getConfig());
 		for (int i = 1; i < noSubstructures + 1; i++) {
 			String address = "MDL-0" + i;

@@ -93,7 +93,7 @@ public class TestInputCommandGeneration {
 		String cf = PathUtils.cleanPath(u.getPath());
 		configDir = PathUtils.parent(cf);
 		femCfg = new FemExecutorConfig(configDir);
-		CreateRefProgramConfig crpcfg = new CreateRefProgramConfig("/usr/bin/OpenSees");
+		CreateRefProgramConfig crpcfg = new CreateRefProgramConfig("/usr/bin/OpenSees", 0);
 		femCfg.getFemProgramParameters().put(FemProgramType.OPENSEES, crpcfg.getConfig());
 		String address = mdl;
 		final double[] dat = { 13.0203e-08, 34.00012e-12, 12.00345e-08,

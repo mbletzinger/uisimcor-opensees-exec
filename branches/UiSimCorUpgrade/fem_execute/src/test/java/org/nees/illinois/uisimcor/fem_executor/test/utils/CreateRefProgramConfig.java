@@ -27,11 +27,12 @@ public class CreateRefProgramConfig {
 	/**
 	 * @param command
 	 *            path to executable.
+	 * @param index record to grab for step.
 	 */
-	public CreateRefProgramConfig(final String command) {
+	public CreateRefProgramConfig(final String command, final int index) {
 		TemplateDao tdao = new TemplateDao("step_template.tcl",
 				"init_template.tcl", "run_template.tcl");
-		config = new ProgramDao(command, FemProgramType.OPENSEES, tdao);
+		config = new ProgramDao(command, FemProgramType.OPENSEES, tdao, index);
 	}
 
 	/**

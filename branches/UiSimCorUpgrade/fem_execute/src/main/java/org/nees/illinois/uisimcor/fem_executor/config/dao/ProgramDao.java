@@ -11,6 +11,13 @@ import org.nees.illinois.uisimcor.fem_executor.config.types.FemProgramType;
  */
 public class ProgramDao {
 	/**
+	 * @return the stepRecordIndex
+	 */
+	public final int getStepRecordIndex() {
+		return stepRecordIndex;
+	}
+
+	/**
 	 * Path to executable.
 	 */
 	private final String executablePath;
@@ -24,18 +31,27 @@ public class ProgramDao {
 	 */
 	private final TemplateDao templateDao;
 	/**
-	 * @param program
-	 *            FEM program type.
+	 * Record index to use for the response.
+	 */
+	private final int stepRecordIndex;
+
+	/**
 	 * @param executablePath
 	 *            Path to executable.
+	 * @param program
+	 *            FEM program type.
 	 * @param templateDao
 	 *            template file names.
+	 * @param stepRecordIndex
+	 *            Record index to use for the response.
 	 */
-	public ProgramDao(final String executablePath, final FemProgramType program,
-			final TemplateDao templateDao) {
+	public ProgramDao(final String executablePath,
+			final FemProgramType program, final TemplateDao templateDao,
+			final int stepRecordIndex) {
 		this.executablePath = executablePath;
 		this.program = program;
 		this.templateDao = templateDao;
+		this.stepRecordIndex = stepRecordIndex;
 	}
 
 	/**

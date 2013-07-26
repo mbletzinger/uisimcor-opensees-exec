@@ -54,11 +54,13 @@ public class EncodeDecodeList<T, P extends ParseElement<T>> {
 	 * Converts string to a datatype list.
 	 * @param listStr
 	 *            Input string.
+	 * @param label
+	 *            used for error messages.
 	 * @return List of datatypes
 	 * @throws IllegalParameterException
 	 *             for a list strings that are not able to be parsed.
 	 */
-	public final List<T> parse(final String listStr)
+	public final List<T> parse(final String listStr, final String label)
 			throws IllegalParameterException {
 		List<T> result = new ArrayList<T>();
 		String[] tokens;
@@ -66,21 +68,21 @@ public class EncodeDecodeList<T, P extends ParseElement<T>> {
 		try {
 			tokens = listStr.split(", ");
 		} catch (Exception e) {
-			throw new IllegalParameterException("\"" + listStr
-					+ "\" is not a valid list");
+			throw new IllegalParameterException("\"" + listStr + "\" at "
+					+ label + " is not a valid list");
 		}
 		if (tokens.length == 0) {
-			throw new IllegalParameterException("\"" + listStr
-					+ "\" is not a valid list");
+			throw new IllegalParameterException("\"" + listStr + "\" at "
+					+ label + " is not a valid list");
 		}
 		for (String t : tokens) {
 			String token = t;
 			T ddof;
 			try {
-				ddof = parser.parse(token);
+				ddof = parser.parse(token, label);
 			} catch (Exception e) {
-				throw new IllegalParameterException("\"" + t
-						+ "\" is not an element");
+				throw new IllegalParameterException("\"" + t + "\" at " + label
+						+ " is not an element");
 			}
 			result.add(ddof);
 		}
