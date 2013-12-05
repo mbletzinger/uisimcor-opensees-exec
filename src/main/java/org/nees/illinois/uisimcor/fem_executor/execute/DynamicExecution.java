@@ -60,6 +60,10 @@ public class DynamicExecution implements SubstructureExecutorI {
 	 */
 	private final DataArchive darch;
 	/**
+	 * Commands archive.
+	 */
+	private final DataArchive carch;
+	/**
 	 * Input string archive.
 	 */
 	private final TextArchive iarch;
@@ -98,12 +102,15 @@ public class DynamicExecution implements SubstructureExecutorI {
 		logDir.createSubstructDir();
 		String darchPath = PathUtils.append(logDir.getSubstructDir(),
 				"Displacements");
+		String carchPath = PathUtils.append(logDir.getSubstructDir(),
+				"Commands");
 		String farchPath = PathUtils.append(logDir.getSubstructDir(), "Forces");
 		HeaderArchive hd = new HeaderArchive(darchPath, scfg, false);
 		hd.write();
 		hd = new HeaderArchive(farchPath, scfg, true);
 		hd.write();
 		this.darch = new DataArchive(darchPath);
+		this.carch = new DataArchive(carchPath);
 		this.farch = new DataArchive(farchPath);
 		String ipath = PathUtils.append(logDir.getSubstructDir(), "Inputs");
 		this.iarch = new TextArchive(new File(ipath));
@@ -142,7 +149,7 @@ public class DynamicExecution implements SubstructureExecutorI {
 	@Override
 	public final boolean iveGotProblems() {
 		FemStatus statuses = getStatuses();
-		return statuses.isFemProcessHasErrors();
+		return statuses.isFemProcessHasDied();
 	}
 
 	@Override
