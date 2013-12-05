@@ -231,9 +231,11 @@ public class RecordCollector {
 		int rows = dm.size();
 		log.debug("Displacement response " + rows + " index " + (rows - (stepRecordIndex + 1)));
 		responseVals.setRawDisp(dm.get(rows - (stepRecordIndex + 1)));
+		responseVals.setCompleteDisp(new DoubleMatrix(dm));
 		dm = forceRecords.toList();
 		rows = dm.size();
 		log.debug("Force response " + rows + " index " + (rows - (stepRecordIndex + 1)));
 		responseVals.setRawForce(dm.get(rows - (stepRecordIndex + 1)));
+		responseVals.setCompleteForce(new DoubleMatrix(dm));
 	}
 }
