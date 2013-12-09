@@ -1,0 +1,475 @@
+Current Domain Information
+        Current Time: 0
+tCommitted Time: 0
+
+NODE DATA: NumNodes: 10
+
+ Node: 100
+        Coordinates  : -18.288 -6.096 0 
+        Disps: 0 0 0 0 0 0 
+
+
+ Node: 300
+        Coordinates  : -18.288 0 0 
+
+
+ Node: 500
+        Coordinates  : -18.288 6.096 0 
+        Disps: 0 0 0 0 0 0 
+
+
+ Node: 1100
+        Coordinates  : -12.192 -6.096 0 
+        Disps: 0 0 0 0 0 0 
+
+ Node: 10100
+        Coordinates  : -18.288 -6.096 3.9116 
+        Disps: 0 0 0 0 0 0 
+        Mass : 
+0 0 0 0 0 0 
+0 11.5833 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+
+         Rayleigh Factor: alphaM: 0
+
+ Node: 10120
+        Coordinates  : -18.288 -3.6576 3.9116 
+        Disps: 0 0 0 0 0 0 
+        Mass : 
+0 0 0 0 0 0 
+0 -0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+
+         Rayleigh Factor: alphaM: 0
+ Node: 13100
+	Coordinates  : 0 -6.096 3.9116 
+	Disps: 0 0 0 0 0 0 
+	Mass : 
+0 0 0 0 0 0 
+0 8.86434 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+
+	 Rayleigh Factor: alphaM: 0
+
+
+ Node: 13104
+	Coordinates  : -0.2032 -6.096 3.9116 
+	Disps: 0 0 0 0 0 0 
+
+
+ Node: 13107
+	Coordinates  : 0 -5.8166 3.9116 
+	Disps: 0 0 0 0 0 0 
+
+
+ Node: 13108
+	Coordinates  : 0 -6.096 3.556 
+	Disps: 0 0 0 0 0 0 
+
+
+ Node: 13109
+	Coordinates  : 0 -6.096 4.2672 
+	Disps: 0 0 0 0 0 0 
+
+
+ Node: 13110
+	Coordinates  : 0 -4.572 3.9116 
+	Disps: 0 0 0 0 0 0 
+	Mass : 
+0 0 0 0 0 0 
+0 -0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+
+	 Rayleigh Factor: alphaM: 0
+
+
+ Node: 13120
+	Coordinates  : 0 -3.6576 3.9116 
+	Disps: 0 0 0 0 0 0 
+	Mass : 
+0 0 0 0 0 0 
+0 -0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+
+	 Rayleigh Factor: alphaM: 0
+
+
+ Node: 13130
+	Coordinates  : 0 -2.4384 3.9116 
+	Disps: 0 0 0 0 0 0 
+	Mass : 
+0 0 0 0 0 0 
+0 -0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+
+	 Rayleigh Factor: alphaM: 0
+
+
+ Node: 13140
+	Coordinates  : 0 -1.524 3.9116 
+	Disps: 0 0 0 0 0 0 
+	Mass : 
+0 0 0 0 0 0 
+0 -0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+
+	 Rayleigh Factor: alphaM: 0
+
+ Node: 13300
+	Coordinates  : 0 0 3.9116 
+	Disps: 0 0 0 0 0 0 
+	Mass : 
+0 0 0 0 0 0 
+0 14.8273 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+
+	 Rayleigh Factor: alphaM: 0
+
+
+ Node: 13304
+	Coordinates  : -0.3048 0 3.9116 
+	Disps: 0 0 0 0 0 0 
+
+
+ Node: 13306
+	Coordinates  : 0 -0.3048 3.9116 
+	Disps: 0 0 0 0 0 0 
+
+
+ Node: 13307
+	Coordinates  : 0 0.3048 3.9116 
+	Disps: 0 0 0 0 0 0 
+
+
+ Node: 13308
+	Coordinates  : 0 0 3.81 
+	Disps: 0 0 0 0 0 0 
+
+
+ Node: 13309
+	Coordinates  : 0 0 4.2672 
+	Disps: 0 0 0 0 0 0 
+
+
+ Node: 13310
+	Coordinates  : 0 1.524 3.9116 
+	Disps: 0 0 0 0 0 0 
+	Mass : 
+0 0 0 0 0 0 
+0 -0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+
+	 Rayleigh Factor: alphaM: 0
+
+
+ Node: 13320
+	Coordinates  : 0 2.4384 3.9116 
+	Disps: 0 0 0 0 0 0 
+	Mass : 
+0 0 0 0 0 0 
+0 -0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+
+	 Rayleigh Factor: alphaM: 0
+
+
+ Node: 13330
+	Coordinates  : 0 3.6576 3.9116 
+	Disps: 0 0 0 0 0 0 
+	Mass : 
+0 0 0 0 0 0 
+0 -0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+
+	 Rayleigh Factor: alphaM: 0
+
+
+ Node: 13340
+	Coordinates  : 0 4.572 3.9116 
+	Disps: 0 0 0 0 0 0 
+	Mass : 
+0 0 0 0 0 0 
+0 -0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+
+	 Rayleigh Factor: alphaM: 0
+
+
+ Node: 13500
+	Coordinates  : 0 6.096 3.9116 
+	Disps: 0 0 0 0 0 0 
+	Mass : 
+0 0 0 0 0 0 
+0 8.86434 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+
+	 Rayleigh Factor: alphaM: 0
+
+Node: 103100
+        Coordinates  : 0 -6.096 33.401 
+        Disps: 0 0 0 0 0 0 
+        Mass : 
+0 0 0 0 0 0 
+0 8.41212 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+
+         Rayleigh Factor: alphaM: 0
+
+
+ Node: 103104
+        Coordinates  : -0.2032 -6.096 33.401 
+        Disps: 0 0 0 0 0 0 
+
+
+ Node: 103107
+        Coordinates  : 0 -5.8166 33.401 
+        Disps: 0 0 0 0 0 0 
+
+
+ Node: 103108
+        Coordinates  : 0 -6.096 33.1216 
+        Disps: 0 0 0 0 0 0 
+
+
+ Node: 103110
+        Coordinates  : 0 -4.572 33.401 
+        Disps: 0 0 0 0 0 0 
+        Mass : 
+0 0 0 0 0 0 
+0 -0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+
+         Rayleigh Factor: alphaM: 0
+
+Node: 103120
+        Coordinates  : 0 -3.6576 33.401 
+        Disps: 0 0 0 0 0 0 
+        Mass : 
+0 0 0 0 0 0 
+0 -0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+
+         Rayleigh Factor: alphaM: 0
+
+ Node: 103130
+        Coordinates  : 0 -2.4384 33.401 
+        Disps: 0 0 0 0 0 0 
+        Mass : 
+0 0 0 0 0 0 
+0 -0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+
+         Rayleigh Factor: alphaM: 0
+
+
+ Node: 103140
+        Coordinates  : 0 -1.524 33.401 
+        Disps: 0 0 0 0 0 0 
+        Mass : 
+0 0 0 0 0 0 
+0 -0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+
+         Rayleigh Factor: alphaM: 0
+
+
+ Node: 103300
+        Coordinates  : 0 0 33.401 
+        Disps: 0 0 0 0 0 0 
+        Mass : 
+0 0 0 0 0 0 
+0 14.8273 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+
+         Rayleigh Factor: alphaM: 0
+Node: 103310
+        Coordinates  : 0 1.524 33.401 
+        Disps: 0 0 0 0 0 0 
+        Mass : 
+0 0 0 0 0 0 
+0 -0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+
+         Rayleigh Factor: alphaM: 0
+
+
+ Node: 103320
+        Coordinates  : 0 2.4384 33.401 
+        Disps: 0 0 0 0 0 0 
+        Mass : 
+0 0 0 0 0 0 
+0 -0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+
+         Rayleigh Factor: alphaM: 0
+
+
+ Node: 103330
+        Coordinates  : 0 3.6576 33.401 
+        Disps: 0 0 0 0 0 0 
+        Mass : 
+0 0 0 0 0 0 
+0 -0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+
+         Rayleigh Factor: alphaM: 0
+
+
+ Node: 103340
+        Coordinates  : 0 4.572 33.401 
+        Disps: 0 0 0 0 0 0 
+        Mass : 
+0 0 0 0 0 0 
+0 -0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+
+         Rayleigh Factor: alphaM: 0
+
+
+ Node: 103500
+        Coordinates  : 0 6.096 33.401 
+        Disps: 0 0 0 0 0 0 
+        Mass : 
+0 0 0 0 0 0 
+0 8.41212 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+0 0 0 0 0 0 
+
+         Rayleigh Factor: alphaM: 0
+
+SP_Constraints: numConstraints: 702
+SP_Constraint: 0	 Node: 100 DOF: 0 ref value: 0 current value: 0
+SP_Constraint: 1	 Node: 100 DOF: 1 ref value: 0 current value: 0
+SP_Constraint: 2	 Node: 100 DOF: 2 ref value: 0 current value: 0
+SP_Constraint: 3	 Node: 100 DOF: 3 ref value: 0 current value: 0
+SP_Constraint: 4	 Node: 100 DOF: 4 ref value: 0 current value: 0
+SP_Constraint: 5	 Node: 100 DOF: 5 ref value: 0 current value: 0
+SP_Constraint: 6	 Node: 300 DOF: 0 ref value: 0 current value: 0
+SP_Constraint: 7	 Node: 300 DOF: 1 ref value: 0 current value: 0
+SP_Constraint: 8	 Node: 300 DOF: 2 ref value: 0 current value: 0
+SP_Constraint: 9	 Node: 300 DOF: 3 ref value: 0 current value: 0
+SP_Constraint: 10	 Node: 300 DOF: 4 ref value: 0 current value: 0
+SP_Constraint: 11	 Node: 300 DOF: 5 ref value: 0 current value: 0
+SP_Constraint: 12	 Node: 500 DOF: 0 ref value: 0 current value: 0
+SP_Constraint: 13	 Node: 500 DOF: 1 ref value: 0 current value: 0
+SP_Constraint: 14	 Node: 500 DOF: 2 ref value: 0 current value: 0
+SP_Constraint: 15	 Node: 500 DOF: 3 ref value: 0 current value: 0
+SP_Constraint: 16	 Node: 500 DOF: 4 ref value: 0 current value: 0
+SP_Constraint: 17	 Node: 500 DOF: 5 ref value: 0 current value: 0
+SP_Constraint: 18	 Node: 1100 DOF: 0 ref value: 0 current value: 0
+SP_Constraint: 19	 Node: 1100 DOF: 1 ref value: 0 current value: 0
+SP_Constraint: 20	 Node: 1100 DOF: 2 ref value: 0 current value: 0
+SP_Constraint: 21	 Node: 1100 DOF: 3 ref value: 0 current value: 0
+SP_Constraint: 22	 Node: 1100 DOF: 4 ref value: 0 current value: 0
+SP_Constraint: 23	 Node: 1100 DOF: 5 ref value: 0 current value: 0
+SP_Constraint: 93	 Node: 13110 DOF: 0 ref value: 0 current value: 0
+SP_Constraint: 94	 Node: 13110 DOF: 4 ref value: 0 current value: 0
+SP_Constraint: 95	 Node: 13110 DOF: 5 ref value: 0 current value: 0
+SP_Constraint: 96	 Node: 13120 DOF: 0 ref value: 0 current value: 0
+SP_Constraint: 97	 Node: 13120 DOF: 4 ref value: 0 current value: 0
+SP_Constraint: 98	 Node: 13120 DOF: 5 ref value: 0 current value: 0
+SP_Constraint: 99	 Node: 13130 DOF: 0 ref value: 0 current value: 0
+SP_Constraint: 100	 Node: 13130 DOF: 4 ref value: 0 current value: 0
+SP_Constraint: 101	 Node: 13130 DOF: 5 ref value: 0 current value: 0
+SP_Constraint: 102	 Node: 13140 DOF: 0 ref value: 0 current value: 0
+SP_Constraint: 103	 Node: 13140 DOF: 4 ref value: 0 current value: 0
+SP_Constraint: 104	 Node: 13140 DOF: 5 ref value: 0 current value: 0
+SP_Constraint: 105	 Node: 13300 DOF: 0 ref value: 0 current value: 0
+SP_Constraint: 106	 Node: 13300 DOF: 4 ref value: 0 current value: 0
+SP_Constraint: 107	 Node: 13300 DOF: 5 ref value: 0 current value: 0
+SP_Constraint: 120	 Node: 13310 DOF: 0 ref value: 0 current value: 0
+SP_Constraint: 121	 Node: 13310 DOF: 4 ref value: 0 current value: 0
+SP_Constraint: 122	 Node: 13310 DOF: 5 ref value: 0 current value: 0
+SP_Constraint: 123	 Node: 13320 DOF: 0 ref value: 0 current value: 0
+SP_Constraint: 124	 Node: 13320 DOF: 4 ref value: 0 current value: 0
+SP_Constraint: 125	 Node: 13320 DOF: 5 ref value: 0 current value: 0
+SP_Constraint: 126	 Node: 13330 DOF: 0 ref value: 0 current value: 0
+SP_Constraint: 127	 Node: 13330 DOF: 4 ref value: 0 current value: 0
+SP_Constraint: 128	 Node: 13330 DOF: 5 ref value: 0 current value: 0
+SP_Constraint: 129	 Node: 13340 DOF: 0 ref value: 0 current value: 0
+SP_Constraint: 130	 Node: 13340 DOF: 4 ref value: 0 current value: 0
+SP_Constraint: 131	 Node: 13340 DOF: 5 ref value: 0 current value: 0
+SP_Constraint: 132	 Node: 13500 DOF: 0 ref value: 0 current value: 0
+SP_Constraint: 133	 Node: 13500 DOF: 4 ref value: 0 current value: 0
+SP_Constraint: 134	 Node: 13500 DOF: 5 ref value: 0 current value: 0
+
+Nodal Load: 103120 load : 0 0 -16.5846 0 0 0 
+Nodal Load: 103130 load : 0 0 -16.5846 0 0 0 
+Nodal Load: 103140 load : 0 0 0 0 0 0 
+Nodal Load: 103300 load : 0 0 -112.287 0 0 0 
+Nodal Load: 103310 load : 0 0 0 0 0 0 
+Nodal Load: 103320 load : 0 0 -16.5846 0 0 0 
+Nodal Load: 103330 load : 0 0 -16.5846 0 0 0 
+Nodal Load: 103340 load : 0 0 0 0 0 0 
+Nodal Load: 103500 load : 0 0 -65.9383 0 0 0 

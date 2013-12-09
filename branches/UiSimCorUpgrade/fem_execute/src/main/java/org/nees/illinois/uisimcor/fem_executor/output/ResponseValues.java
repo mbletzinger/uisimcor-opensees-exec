@@ -68,7 +68,7 @@ public class ResponseValues {
 	public final double[] getDisplacements() {
 		List<Double> result = dformat.filter(rawDisp);
 		log.debug("Filtered Displacements " + MtxUtils.list2String(result));
-		return MtxUtils.list2Array(result);
+		return MtxUtils.list2DoubleArray(result);
 	}
 
 	/**
@@ -77,7 +77,7 @@ public class ResponseValues {
 	public final double[] getForces() {
 		List<Double> result = dformat.filter(rawForce);
 		log.debug("Filtered Forces " + MtxUtils.list2String(result));
-		return MtxUtils.list2Array(result);
+		return MtxUtils.list2DoubleArray(result);
 	}
 
 	/**
