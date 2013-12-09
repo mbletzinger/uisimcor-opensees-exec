@@ -20,7 +20,7 @@ public final class MtxUtils {
 	 * @return String.
 	 */
 	public static String list2String(final List<Double> list) {
-		double[] array = list2Array(list);
+		double[] array = list2DoubleArray(list);
 		return array2String(array);
 	}
 
@@ -107,10 +107,25 @@ public final class MtxUtils {
 	 *            List<Double>
 	 * @return double[]
 	 */
-	public static double[] list2Array(final List<Double> list) {
+	public static double[] list2DoubleArray(final List<Double> list) {
 		double[] result = new double[list.size()];
 		int i = 0;
 		for (Double d : list) {
+			result[i++] = d;
+		}
+		return result;
+	}
+
+	/**
+	 * Convert List<Integer> to int[].
+	 * @param list
+	 *            List<Integer>
+	 * @return int[]
+	 */
+	public static int[] list2IntArray(final List<Integer> list) {
+		int[] result = new int[list.size()];
+		int i = 0;
+		for (Integer d : list) {
 			result[i++] = d;
 		}
 		return result;

@@ -146,7 +146,7 @@ public class FemExecutor {
 		for (String mdl : executors.keySet()) {
 			SubstructureExecutorI exe = executors.get(mdl);
 			exe.startStep(getStep(),
-					MtxUtils.list2Array(displacementsMap.get(mdl)));
+					MtxUtils.list2DoubleArray(displacementsMap.get(mdl)));
 		}
 	}
 
