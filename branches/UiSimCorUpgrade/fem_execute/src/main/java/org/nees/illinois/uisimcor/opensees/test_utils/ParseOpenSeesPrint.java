@@ -75,7 +75,7 @@ public class ParseOpenSeesPrint {
 
 	/**
 	 * Scan for a constraint declaration. Example:
-	 * 
+	 *
 	 * <pre> SP_Constraint: 0	 Node: 100 DOF: 0 ref value: 0 current value: 0</pre>
 	 * @param line
 	 *            line to scan.
@@ -100,7 +100,7 @@ public class ParseOpenSeesPrint {
 
 	/**
 	 * Scan for a load declaration. Example:
-	 * 
+	 *
 	 * <pre>Nodal Load: 103120 load : 0 0 -16.5846 0 0 0 </pre>
 	 * @param line
 	 *            line to scan.
@@ -111,9 +111,16 @@ public class ParseOpenSeesPrint {
 			return;
 		}
 		List<Double> r = parseNumberLine(line);
-		NodeLoads nl = new NodeLoads(current.getNodeIndex(),
-				MtxUtils.list2DoubleArray(r));
-		current.setLoads(nl);
+		int nodeidx = (int) Math.round(r.get(0));
+		log.debug("Found loads at node " + nodeidx);
+		NodeLoads nl = new NodeLoads(new Integer(nodeidx),
+				MtxUtils.list2DoubleArray(r.subList(1, r.size())));// first number is the Node number.
+		Node node = nodes.get(nodeidx);
+		if(node == null) {
+			log.error("Node " + nodeidx + " does not exist");
+			return;
+		}
+		node.setLoads(nl);
 	}
 
 	/**
@@ -122,7 +129,7 @@ public class ParseOpenSeesPrint {
 	 * declaration. Example:
 	 * <p>
 	 * <blockquote>
-	 * 
+	 *
 	 * <pre>
 	 * Mass :
 	 * 0 0 0 0 0 0
@@ -158,7 +165,7 @@ public class ParseOpenSeesPrint {
 
 	/**
 	 * Scan line for a Node declaration. Example:
-	 * 
+	 *
 	 * <pre>
 	 * Node:
 	 * 1500
