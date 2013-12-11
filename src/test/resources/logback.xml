@@ -34,16 +34,22 @@
 		name="org.nees.illinois.uisimcor.fem_executor.output"
 		level="DEBUG" />
 	<logger
-		name="org.nees.illinois.uisimcor.fem_executor.process.DoubleMatrix"
+		name="org.nees.illinois.uisimcor.fem_executor.output.DoubleMatrix"
 		level="INFO" />
 	<logger
-		name="org.nees.illinois.uisimcor.fem_executor.process.ProcessResponse"
+		name="org.nees.illinois.uisimcor.fem_executor.response.ProcessResponse"
 		level="DEBUG" />
 	<logger
 		name="org.nees.illinois.uisimcor.fem_executor.input"
 		level="INFO" />
 	<logger
 		name="org.nees.illinois.uisimcor.fem_executor.output.DataFormatter"
+		level="INFO" />
+	<logger
+		name="org.nees.illinois.uisimcor.opensees.test_utils"
+		level="DEBUG" />
+	<logger
+		name="org.nees.illinois.uisimcor.opensees.test_utils.dao.Node"
 		level="INFO" />
 
 	<root level="DEBUG">

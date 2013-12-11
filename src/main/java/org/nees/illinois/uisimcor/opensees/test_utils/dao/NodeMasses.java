@@ -32,7 +32,7 @@ public class NodeMasses {
 		List<Integer> result = new ArrayList<Integer>();
 		for (int r = 0; r < sz[0]; r++) {
 			for (int c = 0; c < sz[1]; c++) {
-				if (masses.value(r, c) != 0) {
+				if (masses.value(r, c) > 0.0) {
 					result.add(new Integer(r));
 					break;
 				}
